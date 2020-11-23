@@ -6,7 +6,6 @@ const provideFunds = require("../../../../../helpers/services/gelato/provideFund
 const providerAssignsExecutor = require("../../../../../helpers/services/gelato/providerAssignsExecutor");
 const addProviderModuleDSA = require("../../../../../helpers/services/gelato/addProviderModuleDSA");
 const createDSA = require("../../../../../helpers/services/InstaDapp/createDSA");
-const addETHBGemJoinMapping = require("../../../../../helpers/services/maker/addETHBGemJoinMapping");
 const initializeMakerCdp = require("../../../../../helpers/services/maker/initializeMakerCdp");
 const createVaultForETHB = require("../../../../../helpers/services/maker/createVaultForETHB");
 const getSpellsEthAEthB = require("./services/getSpells-ETHA-ETHB");
@@ -39,11 +38,6 @@ module.exports = async function () {
     wallets.userAddress,
     contracts.instaIndex,
     contracts.instaList
-  );
-  await addETHBGemJoinMapping(
-    wallets.userWallet,
-    contracts.instaMapping,
-    contracts.instaMaster
   );
   const vaultAId = await initializeMakerCdp(
     wallets.userAddress,

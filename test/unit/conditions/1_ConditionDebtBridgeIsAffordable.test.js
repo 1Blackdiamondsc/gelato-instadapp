@@ -147,7 +147,7 @@ describe("ConditionDebtBridgeIsAffordable Unit Test", function () {
   it("#2: ok should return OK when the gas fees not exceed a define amount", async function () {
     const conditionData = await conditionDebtBridgeIsAffordable.getConditionData(
       cdpId,
-      ethers.utils.parseUnits("10", 15)
+      ethers.utils.parseUnits("10", 16)
     );
 
     expect(

@@ -67,9 +67,7 @@ describe("FGelatoDebtBridge Unit Tests", function () {
 
   it("getFlashLoanRoute should revert with FGelatoDebtBridge._getFlashLoanRoute: illiquid", async function () {
     const rData = await instaPoolResolver.getTokenLimit(DAI);
-    const daiAmtToBorrow = ethers.utils
-      .parseUnits("1000", 18)
-      .add(rData.compound);
+    const daiAmtToBorrow = ethers.utils.parseUnits("1000", 18).add(rData.aave);
 
     await expect(
       fGelatoDebtBridgeMock.getFlashLoanRoute(DAI, daiAmtToBorrow)

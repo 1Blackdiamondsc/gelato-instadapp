@@ -23,6 +23,7 @@ describe("Full Debt Bridge refinancing loan from ETH-A to ETH-B", function () {
 
   // Payload Params for ConnectGelatoFullDebtBridgeFromMaker and ConditionMakerVaultUnsafe
   let vaultAId;
+  let vaultBId;
 
   // For TaskSpec and for Task
   let gelatoDebtBridgeSpells = [];
@@ -39,6 +40,7 @@ describe("Full Debt Bridge refinancing loan from ETH-A to ETH-B", function () {
     wallets = result.wallets;
     contracts = result.contracts;
     vaultAId = result.vaultAId;
+    vaultBId = result.vaultBId;
     gelatoDebtBridgeSpells = result.spells;
 
     ABI = result.ABI;
@@ -102,11 +104,21 @@ describe("Full Debt Bridge refinancing loan from ETH-A to ETH-B", function () {
       ),
     });
 
+    const conditionIsDestVaultWillBeSafe = new GelatoCoreLib.Condition({
+      inst: contracts.conditionIsDestVaultWillBeSafe.address,
+      data: await contracts.conditionIsDestVaultWillBeSafe.getConditionData(
+        vaultAId,
+        vaultBId,
+        "ETH-B"
+      ),
+    });
+
     // ======= GELATO TASK SETUP ======
     const refinanceFromEthAToBIfVaultUnsafe = new GelatoCoreLib.Task({
       conditions: [
         conditionMakerVaultUnsafeObj,
         conditionDebtBridgeIsAffordableObj,
+        conditionIsDestVaultWillBeSafe,
       ],
       actions: gelatoDebtBridgeSpells,
     });

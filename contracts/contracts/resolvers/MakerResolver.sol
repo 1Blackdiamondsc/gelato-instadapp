@@ -4,7 +4,9 @@ pragma solidity 0.7.4;
 import {
     _getMakerRawVaultDebt,
     _getMakerVaultDebt,
-    _getMakerVaultCollateralBalance
+    _getMakerVaultCollateralBalance,
+    _isVaultWillBeSafe,
+    _isNewVaultWillBeSafe
 } from "../../functions/dapps/FMaker.sol";
 
 contract MakerResolver {
@@ -28,5 +30,21 @@ contract MakerResolver {
         returns (uint256)
     {
         return _getMakerVaultCollateralBalance(_vaultId);
+    }
+
+    function isVaultWillBeSafe(
+        uint256 _vaultId,
+        uint256 _amtToBorrow,
+        uint256 _colToDeposit
+    ) public view returns (bool) {
+        return _isVaultWillBeSafe(_vaultId, _amtToBorrow, _colToDeposit);
+    }
+
+    function isNewVaultWillBeSafe(
+        string memory _colType,
+        uint256 _amtToBorrow,
+        uint256 _colToDeposit
+    ) public view returns (bool) {
+        return _isNewVaultWillBeSafe(_colType, _amtToBorrow, _colToDeposit);
     }
 }

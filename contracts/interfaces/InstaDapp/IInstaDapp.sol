@@ -41,3 +41,7 @@ interface ConnectorInterface {
 
     function name() external view returns (string memory);
 }
+
+interface InstaMapping {
+    function gemJoinMapping(bytes32) external view returns (address);
+}

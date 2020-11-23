@@ -12,7 +12,7 @@ const { utils } = require("ethers");
 
 const GelatoCoreLib = require("@gelatonetwork/core");
 
-const mainnetDeployments = require("./hardhat/config/mainnet-deployments");
+const mainnetDeployments = require("./tool/config/mainnet-deployments");
 
 // Process Env Variables
 require("dotenv").config();
@@ -55,7 +55,7 @@ module.exports = {
       // timeout: 150000,
       forking: {
         url: `https://eth-mainnet.alchemyapi.io/v2/${ALCHEMY_ID}`,
-        blockNumber: 11189230,
+        blockNumber: 11310523,
       },
       // Custom
       ...mainnetDeployments,

@@ -113,6 +113,10 @@ module.exports = async function () {
     "MockConnectGelatoDataFullRefinanceMaker"
   );
 
+  const conditionIsDestVaultWillBeSafe = await ethers.getContract(
+    "ConditionIsDestVaultWillBeSafe"
+  );
+
   return {
     connectGelato,
     connectMaker,
@@ -141,5 +145,6 @@ module.exports = async function () {
     conditionDebtBridgeIsAffordable,
     mockDebtBridgeETHBExecutor,
     mockConnectGelatoDataFullRefinanceMaker,
+    conditionIsDestVaultWillBeSafe,
   };
 };

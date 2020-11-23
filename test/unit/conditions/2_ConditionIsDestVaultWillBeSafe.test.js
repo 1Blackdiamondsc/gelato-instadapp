@@ -15,7 +15,7 @@ const IERC20 = require("../../../pre-compiles/IERC20.json");
 
 // #endregion
 
-describe("ConditionIsDestVaultWillBeSafe Unit Test", function () {
+describe("ConditionDestVaultWillBeSafe Unit Test", function () {
   this.timeout(0);
   if (hre.network.name !== "hardhat") {
     console.error("Test Suite is meant to be run on hardhat only");
@@ -32,7 +32,7 @@ describe("ConditionIsDestVaultWillBeSafe Unit Test", function () {
   let DAI;
   let vat;
 
-  let conditionIsDestVaultWillBeSafe;
+  let conditionDestVaultWillBeSafe;
 
   let dsa;
   let cdpId;
@@ -73,8 +73,8 @@ describe("ConditionIsDestVaultWillBeSafe Unit Test", function () {
     DAI = await ethers.getContractAt(IERC20.abi, hre.network.config.DAI);
 
     // ========== Test Setup ============
-    conditionIsDestVaultWillBeSafe = await ethers.getContract(
-      "ConditionIsDestVaultWillBeSafe"
+    conditionDestVaultWillBeSafe = await ethers.getContract(
+      "ConditionDestVaultWillBeSafe"
     );
 
     // Create DeFi Smart Account
@@ -144,18 +144,18 @@ describe("ConditionIsDestVaultWillBeSafe Unit Test", function () {
   });
 
   it("#1: ok should return DebtBridgeNotAffordable when the gas fees exceed a define amount", async function () {
-    const conditionData = await conditionIsDestVaultWillBeSafe.getConditionData(
+    const conditionData = await conditionDestVaultWillBeSafe.getConditionData(
       cdpId,
       0,
       "ETH-B"
     );
     expect(
-      await conditionIsDestVaultWillBeSafe.ok(0, conditionData, 0)
+      await conditionDestVaultWillBeSafe.ok(0, conditionData, 0)
     ).to.be.equal("OK");
   });
 
-  it("#2: New Vault Case : isDestVaultWillBeSafe should return false when col is lower than borrow amount / spot", async function () {
-    var amountOfColToDepo = amountToBorrow
+  it("#2: New Vault Case : destVaultWillBeSafeExplicit should return false when col is lower than borrow amount / spot", async function () {
+    let amountOfColToDepo = amountToBorrow
       .mul(ilk[1])
       .div(ethers.utils.parseUnits("1", 27));
     amountOfColToDepo = amountOfColToDepo
@@ -164,7 +164,7 @@ describe("ConditionIsDestVaultWillBeSafe Unit Test", function () {
       .div(ilk[2]);
 
     expect(
-      await conditionIsDestVaultWillBeSafe.isDestVaultWillBeSafe(
+      await conditionDestVaultWillBeSafe.destVaultWillBeSafeExplicit(
         0,
         amountToBorrow,
         amountOfColToDepo,
@@ -173,7 +173,7 @@ describe("ConditionIsDestVaultWillBeSafe Unit Test", function () {
     ).to.be.false;
   });
 
-  it("#3: New Vault Case : isDestVaultWillBeSafe should return true when col is greater than borrow amount / spot", async function () {
+  it("#3: New Vault Case : destVaultWillBeSafeExplicit should return true when col is greater than borrow amount / spot", async function () {
     let amountOfColToDepo = amountToBorrow
       .mul(ilk[1])
       .div(ethers.utils.parseUnits("1", 27));
@@ -183,7 +183,7 @@ describe("ConditionIsDestVaultWillBeSafe Unit Test", function () {
       .div(ilk[2]);
 
     expect(
-      await conditionIsDestVaultWillBeSafe.isDestVaultWillBeSafe(
+      await conditionDestVaultWillBeSafe.destVaultWillBeSafeExplicit(
         0,
         amountToBorrow,
         amountOfColToDepo,
@@ -192,7 +192,7 @@ describe("ConditionIsDestVaultWillBeSafe Unit Test", function () {
     ).to.be.true;
   });
 
-  it("#4: Old Vault Case : isDestVaultWillBeSafe should return false when col is lower than borrow amount / spot", async function () {
+  it("#4: Old Vault Case : destVaultWillBeSafeExplicit should return false when col is lower than borrow amount / spot", async function () {
     const openVault = await hre.run("abi-encode-withselector", {
       abi: ConnectMaker.abi,
       functionname: "open",
@@ -214,7 +214,7 @@ describe("ConditionIsDestVaultWillBeSafe Unit Test", function () {
       .div(ilk[2]);
 
     expect(
-      await conditionIsDestVaultWillBeSafe.isDestVaultWillBeSafe(
+      await conditionDestVaultWillBeSafe.destVaultWillBeSafeExplicit(
         cdpIdB,
         amountToBorrow,
         amountOfColToDepo,
@@ -223,7 +223,7 @@ describe("ConditionIsDestVaultWillBeSafe Unit Test", function () {
     ).to.be.false;
   });
 
-  it("#5: Old Vault Case : isDestVaultWillBeSafe should return true when col is lower than borrow amount / spot", async function () {
+  it("#5: Old Vault Case : destVaultWillBeSafeExplicit should return true when col is lower than borrow amount / spot", async function () {
     const openVault = await hre.run("abi-encode-withselector", {
       abi: ConnectMaker.abi,
       functionname: "open",
@@ -245,7 +245,7 @@ describe("ConditionIsDestVaultWillBeSafe Unit Test", function () {
       .div(ilk[2]);
 
     expect(
-      await conditionIsDestVaultWillBeSafe.isDestVaultWillBeSafe(
+      await conditionDestVaultWillBeSafe.destVaultWillBeSafeExplicit(
         cdpIdB,
         amountToBorrow,
         amountOfColToDepo,
@@ -254,7 +254,7 @@ describe("ConditionIsDestVaultWillBeSafe Unit Test", function () {
     ).to.be.true;
   });
 
-  it("#6: Old Vault Case with existing deposit : isDestVaultWillBeSafe should return true when col is lower than borrow amount / spot due to initial deposit on Vault B", async function () {
+  it("#6: Old Vault Case with existing deposit : destVaultWillBeSafeExplicit should return true when col is lower than borrow amount / spot due to initial deposit on Vault B", async function () {
     const openVault = await hre.run("abi-encode-withselector", {
       abi: ConnectMaker.abi,
       functionname: "open",
@@ -295,7 +295,7 @@ describe("ConditionIsDestVaultWillBeSafe Unit Test", function () {
     );
 
     expect(
-      await conditionIsDestVaultWillBeSafe.isDestVaultWillBeSafe(
+      await conditionDestVaultWillBeSafe.destVaultWillBeSafeExplicit(
         cdpIdB,
         amountToBorrow,
         amountOfColToDepo,

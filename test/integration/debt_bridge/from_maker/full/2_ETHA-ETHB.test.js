@@ -104,9 +104,9 @@ describe("Full Debt Bridge refinancing loan from ETH-A to ETH-B", function () {
       ),
     });
 
-    const conditionIsDestVaultWillBeSafe = new GelatoCoreLib.Condition({
-      inst: contracts.conditionIsDestVaultWillBeSafe.address,
-      data: await contracts.conditionIsDestVaultWillBeSafe.getConditionData(
+    const conditionDestVaultWillBeSafe = new GelatoCoreLib.Condition({
+      inst: contracts.conditionDestVaultWillBeSafe.address,
+      data: await contracts.conditionDestVaultWillBeSafe.getConditionData(
         vaultAId,
         vaultBId,
         "ETH-B"
@@ -118,7 +118,7 @@ describe("Full Debt Bridge refinancing loan from ETH-A to ETH-B", function () {
       conditions: [
         conditionMakerVaultUnsafeObj,
         conditionDebtBridgeIsAffordableObj,
-        conditionIsDestVaultWillBeSafe,
+        conditionDestVaultWillBeSafe,
       ],
       actions: gelatoDebtBridgeSpells,
     });

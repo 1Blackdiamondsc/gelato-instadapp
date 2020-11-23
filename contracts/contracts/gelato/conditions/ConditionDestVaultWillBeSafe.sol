@@ -8,23 +8,22 @@ import {
 import {
     _getMakerVaultDebt,
     _getMakerVaultCollateralBalance,
-    _isVaultWillBeSafe,
-    _isNewVaultWillBeSafe
+    _vaultWillBeSafe,
+    _newVaultWillBeSafe
 } from "../../../functions/dapps/FMaker.sol";
 import {
     _getRealisedDebt
 } from "../../../functions/gelato/FGelatoDebtBridge.sol";
 
 import {GelatoBytes} from "../../../lib/GelatoBytes.sol";
-import "hardhat/console.sol";
 
-contract ConditionIsDestVaultWillBeSafe is GelatoConditionsStandard {
+contract ConditionDestVaultWillBeSafe is GelatoConditionsStandard {
     using GelatoBytes for bytes;
 
     function getConditionData(
         uint256 _fromVaultId,
         uint256 _destVaultId,
-        string memory _destColType
+        string calldata _destColType
     ) public pure virtual returns (bytes memory) {
         return abi.encode(_fromVaultId, _destVaultId, _destColType);
     }
@@ -53,7 +52,7 @@ contract ConditionIsDestVaultWillBeSafe is GelatoConditionsStandard {
         uint256 wColToDeposit = _getMakerVaultCollateralBalance(_fromVaultId);
 
         return
-            isDestVaultWillBeSafe(
+            destVaultWillBeSafeExplicit(
                 _destVaultId,
                 wDaiToBorrow,
                 wColToDeposit,
@@ -63,7 +62,7 @@ contract ConditionIsDestVaultWillBeSafe is GelatoConditionsStandard {
                 : "DestVaultWillNotBeSafe";
     }
 
-    function isDestVaultWillBeSafe(
+    function destVaultWillBeSafeExplicit(
         uint256 _vaultId,
         uint256 _wDaiToBorrow,
         uint256 _wColToDeposit,
@@ -71,7 +70,7 @@ contract ConditionIsDestVaultWillBeSafe is GelatoConditionsStandard {
     ) public view returns (bool) {
         return
             _vaultId == 0
-                ? _isNewVaultWillBeSafe(_colType, _wDaiToBorrow, _wColToDeposit)
-                : _isVaultWillBeSafe(_vaultId, _wDaiToBorrow, _wColToDeposit);
+                ? _newVaultWillBeSafe(_colType, _wDaiToBorrow, _wColToDeposit)
+                : _vaultWillBeSafe(_vaultId, _wDaiToBorrow, _wColToDeposit);
     }
 }

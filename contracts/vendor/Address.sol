@@ -145,9 +145,8 @@ library Address {
         require(isContract(target), "Address: call to non-contract");
 
         // solhint-disable-next-line avoid-low-level-calls
-        (bool success, bytes memory returndata) = target.call{value: value}(
-            data
-        );
+        (bool success, bytes memory returndata) =
+            target.call{value: value}(data);
         return _verifyCallResult(success, returndata, errorMessage);
     }
 

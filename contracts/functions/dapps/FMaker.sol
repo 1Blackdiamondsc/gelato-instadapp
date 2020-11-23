@@ -54,12 +54,12 @@ function _getMakerVaultCollateralBalance(uint256 _vaultId)
     return ink;
 }
 
-function _isVaultWillBeSafe(
+function _vaultWillBeSafe(
     uint256 _vaultId,
     uint256 _amtToBorrow,
     uint256 _colToDeposit
 ) view returns (bool) {
-    require(_vaultId != 0, "_isVaultWillBeSafe: invalid vault id.");
+    require(_vaultId != 0, "_vaultWillBeSafe: invalid vault id.");
 
     IMcdManager manager = IMcdManager(MCD_MANAGER);
 
@@ -84,7 +84,7 @@ function _isVaultWillBeSafe(
     return tab <= mul(ink, spot);
 }
 
-function _isNewVaultWillBeSafe(
+function _newVaultWillBeSafe(
     string memory _colType,
     uint256 _amtToBorrow,
     uint256 _colToDeposit

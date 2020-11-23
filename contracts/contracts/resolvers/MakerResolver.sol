@@ -5,8 +5,8 @@ import {
     _getMakerRawVaultDebt,
     _getMakerVaultDebt,
     _getMakerVaultCollateralBalance,
-    _isVaultWillBeSafe,
-    _isNewVaultWillBeSafe
+    _vaultWillBeSafe,
+    _newVaultWillBeSafe
 } from "../../functions/dapps/FMaker.sol";
 
 contract MakerResolver {
@@ -32,19 +32,19 @@ contract MakerResolver {
         return _getMakerVaultCollateralBalance(_vaultId);
     }
 
-    function isVaultWillBeSafe(
+    function vaultWillBeSafe(
         uint256 _vaultId,
         uint256 _amtToBorrow,
         uint256 _colToDeposit
     ) public view returns (bool) {
-        return _isVaultWillBeSafe(_vaultId, _amtToBorrow, _colToDeposit);
+        return _vaultWillBeSafe(_vaultId, _amtToBorrow, _colToDeposit);
     }
 
-    function isNewVaultWillBeSafe(
+    function newVaultWillBeSafe(
         string memory _colType,
         uint256 _amtToBorrow,
         uint256 _colToDeposit
     ) public view returns (bool) {
-        return _isNewVaultWillBeSafe(_colType, _amtToBorrow, _colToDeposit);
+        return _newVaultWillBeSafe(_colType, _amtToBorrow, _colToDeposit);
     }
 }

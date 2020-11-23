@@ -24,7 +24,7 @@ describe("Gas Measurements: Full Debt Bridge From Maker ETH-A to ETH-B", functio
 
   let conditionMakerVaultUnsafeObj;
   let conditionDebtBridgeIsAffordableObj;
-  let conditionIsDestVaultWillBeSafe;
+  let conditionDestVaultWillBeSafe;
 
   // For TaskSpec and for Task
   let gelatoDebtBridgeSpells = [];
@@ -84,9 +84,9 @@ describe("Gas Measurements: Full Debt Bridge From Maker ETH-A to ETH-B", functio
       ),
     });
 
-    conditionIsDestVaultWillBeSafe = new GelatoCoreLib.Condition({
-      inst: contracts.conditionIsDestVaultWillBeSafe.address,
-      data: await contracts.conditionIsDestVaultWillBeSafe.getConditionData(
+    conditionDestVaultWillBeSafe = new GelatoCoreLib.Condition({
+      inst: contracts.conditionDestVaultWillBeSafe.address,
+      data: await contracts.conditionDestVaultWillBeSafe.getConditionData(
         vaultAId,
         vaultBId,
         "ETH-B"
@@ -97,7 +97,7 @@ describe("Gas Measurements: Full Debt Bridge From Maker ETH-A to ETH-B", functio
       conditions: [
         conditionMakerVaultUnsafeObj,
         conditionDebtBridgeIsAffordableObj,
-        conditionIsDestVaultWillBeSafe,
+        conditionDestVaultWillBeSafe,
       ],
       actions: gelatoDebtBridgeSpells,
     });

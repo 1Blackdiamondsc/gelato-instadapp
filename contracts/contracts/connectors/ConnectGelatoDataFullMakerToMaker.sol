@@ -20,7 +20,7 @@ import {
 import {
     _getMakerVaultDebt,
     _getMakerVaultCollateralBalance,
-    _isVaultOwnedBy
+    _isVaultOwner
 } from "../../functions/dapps/FMaker.sol";
 import {
     _encodeFlashPayback
@@ -49,20 +49,15 @@ import {
 import {
     DataFlow
 } from "@gelatonetwork/core/contracts/gelato_core/interfaces/IGelatoCore.sol";
-import {
-    IGelatoAction
-} from "@gelatonetwork/core/contracts/actions/IGelatoAction.sol";
 
-contract ConnectGelatoDataFullMakerToMaker is
-    ConnectorInterface,
-    IGelatoAction
-{
+contract ConnectGelatoDataFullMakerToMaker is ConnectorInterface {
     using GelatoBytes for bytes;
+
     string public constant OK = "OK";
 
     // solhint-disable const-name-snakecase
     string public constant override name =
-        "ConnectGelatoDataFullRefinanceMaker-v1.0";
+        "ConnectGelatoDataFullMakerToMaker-v1.0";
     uint256 internal immutable _id;
     address internal immutable _connectGelatoProviderPayment;
 
@@ -90,14 +85,15 @@ contract ConnectGelatoDataFullMakerToMaker is
         DataFlow,
         uint256, // value
         uint256 // cycleId
-    ) public view virtual override returns (string memory) {
+    ) public view returns (string memory) {
         (uint256 vaultAId, , , ) =
             abi.decode(_actionData[4:], (uint256, uint256, address, string));
 
         if (vaultAId == 0)
-            return "ConnectGelatoDataFullETHAToETHB : Vault A Id is not valid";
-        if (_isVaultOwnedBy(vaultAId, _dsa))
-            return "ConnectGelatoDataFullETHAToETHB : Vault A not owned by dsa";
+            return "ConnectGelatoDataFullMakerToMaker: Vault A Id is not valid";
+        if (!_isVaultOwner(vaultAId, _dsa))
+            return
+                "ConnectGelatoDataFullMakerToMaker: Vault A not owned by dsa";
         return OK;
     }
 
@@ -133,7 +129,7 @@ contract ConnectGelatoDataFullMakerToMaker is
             address(this).delegatecall(castData);
         if (!success) {
             returndata.revertWithError(
-                "ConnectGelatoDataFullRefinanceMaker._cast:"
+                "ConnectGelatoDataFullMakerToMaker._cast:"
             );
         }
     }
@@ -149,7 +145,7 @@ contract ConnectGelatoDataFullMakerToMaker is
         targets = new address[](1);
         targets[0] = INSTA_POOL_V2;
 
-        _vaultBId = _isVaultOwnedBy(_vaultBId, address(this)) ? 0 : _vaultBId;
+        _vaultBId = _isVaultOwner(_vaultBId, address(this)) ? _vaultBId : 0;
 
         uint256 wDaiToBorrow = _getRealisedDebt(_getMakerVaultDebt(_vaultAId));
         uint256 wColToWithdrawFromMaker =

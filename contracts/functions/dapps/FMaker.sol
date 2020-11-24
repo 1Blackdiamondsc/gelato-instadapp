@@ -124,7 +124,14 @@ function _getBorrowAmt(
     dart = mul(dart, _rate) < mul(_amt, RAY) ? dart + 1 : dart;
 }
 
-function _isVaultOwnedBy(uint256 _vaultId, address _owner) view returns (bool) {
-    IMcdManager managerContract = IMcdManager(MCD_MANAGER);
-    return _vaultId != 0 && managerContract.owns(_vaultId) != _owner;
+function _isVaultOwner(uint256 _vaultId, address _owner) view returns (bool) {
+    if (_vaultId == 0) return false;
+
+    try IMcdManager(MCD_MANAGER).owns(_vaultId) returns (address owner) {
+        return _owner == owner;
+    } catch Error(string memory error) {
+        revert(string(abi.encodePacked("FMaker._isVaultOwner:", error)));
+    } catch {
+        revert("FMaker._isVaultOwner:undefined");
+    }
 }

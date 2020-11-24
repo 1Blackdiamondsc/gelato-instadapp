@@ -20,7 +20,7 @@ import {
 import {
     _getMakerVaultDebt,
     _getMakerVaultCollateralBalance,
-    _isVaultOwnedBy
+    _isVaultOwner
 } from "../../functions/dapps/FMaker.sol";
 import {
     _encodeFlashPayback
@@ -49,20 +49,15 @@ import {
 import {
     DataFlow
 } from "@gelatonetwork/core/contracts/gelato_core/interfaces/IGelatoCore.sol";
-import {
-    IGelatoAction
-} from "@gelatonetwork/core/contracts/actions/IGelatoAction.sol";
 
-contract ConnectGelatoDataFullMakerToCompound is
-    ConnectorInterface,
-    IGelatoAction
-{
+contract ConnectGelatoDataFullMakerToCompound is ConnectorInterface {
     using GelatoBytes for bytes;
+
     string public constant OK = "OK";
 
     // solhint-disable const-name-snakecase
     string public constant override name =
-        "ConnectGelatoDataFullRefinanceMaker-v1.0";
+        "ConnectGelatoDataFullMakerToCompound-v1.0";
     uint256 internal immutable _id;
     address internal immutable _connectGelatoProviderPayment;
 
@@ -82,7 +77,8 @@ contract ConnectGelatoDataFullMakerToCompound is
     }
 
     // ====== ACTION TERMS CHECK ==========
-    // Overriding IGelatoAction's function (optional)
+    /// @notice GelatoCore protocol standard function
+    /// @dev GelatoCore calls this to verify that a Task is executable
     function termsOk(
         uint256, // taskReceipId
         address _dsa,
@@ -90,13 +86,15 @@ contract ConnectGelatoDataFullMakerToCompound is
         DataFlow, // DataFlow
         uint256, // value
         uint256 // cycleId
-    ) public view virtual override returns (string memory) {
+    ) public view returns (string memory) {
         (uint256 vaultId, ) = abi.decode(_actionData[4:], (uint256, address));
 
         if (vaultId == 0)
-            return "ConnectGelatoDataFullETHAToETHB : Vault Id is not valid";
-        if (_isVaultOwnedBy(vaultId, _dsa))
-            return "ConnectGelatoDataFullETHAToETHB : Vault not owned by dsa";
+            return
+                "ConnectGelatoDataFullMakerToCompound: Vault Id is not valid";
+        if (!_isVaultOwner(vaultId, _dsa))
+            return
+                "ConnectGelatoDataFullMakerToCompound: Vault not owned by dsa";
         return OK;
     }
 

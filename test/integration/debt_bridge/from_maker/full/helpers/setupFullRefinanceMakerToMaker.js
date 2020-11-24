@@ -15,6 +15,7 @@ module.exports = async function () {
   const wallets = await getWallets();
   const contracts = await getContracts();
   const constants = await getDebtBridgeFromMakerConstants();
+  const ABI = getABI();
 
   // Gelato Testing environment setup.
   await stakeExecutor(wallets.gelatoExecutorWallet, contracts.gelatoCore);
@@ -46,7 +47,8 @@ module.exports = async function () {
     contracts.getCdps,
     contracts.dssCdpManager,
     constants.MAKER_INITIAL_ETH,
-    constants.MAKER_INITIAL_DEBT
+    constants.MAKER_INITIAL_DEBT,
+    ABI.ConnectMakerABI
   );
   const vaultBId = await createVaultForETHB(
     wallets.userAddress,
@@ -62,8 +64,6 @@ module.exports = async function () {
     vaultAId,
     vaultBId
   );
-
-  const ABI = getABI();
 
   return {
     wallets,

@@ -14,6 +14,7 @@ module.exports = async function (mockRoute) {
   const wallets = await getWallets();
   const contracts = await getContracts();
   const constants = await getDebtBridgeFromMakerConstants();
+  const ABI = getABI();
 
   // Gelato Testing environment setup.
   await provideFunds(
@@ -44,7 +45,8 @@ module.exports = async function (mockRoute) {
     contracts.getCdps,
     contracts.dssCdpManager,
     constants.MAKER_INITIAL_ETH,
-    constants.MAKER_INITIAL_DEBT
+    constants.MAKER_INITIAL_DEBT,
+    ABI.ConnectMakerABI
   );
   const vaultBId = await createVaultForETHB(
     wallets.userAddress,
@@ -61,8 +63,6 @@ module.exports = async function (mockRoute) {
     vaultAId,
     vaultBId
   );
-
-  const ABI = getABI();
 
   return {
     wallets,

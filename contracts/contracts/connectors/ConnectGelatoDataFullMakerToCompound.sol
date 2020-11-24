@@ -11,17 +11,16 @@ import {
 import {
     IConnectInstaPoolV2
 } from "../../interfaces/InstaDapp/connectors/IConnectInstaPoolV2.sol";
-import {IMcdManager} from "../../interfaces/dapps/Maker/IMcdManager.sol";
 import {
     DAI,
     CONNECT_MAKER,
     CONNECT_COMPOUND,
     INSTA_POOL_V2
 } from "../../constants/CInstaDapp.sol";
-import {MCD_MANAGER} from "../../constants/CMaker.sol";
 import {
     _getMakerVaultDebt,
-    _getMakerVaultCollateralBalance
+    _getMakerVaultCollateralBalance,
+    _isVaultOwnedBy
 } from "../../functions/dapps/FMaker.sol";
 import {
     _encodeFlashPayback
@@ -93,12 +92,11 @@ contract ConnectGelatoDataFullMakerToCompound is
         uint256 // cycleId
     ) public view virtual override returns (string memory) {
         (uint256 vaultId, ) = abi.decode(_actionData[4:], (uint256, address));
-        IMcdManager managerContract = IMcdManager(MCD_MANAGER);
 
         if (vaultId == 0)
             return "ConnectGelatoDataFullETHAToETHB : Vault Id is not valid";
-        if (managerContract.owns(vaultId) != _dsa)
-            return "ConnectGelatoDataFullETHAToETHB : Vault not owns by dsa";
+        if (_isVaultOwnedBy(vaultId, _dsa))
+            return "ConnectGelatoDataFullETHAToETHB : Vault not owned by dsa";
         return OK;
     }
 

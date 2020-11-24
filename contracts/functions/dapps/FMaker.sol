@@ -123,3 +123,8 @@ function _getBorrowAmt(
     dart = sub(mul(_amt, RAY), _dai) / _rate;
     dart = mul(dart, _rate) < mul(_amt, RAY) ? dart + 1 : dart;
 }
+
+function _isVaultOwnedBy(uint256 _vaultId, address _owner) view returns (bool) {
+    IMcdManager managerContract = IMcdManager(MCD_MANAGER);
+    return _vaultId != 0 && managerContract.owns(_vaultId) != _owner;
+}

@@ -1,8 +1,6 @@
 const { expect } = require("chai");
 const hre = require("hardhat");
 
-const ConnectMaker = require("../../../../pre-compiles/ConnectMaker.json");
-
 module.exports = async function (
   userAddress,
   DAI,
@@ -10,7 +8,8 @@ module.exports = async function (
   getCdps,
   dssCdpManager,
   makerInitialEth,
-  makerInitialDebt
+  makerInitialDebt,
+  connectMakerABI
 ) {
   //#region Step 8 User open a Vault, put some ether on it and borrow some dai
 
@@ -18,7 +17,7 @@ module.exports = async function (
   // He deposit 10 Eth on it
   // He borrow a 1000 DAI
   const openVault = await hre.run("abi-encode-withselector", {
-    abi: ConnectMaker.abi,
+    abi: connectMakerABI,
     functionname: "open",
     inputs: ["ETH-A"],
   });
@@ -33,7 +32,7 @@ module.exports = async function (
     [hre.network.config.ConnectMaker],
     [
       await hre.run("abi-encode-withselector", {
-        abi: ConnectMaker.abi,
+        abi: connectMakerABI,
         functionname: "deposit",
         inputs: [vaultId, makerInitialEth, 0, 0],
       }),
@@ -48,7 +47,7 @@ module.exports = async function (
     [hre.network.config.ConnectMaker],
     [
       await hre.run("abi-encode-withselector", {
-        abi: ConnectMaker.abi,
+        abi: connectMakerABI,
         functionname: "borrow",
         inputs: [vaultId, makerInitialDebt, 0, 0],
       }),

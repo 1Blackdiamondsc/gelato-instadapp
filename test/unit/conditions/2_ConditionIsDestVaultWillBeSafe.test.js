@@ -143,7 +143,7 @@ describe("ConditionDestVaultWillBeSafe Unit Test", function () {
     amountToBorrow = ethers.utils.parseUnits("100", 18);
   });
 
-  it("#1: ok should return DebtBridgeNotAffordable when the gas fees exceed a define amount", async function () {
+  it("#1: ok should return Ok when the gas fees didn't exceed a user define amount", async function () {
     const conditionData = await conditionDestVaultWillBeSafe.getConditionData(
       cdpId,
       0,

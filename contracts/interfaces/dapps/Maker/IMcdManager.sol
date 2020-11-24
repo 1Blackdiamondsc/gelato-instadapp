@@ -7,4 +7,6 @@ interface IMcdManager {
     function urns(uint256) external view returns (address);
 
     function vat() external view returns (address);
+
+    function owns(uint256) external view returns (address);
 }

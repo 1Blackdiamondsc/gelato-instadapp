@@ -11,12 +11,14 @@ import {
 import {
     IConnectInstaPoolV2
 } from "../../interfaces/InstaDapp/connectors/IConnectInstaPoolV2.sol";
+import {IMcdManager} from "../../interfaces/dapps/Maker/IMcdManager.sol";
 import {
     DAI,
     CONNECT_MAKER,
     CONNECT_COMPOUND,
     INSTA_POOL_V2
 } from "../../constants/CInstaDapp.sol";
+import {MCD_MANAGER} from "../../constants/CMaker.sol";
 import {
     _getMakerVaultDebt,
     _getMakerVaultCollateralBalance
@@ -45,9 +47,19 @@ import {
     _getGasCostMakerToCompound,
     _getRealisedDebt
 } from "../../functions/gelato/FGelatoDebtBridge.sol";
+import {
+    DataFlow
+} from "@gelatonetwork/core/contracts/gelato_core/interfaces/IGelatoCore.sol";
+import {
+    IGelatoAction
+} from "@gelatonetwork/core/contracts/actions/IGelatoAction.sol";
 
-contract ConnectGelatoDataFullRefinanceMaker is ConnectorInterface {
+contract ConnectGelatoDataFullMakerToCompound is
+    ConnectorInterface,
+    IGelatoAction
+{
     using GelatoBytes for bytes;
+    string public constant OK = "OK";
 
     // solhint-disable const-name-snakecase
     string public constant override name =
@@ -70,22 +82,24 @@ contract ConnectGelatoDataFullRefinanceMaker is ConnectorInterface {
         (_type, id) = (1, _id); // Should put specific value.
     }
 
-    /// @notice Entry Point for DSA.cast DebtBridge from e.g ETH-A to ETH-B
-    /// @dev payable to be compatible in conjunction with DSA.cast payable target
-    /// @param _vaultAId Id of the unsafe vault of the client of Vault A Collateral.
-    /// @param _vaultBId Id of the vault B Collateral of the client.
-    /// @param _colToken  vault's col token address .
-    /// @param _colType colType of the new vault. example : ETH-B, ETH-A.
-    function getDataAndCastMakerToMaker(
-        uint256 _vaultAId,
-        uint256 _vaultBId,
-        address _colToken,
-        string calldata _colType
-    ) external payable {
-        (address[] memory targets, bytes[] memory datas) =
-            _dataMakerToMaker(_vaultAId, _vaultBId, _colToken, _colType);
+    // ====== ACTION TERMS CHECK ==========
+    // Overriding IGelatoAction's function (optional)
+    function termsOk(
+        uint256, // taskReceipId
+        address _dsa,
+        bytes calldata _actionData,
+        DataFlow, // DataFlow
+        uint256, // value
+        uint256 // cycleId
+    ) public view virtual override returns (string memory) {
+        (uint256 vaultId, ) = abi.decode(_actionData[4:], (uint256, address));
+        IMcdManager managerContract = IMcdManager(MCD_MANAGER);
 
-        _cast(targets, datas);
+        if (vaultId == 0)
+            return "ConnectGelatoDataFullETHAToETHB : Vault Id is not valid";
+        if (managerContract.owns(vaultId) != _dsa)
+            return "ConnectGelatoDataFullETHAToETHB : Vault not owns by dsa";
+        return OK;
     }
 
     /// @notice Entry Point for DSA.cast DebtBridge from Maker to Compound
@@ -122,123 +136,6 @@ contract ConnectGelatoDataFullRefinanceMaker is ConnectorInterface {
     }
 
     /* solhint-disable function-max-lines */
-
-    function _dataMakerToMaker(
-        uint256 _vaultAId,
-        uint256 _vaultBId,
-        address _colToken,
-        string calldata _colType
-    ) internal view returns (address[] memory targets, bytes[] memory datas) {
-        targets = new address[](1);
-        targets[0] = INSTA_POOL_V2;
-
-        uint256 wDaiToBorrow = _getRealisedDebt(_getMakerVaultDebt(_vaultAId));
-        uint256 wColToWithdrawFromMaker =
-            _getMakerVaultCollateralBalance(_vaultAId);
-        uint256 route = _getFlashLoanRoute(DAI, wDaiToBorrow);
-        uint256 gasCost = _getGasCostMakerToMaker(_vaultBId == 0, route);
-        uint256 gasFeesPaidFromCol = _getGelatoProviderFees(gasCost);
-
-        (address[] memory _targets, bytes[] memory _datas) =
-            _vaultBId == 0
-                ? _spellsMakerToNewMakerVault(
-                    _vaultAId,
-                    _colToken,
-                    _colType,
-                    wDaiToBorrow,
-                    wColToWithdrawFromMaker,
-                    gasFeesPaidFromCol
-                )
-                : _spellsMakerToMaker(
-                    _vaultAId,
-                    _vaultBId,
-                    _colToken,
-                    wDaiToBorrow,
-                    wColToWithdrawFromMaker,
-                    gasFeesPaidFromCol
-                );
-
-        datas = new bytes[](1);
-        datas[0] = abi.encodeWithSelector(
-            IConnectInstaPoolV2.flashBorrowAndCast.selector,
-            DAI,
-            wDaiToBorrow,
-            route,
-            abi.encode(_targets, _datas)
-        );
-    }
-
-    function _spellsMakerToNewMakerVault(
-        uint256 _vaultAId,
-        address _colToken,
-        string calldata _colType,
-        uint256 _wDaiToBorrow,
-        uint256 _wColToWithdrawFromMaker,
-        uint256 _gasFeesPaidFromCol
-    ) internal view returns (address[] memory targets, bytes[] memory datas) {
-        targets = new address[](7);
-        targets[0] = CONNECT_MAKER; // payback
-        targets[1] = CONNECT_MAKER; // withdraw
-        targets[2] = CONNECT_MAKER; // open new B vault
-        targets[3] = CONNECT_MAKER; // deposit
-        targets[4] = CONNECT_MAKER; // borrow
-        targets[5] = _connectGelatoProviderPayment; // payProvider
-        targets[6] = INSTA_POOL_V2; // flashPayback
-
-        datas = new bytes[](7);
-        datas[0] = _encodePaybackMakerVault(_vaultAId, uint256(-1), 0, 600);
-        datas[1] = _encodedWithdrawMakerVault(_vaultAId, uint256(-1), 0, 0);
-        datas[2] = _encodeOpenMakerVault(_colType);
-        datas[3] = _encodedDepositMakerVault(
-            0,
-            sub(_wColToWithdrawFromMaker, _gasFeesPaidFromCol),
-            0,
-            0
-        );
-        datas[4] = _encodeBorrowMakerVault(0, 0, 600, 0);
-        datas[5] = _encodePayGelatoProvider(
-            _colToken,
-            _gasFeesPaidFromCol,
-            0,
-            0
-        );
-        datas[6] = _encodeFlashPayback(DAI, _wDaiToBorrow, 0, 0);
-    }
-
-    function _spellsMakerToMaker(
-        uint256 _vaultAId,
-        uint256 _vaultBId,
-        address _colToken,
-        uint256 _wDaiToBorrow,
-        uint256 _wColToWithdrawFromMaker,
-        uint256 _gasFeesPaidFromCol
-    ) internal view returns (address[] memory targets, bytes[] memory datas) {
-        targets = new address[](6);
-        targets[0] = CONNECT_MAKER; // payback
-        targets[1] = CONNECT_MAKER; // withdraw
-        targets[2] = CONNECT_MAKER; // deposit
-        targets[3] = CONNECT_MAKER; // borrow
-        targets[4] = _connectGelatoProviderPayment; // payProvider
-        targets[5] = INSTA_POOL_V2; // flashPayback
-
-        datas = new bytes[](6);
-        datas[0] = _encodePaybackMakerVault(_vaultAId, uint256(-1), 0, 600);
-        datas[1] = _encodedWithdrawMakerVault(_vaultAId, uint256(-1), 0, 0);
-        datas[2] = _encodedDepositMakerVault(
-            _vaultBId,
-            sub(_wColToWithdrawFromMaker, _gasFeesPaidFromCol),
-            0,
-            0
-        );
-        datas[3] = _encodeBorrowMakerVault(_vaultBId, 0, 600, 0);
-        datas[4] = _encodePayGelatoProvider(
-            _colToken,
-            _gasFeesPaidFromCol,
-            0,
-            0
-        );
-        datas[5] = _encodeFlashPayback(DAI, _wDaiToBorrow, 0, 0);
-    }
 
     function _dataMakerToCompound(uint256 _vaultId, address _colToken)
         internal

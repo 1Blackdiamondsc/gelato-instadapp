@@ -6,7 +6,7 @@ const InstaConnector = require("../../pre-compiles/InstaConnectors.json");
 module.exports = async (hre) => {
   if (hre.network.name === "mainnet") {
     console.log(
-      "Deploying ConnectGelatoDataFullRefinanceMaker to mainnet. Hit ctrl + c to abort"
+      "Deploying ConnectGelatoDataFullMakerToCompound to mainnet. Hit ctrl + c to abort"
     );
     console.log("❗ CONNECTOR DEPLOYMENT: VERIFY & HARDCODE CONNECTOR ID");
     await sleep(6000);
@@ -39,7 +39,7 @@ module.exports = async (hre) => {
     const connectorLength = await instaConnectors.connectorLength();
     const connectorId = connectorLength.add(1);
 
-    await deploy("ConnectGelatoDataFullRefinanceMaker", {
+    await deploy("ConnectGelatoDataFullMakerToCompound", {
       from: deployer,
       args: [
         connectorId,
@@ -50,7 +50,7 @@ module.exports = async (hre) => {
     await instaConnectors
       .connect(instaMaster)
       .enable(
-        (await ethers.getContract("ConnectGelatoDataFullRefinanceMaker"))
+        (await ethers.getContract("ConnectGelatoDataFullMakerToCompound"))
           .address
       );
 
@@ -59,12 +59,12 @@ module.exports = async (hre) => {
       params: [await instaMaster.getAddress()],
     });
   } else {
-    // the following will only deploy "ConnectGelatoDataFullRefinanceMaker"
+    // the following will only deploy "ConnectGelatoDataFullMakerToCompound"
     // if the contract was never deployed or if the code changed since last deployment
-    await deploy("ConnectGelatoDataFullRefinanceMaker", {
+    await deploy("ConnectGelatoDataFullMakerToCompound", {
       from: deployer,
       args: [
-        parseInt(process.env.ConnectGelatoDataFullRefinanceMakerId),
+        parseInt(process.env.ConnectGelatoDataFullMakerToCompoundId),
         (await deployments.get("ConnectGelatoProviderPayment")).address,
       ],
       gasPrice: hre.network.config.gasPrice,
@@ -76,8 +76,8 @@ module.exports = async (hre) => {
 module.exports.skip = async (hre) => {
   if (hre.network.name === "mainnet") return true;
   if (hre.network.name !== "hardhat")
-    return process.env.ConnectGelatoDataFullRefinanceMakerId === undefined;
+    return process.env.ConnectGelatoDataFullMakerToCompoundId === undefined;
   return false;
 };
 module.exports.dependencies = ["ConnectGelatoProviderPayment"];
-module.exports.tags = ["ConnectGelatoDataFullRefinanceMaker"];
+module.exports.tags = ["ConnectGelatoDataFullMakerToCompound"];

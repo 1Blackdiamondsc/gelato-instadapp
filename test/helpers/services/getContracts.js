@@ -103,8 +103,11 @@ module.exports = async function () {
     "ConnectGelatoProviderPayment"
   );
   const makerResolver = await ethers.getContract("MakerResolver");
-  const connectGelatoDataFullRefinanceMaker = await ethers.getContract(
-    "ConnectGelatoDataFullRefinanceMaker"
+  const connectGelatoDataFullMakerToMaker = await ethers.getContract(
+    "ConnectGelatoDataFullMakerToMaker"
+  );
+  const connectGelatoDataFullMakerToCompound = await ethers.getContract(
+    "ConnectGelatoDataFullMakerToCompound"
   );
   const mockDebtBridgeETHBExecutor = await ethers.getContract(
     "MockDebtBridgeETHBExecutor"
@@ -122,7 +125,8 @@ module.exports = async function () {
     connectMaker,
     connectInstaPool,
     connectCompound,
-    connectGelatoDataFullRefinanceMaker,
+    connectGelatoDataFullMakerToMaker,
+    connectGelatoDataFullMakerToCompound,
     instaIndex,
     instaList,
     instaMapping,

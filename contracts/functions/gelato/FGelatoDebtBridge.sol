@@ -9,7 +9,7 @@ import {
 } from "../../constants/CInstaDapp.sol";
 import {
     GAS_COSTS_FOR_FULL_REFINANCE,
-    VAT,
+    PREMIUM,
     VAULT_CREATION_COST
 } from "../../constants/CDebtBridge.sol";
 import {
@@ -81,7 +81,7 @@ function _getGasCostMakerToMaker(bool _newVault, uint256 _route)
 {
     _checkRouteIndex(_route);
     return
-        _getGasCostVAT(
+        _getGasCostPremium(
             _newVault
                 ? add(
                     GAS_COSTS_FOR_FULL_REFINANCE()[_route],
@@ -93,11 +93,11 @@ function _getGasCostMakerToMaker(bool _newVault, uint256 _route)
 
 function _getGasCostMakerToCompound(uint256 _route) pure returns (uint256) {
     _checkRouteIndex(_route);
-    return _getGasCostVAT(GAS_COSTS_FOR_FULL_REFINANCE()[_route]);
+    return _getGasCostPremium(GAS_COSTS_FOR_FULL_REFINANCE()[_route]);
 }
 
-function _getGasCostVAT(uint256 _rawGasCost) pure returns (uint256) {
-    return mul(_rawGasCost, add(100, VAT)) / 100;
+function _getGasCostPremium(uint256 _rawGasCost) pure returns (uint256) {
+    return mul(_rawGasCost, add(100, PREMIUM)) / 100;
 }
 
 function _getRealisedDebt(uint256 _debtToMove) pure returns (uint256) {

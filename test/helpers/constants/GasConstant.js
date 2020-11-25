@@ -1,6 +1,6 @@
 module.exports = async () => {
   return {
-    VAT: 20,
+    PREMIUM: 20,
     VAULT_CREATION_COST: 100000,
   };
 };

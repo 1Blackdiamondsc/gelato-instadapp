@@ -21,6 +21,7 @@ module.exports = async function (route, withVaultCreation) {
   }
 
   return withVaultCreation
-    ? ((rawGasCost + gasCons.VAULT_CREATION_COST) * (100 + gasCons.VAT)) / 100
-    : (rawGasCost * (100 + gasCons.VAT)) / 100;
+    ? ((rawGasCost + gasCons.VAULT_CREATION_COST) * (100 + gasCons.PREMIUM)) /
+        100
+    : (rawGasCost * (100 + gasCons.PREMIUM)) / 100;
 };

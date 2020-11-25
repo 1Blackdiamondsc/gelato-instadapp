@@ -2,12 +2,16 @@
 pragma solidity 0.7.4;
 pragma experimental ABIEncoderV2;
 
-import {add, sub, wmul, wdiv} from "../../vendor/DSMath.sol";
+import {add, sub, mul, wmul, wdiv} from "../../vendor/DSMath.sol";
 import {
     INSTA_POOL_RESOLVER,
     ROUTE_1_TOLERANCE
 } from "../../constants/CInstaDapp.sol";
-import {GAS_COSTS_FOR_FULL_REFINANCE} from "../../constants/CDebtBridge.sol";
+import {
+    GAS_COSTS_FOR_FULL_REFINANCE,
+    VAT,
+    VAULT_CREATION_COST
+} from "../../constants/CDebtBridge.sol";
 import {
     IInstaPoolResolver
 } from "../../interfaces/InstaDapp/resolvers/IInstaPoolResolver.sol";
@@ -77,14 +81,23 @@ function _getGasCostMakerToMaker(bool _newVault, uint256 _route)
 {
     _checkRouteIndex(_route);
     return
-        _newVault
-            ? add(GAS_COSTS_FOR_FULL_REFINANCE()[_route], 0)
-            : GAS_COSTS_FOR_FULL_REFINANCE()[_route];
+        _getGasCostVAT(
+            _newVault
+                ? add(
+                    GAS_COSTS_FOR_FULL_REFINANCE()[_route],
+                    VAULT_CREATION_COST
+                )
+                : GAS_COSTS_FOR_FULL_REFINANCE()[_route]
+        );
 }
 
 function _getGasCostMakerToCompound(uint256 _route) pure returns (uint256) {
     _checkRouteIndex(_route);
-    return GAS_COSTS_FOR_FULL_REFINANCE()[_route];
+    return _getGasCostVAT(GAS_COSTS_FOR_FULL_REFINANCE()[_route]);
+}
+
+function _getGasCostVAT(uint256 _rawGasCost) pure returns (uint256) {
+    return mul(_rawGasCost, add(100, VAT)) / 100;
 }
 
 function _getRealisedDebt(uint256 _debtToMove) pure returns (uint256) {

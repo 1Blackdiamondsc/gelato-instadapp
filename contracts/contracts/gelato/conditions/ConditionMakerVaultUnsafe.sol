@@ -26,7 +26,14 @@ contract ConditionMakerVaultUnsafe is GelatoConditionsStandard {
         bytes calldata _oraclePayload,
         uint256 _minColRatio
     ) public pure virtual returns (bytes memory) {
-        return abi.encode(_vaultId, _priceOracle, _oraclePayload, _minColRatio);
+        return
+            abi.encodeWithSelector(
+                this.isVaultUnsafe.selector,
+                _vaultId,
+                _priceOracle,
+                _oraclePayload,
+                _minColRatio
+            );
     }
 
     /// @notice Standard GelatoCore system function
@@ -43,7 +50,7 @@ contract ConditionMakerVaultUnsafe is GelatoConditionsStandard {
             address _priceOracle,
             bytes memory _oraclePayload,
             uint256 _minColRatio
-        ) = abi.decode(_conditionData, (uint256, address, bytes, uint256));
+        ) = abi.decode(_conditionData[4:], (uint256, address, bytes, uint256));
 
         return
             isVaultUnsafe(_vaultID, _priceOracle, _oraclePayload, _minColRatio);

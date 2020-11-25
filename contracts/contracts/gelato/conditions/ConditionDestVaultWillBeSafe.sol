@@ -25,7 +25,13 @@ contract ConditionDestVaultWillBeSafe is GelatoConditionsStandard {
         uint256 _destVaultId,
         string calldata _destColType
     ) public pure virtual returns (bytes memory) {
-        return abi.encode(_fromVaultId, _destVaultId, _destColType);
+        return
+            abi.encodeWithSelector(
+                this.destVaultWillBeSafe.selector,
+                _fromVaultId,
+                _destVaultId,
+                _destColType
+            );
     }
 
     function ok(
@@ -37,7 +43,7 @@ contract ConditionDestVaultWillBeSafe is GelatoConditionsStandard {
             uint256 _fromVaultId,
             uint256 _destVaultId,
             string memory _destColType
-        ) = abi.decode(_conditionData, (uint256, uint256, string));
+        ) = abi.decode(_conditionData[4:], (uint256, uint256, string));
 
         return destVaultWillBeSafe(_fromVaultId, _destVaultId, _destColType);
     }

@@ -38,7 +38,12 @@ contract ConditionDebtBridgeIsAffordable is GelatoConditionsStandard {
         virtual
         returns (bytes memory)
     {
-        return abi.encode(_vaultId, _ratioLimit);
+        return
+            abi.encodeWithSelector(
+                this.isAffordable.selector,
+                _vaultId,
+                _ratioLimit
+            );
     }
 
     /// @notice Standard GelatoCore system function
@@ -51,7 +56,7 @@ contract ConditionDebtBridgeIsAffordable is GelatoConditionsStandard {
         uint256
     ) public view virtual override returns (string memory) {
         (uint256 _vaultID, uint256 _ratioLimit) =
-            abi.decode(_conditionData, (uint256, uint256));
+            abi.decode(_conditionData[4:], (uint256, uint256));
 
         return isAffordable(_vaultID, _ratioLimit);
     }

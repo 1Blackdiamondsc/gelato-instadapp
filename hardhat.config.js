@@ -75,7 +75,7 @@ module.exports = {
       {
         version: "0.6.0",
         settings: {
-          optimizer: { enabled: process.env.DEBUG ? false : true },
+          optimizer: { enabled: false },
         },
       },
       {

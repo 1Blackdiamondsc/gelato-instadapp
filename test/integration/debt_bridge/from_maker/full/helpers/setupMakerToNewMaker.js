@@ -7,7 +7,7 @@ const providerAssignsExecutor = require("../../../../../helpers/services/gelato/
 const addProviderModuleDSA = require("../../../../../helpers/services/gelato/addProviderModuleDSA");
 const createDSA = require("../../../../../helpers/services/InstaDapp/createDSA");
 const initializeMakerCdp = require("../../../../../helpers/services/maker/initializeMakerCdp");
-const getSpellsEthAEthBWithVaultCreation = require("./services/getSpells-ETHA-ETHB-With-Vault-Creation");
+const getSpellsEthAEthBWithVaultCreation = require("./services/getSpells-ETHA-newETHB");
 const getABI = require("../../../../../helpers/services/getABI");
 
 module.exports = async function () {

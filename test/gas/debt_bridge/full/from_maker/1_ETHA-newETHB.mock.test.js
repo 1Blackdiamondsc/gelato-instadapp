@@ -3,8 +3,8 @@ const hre = require("hardhat");
 const { deployments } = hre;
 const GelatoCoreLib = require("@gelatonetwork/core");
 
-const setupFullRefinanceMakerToMakerWithVaultBCreationMock = require("./helpers/setupFullRefinanceMakerToMakerWithVaultBCreationMock.mock");
-const exec_ETHA_ETHB_With_Vault_Creation = require("./helpers/services/exec-ETHA-ETHB-WITH-Vault-Creation");
+const mockSetupFullRefinanceMakerToNewMaker = require("./helpers/setupFullRefinanceMakerToNewMaker.mock");
+const mockExec_ETHA_newETHB = require("./helpers/services/exec-ETHA-newETHB.mock");
 
 describe("Gas Measurements: Full Debt Bridge From Maker ETH-A to ETH-B", function () {
   this.timeout(0);
@@ -47,9 +47,7 @@ describe("Gas Measurements: Full Debt Bridge From Maker ETH-A to ETH-B", functio
     // Reset back to a fresh forked state during runtime
     await deployments.fixture();
 
-    const result = await setupFullRefinanceMakerToMakerWithVaultBCreationMock(
-      mockRoute
-    );
+    const result = await mockSetupFullRefinanceMakerToNewMaker(mockRoute);
 
     wallets = result.wallets;
     contracts = result.contracts;
@@ -162,7 +160,7 @@ describe("Gas Measurements: Full Debt Bridge From Maker ETH-A to ETH-B", functio
       expiryDate,
     });
 
-    await exec_ETHA_ETHB_With_Vault_Creation(
+    await mockExec_ETHA_newETHB(
       constants,
       contracts,
       wallets,
@@ -209,7 +207,7 @@ describe("Gas Measurements: Full Debt Bridge From Maker ETH-A to ETH-B", functio
       expiryDate,
     });
 
-    await exec_ETHA_ETHB_With_Vault_Creation(
+    await mockExec_ETHA_newETHB(
       constants,
       contracts,
       wallets,
@@ -256,7 +254,7 @@ describe("Gas Measurements: Full Debt Bridge From Maker ETH-A to ETH-B", functio
       expiryDate,
     });
 
-    await exec_ETHA_ETHB_With_Vault_Creation(
+    await mockExec_ETHA_newETHB(
       constants,
       contracts,
       wallets,
@@ -303,7 +301,7 @@ describe("Gas Measurements: Full Debt Bridge From Maker ETH-A to ETH-B", functio
       expiryDate,
     });
 
-    await exec_ETHA_ETHB_With_Vault_Creation(
+    await mockExec_ETHA_newETHB(
       constants,
       contracts,
       wallets,

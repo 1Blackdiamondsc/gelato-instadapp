@@ -7,7 +7,7 @@ const addProviderModuleDSA = require("../../../../../helpers/services/gelato/add
 const createDSA = require("../../../../../helpers/services/InstaDapp/createDSA");
 const initializeMakerCdp = require("../../../../../helpers/services/maker/initializeMakerCdp");
 const createVaultForETHB = require("../../../../../helpers/services/maker/createVaultForETHB");
-const mockGetSpellsETHAETHBWithVaultCreation = require("./services/getSpells-ETHA-ETHB-With-Vault-Creation.mock");
+const getMockSpellsETHAnewETHB = require("./services/getSpells-ETHA-newETHB.mock");
 const getABI = require("../../../../../helpers/services/getABI");
 
 module.exports = async function (mockRoute) {
@@ -55,7 +55,7 @@ module.exports = async function (mockRoute) {
     contracts.getCdps,
     contracts.dssCdpManager
   );
-  const spells = await mockGetSpellsETHAETHBWithVaultCreation(
+  const spells = await getMockSpellsETHAnewETHB(
     wallets,
     contracts,
     constants,

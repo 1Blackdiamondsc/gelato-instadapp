@@ -1,7 +1,6 @@
 const hre = require("hardhat");
 const { ethers } = hre;
 const { sleep } = require("@gelatonetwork/core");
-const InstaConnector = require("../../pre-compiles/InstaConnectors.json");
 
 module.exports = async (hre) => {
   if (hre.network.name === "mainnet") {
@@ -33,7 +32,7 @@ module.exports = async (hre) => {
     });
 
     const instaConnectors = await hre.ethers.getContractAt(
-      InstaConnector.abi,
+      "InstaConnectors",
       hre.network.config.InstaConnectors
     );
     const connectorLength = await instaConnectors.connectorLength();

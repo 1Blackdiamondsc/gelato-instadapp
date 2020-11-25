@@ -1,16 +1,13 @@
 const { expect } = require("chai");
 const hre = require("hardhat");
 const { deployments, ethers } = hre;
-
 const GelatoCoreLib = require("@gelatonetwork/core");
 
-const setupFullRefinanceMakerToCompound = require("./helpers/setupFullRefinanceMakerToCompound");
-const getInstaPoolV2Route = require("../../../../helpers/services/InstaDapp/getInstaPoolV2Route");
-const getGasCostForFullRefinance = require("../../../../helpers/services/gelato/getGasCostForFullRefinance");
+const setupMakerToMaker = require("../helpers/setupMakerToMaker");
 
 // This test showcases how to submit a task refinancing a Users debt position from
 // Maker to Compound using Gelato
-describe("Full Debt Bridge refinancing loan from Maker to Compound", function () {
+describe("Security: _cast function by example of ETHA-ETHB with disabled ConnectGelatoProviderPayment", function () {
   this.timeout(0);
   if (hre.network.name !== "hardhat") {
     console.error("Test Suite is meant to be run on hardhat only");
@@ -23,7 +20,8 @@ describe("Full Debt Bridge refinancing loan from Maker to Compound", function ()
   let ABI;
 
   // Payload Params for ConnectGelatoFullDebtBridgeFromMaker and ConditionMakerVaultUnsafe
-  let vaultId;
+  let vaultAId;
+  let vaultBId;
 
   // For TaskSpec and for Task
   let gelatoDebtBridgeSpells = [];
@@ -32,18 +30,22 @@ describe("Full Debt Bridge refinancing loan from Maker to Compound", function ()
   let taskReceipt;
 
   before(async function () {
+    // Reset back to a fresh forked state during runtime
     await deployments.fixture();
 
-    const result = await setupFullRefinanceMakerToCompound();
+    const result = await setupMakerToMaker();
+
     wallets = result.wallets;
     contracts = result.contracts;
-    vaultId = result.vaultId;
+    vaultAId = result.vaultAId;
+    vaultBId = result.vaultBId;
     gelatoDebtBridgeSpells = result.spells;
+
     ABI = result.ABI;
     constants = result.constants;
   });
 
-  it("#1: DSA give Authorization to Gelato to execute action his behalf.", async function () {
+  it("#1: DSA authorizes Gelato to cast spells.", async function () {
     //#region User give authorization to gelato to use his DSA on his behalf.
 
     // Instadapp DSA contract give the possibility to the user to delegate
@@ -68,7 +70,7 @@ describe("Full Debt Bridge refinancing loan from Maker to Compound", function ()
     //#endregion
   });
 
-  it("#2: User submits Debt refinancing task if market move to Gelato via DSA", async function () {
+  it("#2: User submits automated Debt Bridge task to Gelato via DSA", async function () {
     //#region User submit a Debt Refinancing task if market move against him
 
     // User submit the refinancing task if market move against him.
@@ -81,7 +83,7 @@ describe("Full Debt Bridge refinancing loan from Maker to Compound", function ()
     const conditionMakerVaultUnsafeObj = new GelatoCoreLib.Condition({
       inst: contracts.conditionMakerVaultUnsafe.address,
       data: await contracts.conditionMakerVaultUnsafe.getConditionData(
-        vaultId,
+        vaultAId,
         contracts.priceOracleResolver.address,
         await hre.run("abi-encode-withselector", {
           abi: (await deployments.getArtifact("PriceOracleResolver")).abi,
@@ -95,16 +97,26 @@ describe("Full Debt Bridge refinancing loan from Maker to Compound", function ()
     const conditionDebtBridgeIsAffordableObj = new GelatoCoreLib.Condition({
       inst: contracts.conditionDebtBridgeIsAffordable.address,
       data: await contracts.conditionDebtBridgeIsAffordable.getConditionData(
-        vaultId,
+        vaultAId,
         constants.MAX_FEES_IN_PERCENT
       ),
     });
 
+    const conditionDestVaultWillBeSafe = new GelatoCoreLib.Condition({
+      inst: contracts.conditionDestVaultWillBeSafe.address,
+      data: await contracts.conditionDestVaultWillBeSafe.getConditionData(
+        vaultAId,
+        vaultBId,
+        "ETH-B"
+      ),
+    });
+
     // ======= GELATO TASK SETUP ======
-    const refinanceIfVaultUnsafe = new GelatoCoreLib.Task({
+    const refinanceFromEthAToBIfVaultUnsafe = new GelatoCoreLib.Task({
       conditions: [
         conditionMakerVaultUnsafeObj,
         conditionDebtBridgeIsAffordableObj,
+        conditionDestVaultWillBeSafe,
       ],
       actions: gelatoDebtBridgeSpells,
     });
@@ -115,6 +127,7 @@ describe("Full Debt Bridge refinancing loan from Maker to Compound", function ()
     });
 
     const expiryDate = 0;
+
     await expect(
       contracts.dsa.cast(
         [contracts.connectGelato.address], // targets
@@ -124,7 +137,7 @@ describe("Full Debt Bridge refinancing loan from Maker to Compound", function ()
             functionname: "submitTask",
             inputs: [
               gelatoExternalProvider,
-              refinanceIfVaultUnsafe,
+              refinanceFromEthAToBIfVaultUnsafe,
               expiryDate,
             ],
           }),
@@ -140,7 +153,7 @@ describe("Full Debt Bridge refinancing loan from Maker to Compound", function ()
       id: await contracts.gelatoCore.currentTaskReceiptId(),
       userProxy: contracts.dsa.address,
       provider: gelatoExternalProvider,
-      tasks: [refinanceIfVaultUnsafe],
+      tasks: [refinanceFromEthAToBIfVaultUnsafe],
       expiryDate,
     });
 
@@ -151,7 +164,7 @@ describe("Full Debt Bridge refinancing loan from Maker to Compound", function ()
   // Bots constatly check whether the submitted task is executable (by calling canExec)
   // If the task becomes executable (returns "OK"), the "exec" function will be called
   // which will execute the debt refinancing on behalf of the user
-  it("#3: Use Maker Compound refinancing if the maker vault become unsafe after a market move.", async function () {
+  it("#3: Test Case: Task execution with LogExecReverted due to disabled connector", async function () {
     // Steps
     // Step 1: Market Move against the user (Mock)
     // Step 2: Executor execute the user's task
@@ -185,123 +198,66 @@ describe("Full Debt Bridge refinancing loan from Maker to Compound", function ()
         .canExec(taskReceipt, constants.GAS_LIMIT, gelatoGasPrice)
     ).to.be.equal("OK");
 
-    //#endregion
-
-    //#region Step 2 Executor execute the user's task
-
-    // The market move make the vault unsafe, so the executor
-    // will execute the user's task to make the user position safe
-    // by a debt refinancing in compound.
-
-    //#region EXPECTED OUTCOME
-
-    const debtOnMakerBefore = await contracts.makerResolver.getMakerVaultDebt(
-      vaultId
+    // SECURITY TEST CASE: we disable a connector to be called as part of the Task
+    // and expect this to cause the _cast
+    const instaConnectors = await hre.ethers.getContractAt(
+      "InstaConnectors",
+      hre.network.config.InstaConnectors
     );
 
-    const route = await getInstaPoolV2Route(
-      contracts.DAI.address,
-      debtOnMakerBefore,
-      contracts.instaPoolResolver
+    const { address: connectGelatoProviderPayment } = await ethers.getContract(
+      "ConnectGelatoProviderPayment"
     );
 
-    const gasCost = await getGasCostForFullRefinance(route);
+    expect(await instaConnectors.isConnector([connectGelatoProviderPayment])).to
+      .be.true;
 
-    const gasFeesPaidFromCol = ethers.BigNumber.from(gasCost).mul(
-      gelatoGasPrice
+    const instaMaster = await ethers.provider.getSigner(
+      hre.network.config.InstaMaster
     );
 
-    const pricedCollateral = (
-      await contracts.makerResolver.getMakerVaultCollateralBalance(vaultId)
-    ).sub(gasFeesPaidFromCol);
+    await wallets.userWallet.sendTransaction({
+      to: await instaMaster.getAddress(),
+      value: ethers.utils.parseEther("0.1"),
+    });
 
-    //#endregion
-    const providerBalanceBeforeExecution = await contracts.gelatoCore.providerFunds(
-      wallets.gelatoProviderAddress
-    );
+    await hre.network.provider.request({
+      method: "hardhat_impersonateAccount",
+      params: [await instaMaster.getAddress()],
+    });
 
-    await expect(
-      contracts.gelatoCore
-        .connect(wallets.gelatoExecutorWallet)
-        .exec(taskReceipt, {
-          gasPrice: gelatoGasPrice, // Exectutor must use gelatoGasPrice (Chainlink fast gwei)
-          gasLimit: constants.GAS_LIMIT,
-        })
-    ).to.emit(contracts.gelatoCore, "LogExecSuccess");
+    await instaConnectors
+      .connect(instaMaster)
+      .disable(connectGelatoProviderPayment);
 
-    // 🚧 For Debugging:
-    // const txResponse2 = await contracts.gelatoCore
-    //   .connect(wallets.gelatoExecutorWallet)
-    //   .exec(taskReceipt, {
-    //     gasPrice: gelatoGasPrice,
-    //     gasLimit: constants.GAS_LIMIT,
-    //   });
-    // const {blockHash} = await txResponse2.wait();
-    // const logs = await ethers.provider.getLogs({blockHash});
-    // const iFace = new ethers.utils.Interface(GelatoCoreLib.GelatoCore.abi);
-    // for (const log of logs) {
-    //   console.log(iFace.parseLog(log).args.reason);
-    // }
-    // await GelatoCoreLib.sleep(10000);
+    await hre.network.provider.request({
+      method: "hardhat_stopImpersonatingAccount",
+      params: [await instaMaster.getAddress()],
+    });
 
+    // await expect(
+    //   contracts.gelatoCore
+    //     .connect(wallets.gelatoExecutorWallet)
+    //     .exec(taskReceipt, {
+    //       gasPrice: gelatoGasPrice, // Exectutor must use gelatoGasPrice (Chainlink fast gwei)
+    //       gasLimit: constants.GAS_LIMIT,
+    //     })
+    // ).to.emit(contracts.gelatoCore, "LogExecReverted");
+
+    const txResponse = await contracts.gelatoCore
+      .connect(wallets.gelatoExecutorWallet)
+      .exec(taskReceipt, {
+        gasPrice: gelatoGasPrice,
+        gasLimit: constants.GAS_LIMIT,
+      });
+    const { blockHash } = await txResponse.wait();
+    const logs = await ethers.provider.getLogs({ blockHash });
     expect(
-      await contracts.gelatoCore.providerFunds(wallets.gelatoProviderAddress)
-    ).to.be.gt(
-      providerBalanceBeforeExecution.sub(
-        gasFeesPaidFromCol
-          .mul(await contracts.gelatoCore.totalSuccessShare())
-          .div(100)
+      logs.some(
+        (log) =>
+          contracts.gelatoCore.interface.parseLog(log).args.reason ===
+          "GelatoCore._exec:ConnectGelatoDataFullMakerToMaker._cast:not-connector"
       )
-    );
-
-    // compound position of DSA on cDai and cEth
-    const compoundPosition = await contracts.compoundResolver.getCompoundData(
-      contracts.dsa.address,
-      [contracts.cDaiToken.address, contracts.cEthToken.address]
-    );
-
-    // https://compound.finance/docs/ctokens#exchange-rate
-    // calculate cEth/ETH rate to convert back cEth to ETH
-    // for comparing with the withdrew Ether to the deposited one.
-    const exchangeRateCethToEth = (await contracts.cEthToken.getCash())
-      .add(await contracts.cEthToken.totalBorrows())
-      .sub(await contracts.cEthToken.totalReserves())
-      .div(await contracts.cEthToken.totalSupply());
-
-    // Estimated amount to borrowed token should be equal to the actual one read on compound contracts
-    if (route === 1) {
-      expect(debtOnMakerBefore).to.be.lte(
-        compoundPosition[0].borrowBalanceStoredUser
-      );
-    } else {
-      expect(
-        debtOnMakerBefore.sub(compoundPosition[0].borrowBalanceStoredUser)
-      ).to.be.lt(ethers.utils.parseUnits("2", 0));
-    }
-
-    // Estimated amount of collateral should be equal to the actual one read on compound contracts
-    expect(
-      pricedCollateral.sub(
-        compoundPosition[1].balanceOfUser.mul(exchangeRateCethToEth)
-      )
-    ).to.be.lt(ethers.utils.parseUnits("1", 12));
-
-    const collateralOnMakerOnVaultAAfter = await contracts.makerResolver.getMakerVaultCollateralBalance(
-      vaultId
-    ); // in Ether.
-    const debtOnMakerOnVaultAAfter = await contracts.makerResolver.getMakerVaultDebt(
-      vaultId
-    );
-
-    // We should not have deposited ether or borrowed DAI on maker.
-    expect(collateralOnMakerOnVaultAAfter).to.be.equal(ethers.constants.Zero);
-    expect(debtOnMakerOnVaultAAfter).to.be.equal(ethers.constants.Zero);
-
-    // DSA contain 1000 DAI
-    expect(await contracts.DAI.balanceOf(contracts.dsa.address)).to.be.equal(
-      constants.MAKER_INITIAL_DEBT
-    );
-
-    //#endregion
+    ).to.be.true;
   });
 });

@@ -3,9 +3,9 @@ const hre = require("hardhat");
 const { deployments, ethers } = hre;
 const GelatoCoreLib = require("@gelatonetwork/core");
 
-const setupFullRefinanceMakerToMakerWithVaultBCreation = require("./helpers/setupFullRefinanceMakerToMakerWithVaultBCreation");
-const getInstaPoolV2Route = require("../../../../helpers/services/InstaDapp/getInstaPoolV2Route");
-const getGasCostForFullRefinance = require("./../../../../helpers/services/gelato/getGasCostForFullRefinance");
+const setupMakerToNewMaker = require("../helpers/setupMakerToNewMaker");
+const getInstaPoolV2Route = require("../../../../../helpers/services/InstaDapp/getInstaPoolV2Route");
+const getGasCost = require("../helpers/services/getGasCost");
 
 // This test showcases how to submit a task refinancing a Users debt position from
 // Maker to Compound using Gelato
@@ -34,7 +34,7 @@ describe("Full Debt Bridge refinancing loan from ETH-A to ETH-B with vault creat
     // Reset back to a fresh forked state during runtime
     await deployments.fixture();
 
-    const result = await setupFullRefinanceMakerToMakerWithVaultBCreation();
+    const result = await setupMakerToNewMaker();
 
     wallets = result.wallets;
     contracts = result.contracts;
@@ -223,7 +223,7 @@ describe("Full Debt Bridge refinancing loan from ETH-A to ETH-B with vault creat
       );
     }
 
-    const gasCost = await getGasCostForFullRefinance(route, true);
+    const gasCost = await getGasCost(route, true);
 
     const gasFeesPaidFromCol = ethers.BigNumber.from(gasCost).mul(
       gelatoGasPrice

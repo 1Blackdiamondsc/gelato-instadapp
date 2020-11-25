@@ -1,8 +1,7 @@
-const gasConstants = require("../../constants/GasConstant");
+const { PREMIUM, VAULT_CREATION_COST } = require("../constants/costs");
 
-module.exports = async function (route, withVaultCreation) {
+module.exports = (route, withVaultCreation) => {
   let rawGasCost;
-  const gasCons = await gasConstants();
   switch (route) {
     case 0:
       rawGasCost = 2519000; // 2290000 * 1,1 // gas left method measure : 2290000 - 2106637 = 183363 | gas reporter : 2290000 - 1789126 = 500874
@@ -21,7 +20,6 @@ module.exports = async function (route, withVaultCreation) {
   }
 
   return withVaultCreation
-    ? ((rawGasCost + gasCons.VAULT_CREATION_COST) * (100 + gasCons.PREMIUM)) /
-        100
-    : (rawGasCost * (100 + gasCons.PREMIUM)) / 100;
+    ? ((rawGasCost + VAULT_CREATION_COST) * (100 + PREMIUM)) / 100
+    : (rawGasCost * (100 + PREMIUM)) / 100;
 };

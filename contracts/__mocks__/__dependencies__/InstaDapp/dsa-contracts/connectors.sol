@@ -1,3 +1,7 @@
+/**
+ *Submitted for verification at Etherscan.io on 2020-03-26
+ */
+
 pragma solidity 0.6.0;
 
 /**
@@ -31,7 +35,7 @@ contract Controllers is DSMath {
 
     // InstaIndex Address.
     address public constant instaIndex =
-        0x0000000000000000000000000000000000000000;
+        0x2971AdFa57b20E5a416aE5a708A8655A9c74f723;
 
     // Enabled Chief(Address of Chief => bool).
     mapping(address => bool) public chief;

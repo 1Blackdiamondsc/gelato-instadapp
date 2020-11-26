@@ -5,7 +5,9 @@ import {GELATO_GAS_PRICE_ORACLE} from "../../constants/CGelato.sol";
 import {mul} from "../../vendor/DSMath.sol";
 
 function _getGelatoGasPrice() view returns (uint256) {
-    return uint256(GELATO_GAS_PRICE_ORACLE.latestAnswer());
+    int256 oracleGasPrice = GELATO_GAS_PRICE_ORACLE.latestAnswer();
+    if (oracleGasPrice <= 0) revert("_getGelatoGasPrice:0orBelow");
+    return uint256(oracleGasPrice);
 }
 
 function _getGelatoProviderFees(uint256 _gas) view returns (uint256) {

@@ -11,11 +11,15 @@ import {
     _vaultWillBeSafe,
     _newVaultWillBeSafe
 } from "../../../functions/dapps/FMaker.sol";
+import {DAI} from "../../../constants/CInstaDapp.sol";
 import {
+    _getFlashLoanRoute,
+    _getGasCostMakerToMaker,
     _getRealisedDebt
 } from "../../../functions/gelato/FGelatoDebtBridge.sol";
-
+import {_getGelatoProviderFees} from "../../../functions/gelato/FGelato.sol";
 import {GelatoBytes} from "../../../lib/GelatoBytes.sol";
+import {sub} from "../../../vendor/DSMath.sol";
 
 contract ConditionDestVaultWillBeSafe is GelatoConditionsStandard {
     using GelatoBytes for bytes;
@@ -55,7 +59,14 @@ contract ConditionDestVaultWillBeSafe is GelatoConditionsStandard {
     ) public view returns (string memory) {
         uint256 wDaiToBorrow =
             _getRealisedDebt(_getMakerVaultDebt(_fromVaultId));
-        uint256 wColToDeposit = _getMakerVaultCollateralBalance(_fromVaultId);
+        uint256 route = _getFlashLoanRoute(DAI, wDaiToBorrow);
+        uint256 gasCost = _getGasCostMakerToMaker(_destVaultId == 0, route);
+        uint256 gasFeesPaidFromCol = _getGelatoProviderFees(gasCost);
+        uint256 wColToDeposit =
+            sub(
+                _getMakerVaultCollateralBalance(_fromVaultId),
+                gasFeesPaidFromCol
+            );
 
         return
             destVaultWillBeSafeExplicit(

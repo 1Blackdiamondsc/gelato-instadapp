@@ -78,7 +78,7 @@ contract ConditionDebtBridgeIsAffordable is GelatoConditionsStandard {
         uint256 gasFeesPaidFromCol =
             _getGelatoProviderFees(
                 _getGasCostMakerToMaker(
-                    true,
+                    false,
                     _getFlashLoanRoute(
                         DAI,
                         _getRealisedDebt(_getMakerVaultDebt(_vaultId))

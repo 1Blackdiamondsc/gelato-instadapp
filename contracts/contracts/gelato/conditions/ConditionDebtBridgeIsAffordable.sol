@@ -18,7 +18,7 @@ import {
     _getGasCostMakerToMaker,
     _getRealisedDebt
 } from "../../../functions/gelato/FGelatoDebtBridge.sol";
-import {_getGelatoProviderFees} from "../../../functions/gelato/FGelato.sol";
+import {_getGelatoExecutorFees} from "../../../functions/gelato/FGelato.sol";
 import {DAI} from "../../../constants/CInstaDapp.sol";
 import {wdiv} from "../../../vendor/DSMath.sol";
 
@@ -76,7 +76,7 @@ contract ConditionDebtBridgeIsAffordable is GelatoConditionsStandard {
         uint256 wColToWithdrawFromMaker =
             _getMakerVaultCollateralBalance(_vaultId);
         uint256 gasFeesPaidFromCol =
-            _getGelatoProviderFees(
+            _getGelatoExecutorFees(
                 _getGasCostMakerToMaker(
                     false,
                     _getFlashLoanRoute(

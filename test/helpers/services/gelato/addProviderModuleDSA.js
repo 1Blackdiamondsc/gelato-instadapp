@@ -1,7 +1,7 @@
 const { expect } = require("chai");
 
 module.exports = async function (
-  gelatoProviderWallet,
+  gelatoProvider,
   gelatoCore,
   dsaProviderModuleAddr
 ) {
@@ -11,17 +11,17 @@ module.exports = async function (
   // payload by adding some specificity like his address to the
   // Payment connector for receiving payment of User.
 
-  const gelatoProviderAddress = await gelatoProviderWallet.getAddress();
+  const gelatoProviderAddress = await gelatoProvider.getAddress();
 
   await expect(
     gelatoCore
-      .connect(gelatoProviderWallet)
+      .connect(gelatoProvider)
       .addProviderModules([dsaProviderModuleAddr])
   ).to.emit(gelatoCore, "LogProviderModuleAdded");
 
   expect(
     await gelatoCore
-      .connect(gelatoProviderWallet)
+      .connect(gelatoProvider)
       .isModuleProvided(gelatoProviderAddress, dsaProviderModuleAddr)
   ).to.be.true;
 

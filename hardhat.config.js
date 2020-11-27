@@ -41,12 +41,8 @@ module.exports = {
     user: {
       default: 0,
     },
-    gelatoProvider: {
+    executor: {
       default: 1,
-      mainnet: DEPLOYER,
-    },
-    gelatoExecutor: {
-      default: 2,
     },
   },
   networks: {

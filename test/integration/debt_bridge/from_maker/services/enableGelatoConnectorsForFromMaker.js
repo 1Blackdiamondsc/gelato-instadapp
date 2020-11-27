@@ -4,7 +4,7 @@ const { ethers } = hre;
 
 module.exports = async function (
   userWallet,
-  connectGelatoProviderPaymentAddr,
+  connectGelatoExecutorPaymentAddr,
   connectGelatoDataAddr,
   instaMaster,
   instaConnectors
@@ -34,7 +34,7 @@ module.exports = async function (
 
   await instaConnectors
     .connect(instaMaster)
-    .enable(connectGelatoProviderPaymentAddr);
+    .enable(connectGelatoExecutorPaymentAddr);
 
   await hre.network.provider.request({
     method: "hardhat_stopImpersonatingAccount",
@@ -42,7 +42,7 @@ module.exports = async function (
   });
 
   expect(await instaConnectors.isConnector([connectGelatoDataAddr])).to.be.true;
-  expect(await instaConnectors.isConnector([connectGelatoProviderPaymentAddr]))
+  expect(await instaConnectors.isConnector([connectGelatoExecutorPaymentAddr]))
     .to.be.true;
 
   //#endregion

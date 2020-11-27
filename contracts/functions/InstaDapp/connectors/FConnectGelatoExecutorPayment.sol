@@ -2,10 +2,10 @@
 pragma solidity 0.7.4;
 
 import {
-    IConnectGelatoProviderPayment
-} from "../../../interfaces/InstaDapp/connectors/IConnectGelatoProviderPayment.sol";
+    IConnectGelatoExecutorPayment
+} from "../../../interfaces/InstaDapp/connectors/IConnectGelatoExecutorPayment.sol";
 
-function _encodePayGelatoProvider(
+function _encodePayExecutor(
     address _token,
     uint256 _amt,
     uint256 _getId,
@@ -13,7 +13,7 @@ function _encodePayGelatoProvider(
 ) pure returns (bytes memory) {
     return
         abi.encodeWithSelector(
-            IConnectGelatoProviderPayment.payProvider.selector,
+            IConnectGelatoExecutorPayment.payExecutor.selector,
             _token,
             _amt,
             _getId,

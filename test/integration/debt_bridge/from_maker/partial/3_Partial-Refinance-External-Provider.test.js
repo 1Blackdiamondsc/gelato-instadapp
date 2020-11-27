@@ -15,7 +15,7 @@
 // const ConnectAuth = require("../../../../pre-compiles/ConnectAuth.json");
 // const ConnectGelatoFullDebtBridgeFromMakerABI = require("../artifacts/contracts/contracts/connectors/ConnectGelatoPartialDebtBridgeFromMaker.sol/ConnectGelatoPartialDebtBridgeFromMaker.json")
 //   .abi;
-// const ConnectGelatoProviderPaymentABI = require("../../../../artifacts/contracts/contracts/connectors/ConnectGelatoProviderPayment.sol/ConnectGelatoProviderPayment.json")
+// const ConnectGelatoExecutorPaymentABI = require("../../../../artifacts/contracts/contracts/connectors/ConnectGelatoExecutorPayment.sol/ConnectGelatoExecutorPayment.json")
 //   .abi;
 // const InstaConnector = require("../../../../pre-compiles/InstaConnectors.json");
 // const DssCdpManager = require("../../../../pre-compiles/DssCdpManager.json");
@@ -121,9 +121,9 @@
 //   // Wallet to use for local testing
 //   let userWallet;
 //   let userAddress;
-//   let gelatoProviderWallet;
+//   let gelatoProvider;
 //   let gelatoProviderAddress;
-//   let gelatoExecutorWallet;
+//   let executor;
 //   let gelatoExecutorAddress;
 
 //   // Deployed instances
@@ -146,7 +146,7 @@
 //   // Contracts to deploy and use for local testing
 //   let conditionMakerVaultUnsafe;
 //   let connectGelatoPartialDebtBridgeFromMaker;
-//   let connectGelatoProviderPayment;
+//   let connectGelatoExecutorPayment;
 //   let priceOracleResolver;
 //   let dsaProviderModule;
 
@@ -163,12 +163,12 @@
 //     // Get Test Wallet for local testnet
 //     [
 //       userWallet,
-//       gelatoProviderWallet,
-//       gelatoExecutorWallet,
+//       gelatoProvider,
+//       executor,
 //     ] = await ethers.getSigners();
 //     userAddress = await userWallet.getAddress();
-//     gelatoProviderAddress = await gelatoProviderWallet.getAddress();
-//     gelatoExecutorAddress = await gelatoExecutorWallet.getAddress();
+//     gelatoProviderAddress = await gelatoProvider.getAddress();
+//     gelatoExecutorAddress = await executor.getAddress();
 
 //     instaMaster = await ethers.provider.getSigner(
 //       hre.network.config.InstaMaster
@@ -260,20 +260,20 @@
 //     );
 //     await connectGelatoPartialDebtBridgeFromMaker.deployed();
 
-//     const ConnectGelatoProviderPayment = await ethers.getContractFactory(
-//       "ConnectGelatoProviderPayment"
+//     const ConnectGelatoExecutorPayment = await ethers.getContractFactory(
+//       "ConnectGelatoExecutorPayment"
 //     );
-//     connectGelatoProviderPayment = await ConnectGelatoProviderPayment.deploy(
+//     connectGelatoExecutorPayment = await ConnectGelatoExecutorPayment.deploy(
 //       (await instaConnectors.connectorLength()).add(2)
 //     );
-//     await connectGelatoProviderPayment.deployed();
+//     await connectGelatoExecutorPayment.deployed();
 
 //     const ProviderModuleDsa = await ethers.getContractFactory(
 //       "ProviderModuleDsa"
 //     );
 //     dsaProviderModule = await ProviderModuleDsa.deploy(
 //       hre.network.config.GelatoCore,
-//       connectGelatoProviderPayment.address
+//       connectGelatoExecutorPayment.address
 //     );
 //     await dsaProviderModule.deployed();
 
@@ -337,7 +337,7 @@
 
 //     await instaConnectors
 //       .connect(instaMaster)
-//       .enable(connectGelatoProviderPayment.address);
+//       .enable(connectGelatoExecutorPayment.address);
 
 //     await hre.network.provider.request({
 //       method: "hardhat_stopImpersonatingAccount",
@@ -350,7 +350,7 @@
 //       ])
 //     ).to.be.true;
 //     expect(
-//       await instaConnectors.isConnector([connectGelatoProviderPayment.address])
+//       await instaConnectors.isConnector([connectGelatoExecutorPayment.address])
 //     ).to.be.true;
 
 //     //#endregion
@@ -364,7 +364,7 @@
 //     // For safety measure Gelato ask the executor to stake a minimum
 //     // amount.
 
-//     await gelatoCore.connect(gelatoExecutorWallet).stakeExecutor({
+//     await gelatoCore.connect(executor).stakeExecutor({
 //       value: await gelatoCore.minExecutorStake(),
 //     });
 
@@ -388,7 +388,7 @@
 
 //     await expect(
 //       gelatoCore
-//         .connect(gelatoProviderWallet)
+//         .connect(gelatoProvider)
 //         .provideFunds(gelatoProviderAddress, {
 //           value: TASK_AUTOMATION_FUNDS,
 //         })
@@ -407,7 +407,7 @@
 
 //     await expect(
 //       gelatoCore
-//         .connect(gelatoProviderWallet)
+//         .connect(gelatoProvider)
 //         .providerAssignsExecutor(gelatoExecutorAddress)
 //     ).to.emit(gelatoCore, "LogProviderAssignedExecutor");
 
@@ -425,13 +425,13 @@
 
 //     await expect(
 //       gelatoCore
-//         .connect(gelatoProviderWallet)
+//         .connect(gelatoProvider)
 //         .addProviderModules([dsaProviderModule.address])
 //     ).to.emit(gelatoCore, "LogProviderModuleAdded");
 
 //     expect(
 //       await gelatoCore
-//         .connect(gelatoProviderWallet)
+//         .connect(gelatoProvider)
 //         .isModuleProvided(gelatoProviderAddress, dsaProviderModule.address)
 //     ).to.be.true;
 
@@ -636,17 +636,17 @@
 
 //     spells.push(flashPayBack);
 
-//     const payProvider = new GelatoCoreLib.Action({
-//       addr: connectGelatoProviderPayment.address,
+//     const payExecutor = new GelatoCoreLib.Action({
+//       addr: connectGelatoExecutorPayment.address,
 //       data: await hre.run("abi-encode-withselector", {
-//         abi: ConnectGelatoProviderPaymentABI,
-//         functionname: "payProvider",
+//         abi: ConnectGelatoExecutorPaymentABI,
+//         functionname: "payExecutor",
 //         inputs: [gelatoProviderAddress, ETH, 0, "605", 0],
 //       }),
 //       operation: GelatoCoreLib.Operation.Delegatecall,
 //     });
 
-//     spells.push(payProvider);
+//     spells.push(payExecutor);
 
 //     const gasPriceCeil = ethers.constants.MaxUint256;
 
@@ -660,13 +660,13 @@
 
 //     await expect(
 //       gelatoCore
-//         .connect(gelatoProviderWallet)
+//         .connect(gelatoProvider)
 //         .provideTaskSpecs([connectGelatoFullDebtBridgeFromMakerTaskSpec])
 //     ).to.emit(gelatoCore, "LogTaskSpecProvided");
 
 //     expect(
 //       await gelatoCore
-//         .connect(gelatoProviderWallet)
+//         .connect(gelatoProvider)
 //         .isTaskSpecProvided(
 //           gelatoProviderAddress,
 //           connectGelatoFullDebtBridgeFromMakerTaskSpec
@@ -675,11 +675,11 @@
 
 //     expect(
 //       await gelatoCore
-//         .connect(gelatoProviderWallet)
+//         .connect(gelatoProvider)
 //         .taskSpecGasPriceCeil(
 //           gelatoProviderAddress,
 //           await gelatoCore
-//             .connect(gelatoProviderWallet)
+//             .connect(gelatoProvider)
 //             .hashTaskSpec(connectGelatoFullDebtBridgeFromMakerTaskSpec)
 //         )
 //     ).to.be.equal(gasPriceCeil);
@@ -774,7 +774,7 @@
 
 //     expect(
 //       await gelatoCore
-//         .connect(gelatoExecutorWallet)
+//         .connect(executor)
 //         .canExec(taskReceipt, GAS_LIMIT, gelatoGasPrice)
 //     ).to.be.equal("ConditionNotOk:MakerVaultNotUnsafe");
 
@@ -783,7 +783,7 @@
 
 //     expect(
 //       await gelatoCore
-//         .connect(gelatoExecutorWallet)
+//         .connect(executor)
 //         .canExec(taskReceipt, GAS_LIMIT, gelatoGasPrice)
 //     ).to.be.equal("OK");
 
@@ -831,10 +831,10 @@
 //     //console.log(String(wdiv(pricedCollateral.sub(wmul(expectedColWithdrawAmount, latestPrice).add(gasFeesPaidFromCol)),debt.sub(expectedBorAmountToPayBack))));
 
 //     //#endregion
-//     const providerBalanceBeforeExecution = await gelatoProviderWallet.getBalance();
+//     const providerBalanceBeforeExecution = await gelatoProvider.getBalance();
 
 //     await expect(
-//       gelatoCore.connect(gelatoExecutorWallet).exec(taskReceipt, {
+//       gelatoCore.connect(executor).exec(taskReceipt, {
 //         gasPrice: gelatoGasPrice, // Exectutor must use gelatoGasPrice (Chainlink fast gwei)
 //         gasLimit: GAS_LIMIT,
 //       })
@@ -842,7 +842,7 @@
 
 //     // 🚧 For Debugging:
 //     // const txResponse2 = await gelatoCore
-//     //   .connect(gelatoProviderWallet)
+//     //   .connect(gelatoProvider)
 //     //   .exec(taskReceipt, {
 //     //     gasPrice: gelatoGasPrice,
 //     //     gasLimit: GAS_LIMIT,
@@ -855,7 +855,7 @@
 //     // }
 //     // await GelatoCoreLib.sleep(10000);
 
-//     expect(await gelatoProviderWallet.getBalance()).to.be.gt(
+//     expect(await gelatoProvider.getBalance()).to.be.gt(
 //       providerBalanceBeforeExecution
 //     );
 

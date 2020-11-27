@@ -2,10 +2,6 @@ const { expect } = require("chai");
 const hre = require("hardhat");
 const { ethers, deployments } = hre;
 
-const GelatoCoreLib = require("@gelatonetwork/core");
-
-// #region Contracts ABI
-
 const ConnectMaker = require("../../../pre-compiles/ConnectMaker.json");
 const GetCdps = require("../../../pre-compiles/GetCdps.json");
 const DssCdpManager = require("../../../pre-compiles/DssCdpManager.json");
@@ -15,9 +11,7 @@ const InstaAccount = require("../../../pre-compiles/InstaAccount.json");
 const InstaIndex = require("../../../pre-compiles/InstaIndex.json");
 const IERC20 = require("../../../pre-compiles/IERC20.json");
 
-// #endregion
-
-describe("ConnectGelatoProviderPayment Unit Test", function () {
+describe("ConnectGelatoExecutorPayment Unit Test", function () {
   this.timeout(0);
   if (hre.network.name !== "hardhat") {
     console.error("Test Suite is meant to be run on hardhat only");
@@ -26,19 +20,15 @@ describe("ConnectGelatoProviderPayment Unit Test", function () {
 
   let userWallet;
   let userAddress;
-  let gelatoProviderWallet;
-  let gelatoProviderAddress;
-
-  let gelatoCore;
 
   let instaList;
   let instaIndex;
-  let DAI;
+  let dai;
   let connectBasic;
   let getCdps;
   let dssCdpManager;
 
-  let connectGelatoProviderPayment;
+  let connectGelatoExecutorPayment;
 
   let dsa;
   let cdpId;
@@ -48,14 +38,8 @@ describe("ConnectGelatoProviderPayment Unit Test", function () {
     await deployments.fixture();
 
     // Get Test Wallet for local testnet
-    [userWallet, gelatoProviderWallet] = await ethers.getSigners();
+    [userWallet] = await ethers.getSigners();
     userAddress = await userWallet.getAddress();
-    gelatoProviderAddress = await gelatoProviderWallet.getAddress();
-
-    gelatoCore = await ethers.getContractAt(
-      GelatoCoreLib.GelatoCore.abi,
-      hre.network.config.GelatoCore
-    );
 
     // Hardhat default accounts prefilled with 100 ETH
     expect(await userWallet.getBalance()).to.be.gt(
@@ -82,11 +66,11 @@ describe("ConnectGelatoProviderPayment Unit Test", function () {
       DssCdpManager.abi,
       hre.network.config.DssCdpManager
     );
-    DAI = await ethers.getContractAt(IERC20.abi, hre.network.config.DAI);
+    dai = await ethers.getContractAt(IERC20.abi, hre.network.config.DAI);
 
     // ========== Test Setup ============
-    connectGelatoProviderPayment = await ethers.getContract(
-      "ConnectGelatoProviderPayment"
+    connectGelatoExecutorPayment = await ethers.getContract(
+      "ConnectGelatoExecutorPayment"
     );
 
     // ========== Create DeFi Smart Account for User account ============
@@ -107,29 +91,7 @@ describe("ConnectGelatoProviderPayment Unit Test", function () {
     );
   });
 
-  it("#1: ConnectGelatoProviderPayment should have been deployed with providerAddress", async function () {
-    expect(await connectGelatoProviderPayment.gelatoProvider()).to.be.eq(
-      gelatoProviderAddress
-    );
-  });
-
-  it("#2: setProvider should revert for AddressZero", async function () {
-    await expect(
-      connectGelatoProviderPayment.setProvider(ethers.constants.AddressZero)
-    ).to.be.revertedWith("ConnectGelatoProviderPayment.noAddressZeroProvider");
-  });
-
-  it("#3: setProvider should change the provider address", async function () {
-    await connectGelatoProviderPayment.setProvider(userAddress);
-
-    expect(await connectGelatoProviderPayment.gelatoProvider()).to.be.equal(
-      userAddress
-    );
-  });
-
-  it("#4: payProvider should pay to Provider 300 Dai", async function () {
-    const providerDAIBalanceBefore = await DAI.balanceOf(gelatoProviderAddress);
-
+  it("#1: payExecutor should pay to Executor 300 dai", async function () {
     await dsa.cast(
       [hre.network.config.ConnectMaker],
       [
@@ -173,36 +135,36 @@ describe("ConnectGelatoProviderPayment Unit Test", function () {
       userAddress
     );
 
-    expect(await DAI.balanceOf(dsa.address)).to.be.equal(
+    expect(await dai.balanceOf(dsa.address)).to.be.equal(
       ethers.utils.parseEther("1000")
     );
 
+    const executorDaiBalanceBefore = await dai.balanceOf(userAddress);
+
     await dsa.cast(
-      [connectGelatoProviderPayment.address],
+      [connectGelatoExecutorPayment.address],
       [
         await hre.run("abi-encode-withselector", {
           abi: (
-            await hre.artifacts.readArtifact("ConnectGelatoProviderPayment")
+            await hre.artifacts.readArtifact("ConnectGelatoExecutorPayment")
           ).abi,
-          functionname: "payProvider",
-          inputs: [DAI.address, ethers.utils.parseUnits("300", 18), 0, 0],
+          functionname: "payExecutor",
+          inputs: [dai.address, ethers.utils.parseUnits("300", 18), 0, 0],
         }),
       ],
       userAddress
     );
 
-    expect(await DAI.balanceOf(gelatoProviderAddress)).to.be.equal(
-      providerDAIBalanceBefore.add(ethers.utils.parseUnits("300", 18))
+    expect(await dai.balanceOf(userAddress)).to.be.equal(
+      executorDaiBalanceBefore.add(ethers.utils.parseUnits("300", 18))
     );
   });
 
-  it("#5: payProvider should pay to Provider 1 ether", async function () {
-    const providerBalanceOnGelatoCoreBefore = await gelatoCore.providerFunds(
-      gelatoProviderAddress
-    );
+  it("#2: payExecutor should pay to Executor 1 ether", async function () {
+    const executorBalanceBefore = await userWallet.getBalance();
 
-    await dsa.cast(
-      [connectBasic.address, connectGelatoProviderPayment.address],
+    const { gasPrice, wait } = await dsa.cast(
+      [connectBasic.address, connectGelatoExecutorPayment.address],
       [
         await hre.run("abi-encode-withselector", {
           abi: ConnectBasic.abi,
@@ -216,9 +178,9 @@ describe("ConnectGelatoProviderPayment Unit Test", function () {
         }),
         await hre.run("abi-encode-withselector", {
           abi: (
-            await hre.artifacts.readArtifact("ConnectGelatoProviderPayment")
+            await hre.artifacts.readArtifact("ConnectGelatoExecutorPayment")
           ).abi,
-          functionname: "payProvider",
+          functionname: "payExecutor",
           inputs: ["0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE", 0, "105", 0],
         }),
       ],
@@ -228,8 +190,10 @@ describe("ConnectGelatoProviderPayment Unit Test", function () {
       }
     );
 
-    expect(await gelatoCore.providerFunds(gelatoProviderAddress)).to.be.equal(
-      providerBalanceOnGelatoCoreBefore.add(ethers.utils.parseEther("1"))
+    const { gasUsed } = await wait();
+
+    expect(await userWallet.getBalance()).to.be.eq(
+      executorBalanceBefore.sub(gasUsed.mul(gasPrice))
     );
   });
 });

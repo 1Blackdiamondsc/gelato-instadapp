@@ -18,18 +18,18 @@ module.exports = async function (mockRoute) {
 
   // Gelato Testing environment setup.
   await provideFunds(
-    wallets.gelatoProviderWallet,
+    wallets.gelatoProvider,
     contracts.gelatoCore,
     constants.GAS_LIMIT,
     constants.GAS_PRICE_CEIL
   );
   await providerAssignsExecutor(
-    wallets.gelatoProviderWallet,
+    wallets.gelatoProvider,
     contracts.mockDebtBridgeETHBExecutor.address,
     contracts.gelatoCore
   );
   await addProviderModuleDSA(
-    wallets.gelatoProviderWallet,
+    wallets.gelatoProvider,
     contracts.gelatoCore,
     contracts.dsaProviderModule.address
   );

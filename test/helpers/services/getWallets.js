@@ -5,19 +5,15 @@ const { ethers } = hre;
 module.exports = async function () {
   let userWallet;
   let userAddress;
-  let gelatoProviderWallet;
+  let gelatoProvider;
   let gelatoProviderAddress;
-  let gelatoExecutorWallet;
+  let executor;
   let gelatoExecutorAddress;
 
-  [
-    userWallet,
-    gelatoProviderWallet,
-    gelatoExecutorWallet,
-  ] = await ethers.getSigners();
+  [userWallet, gelatoProvider, executor] = await ethers.getSigners();
   userAddress = await userWallet.getAddress();
-  gelatoProviderAddress = await gelatoProviderWallet.getAddress();
-  gelatoExecutorAddress = await gelatoExecutorWallet.getAddress();
+  gelatoProviderAddress = await gelatoProvider.getAddress();
+  gelatoExecutorAddress = await executor.getAddress();
 
   // Hardhat default wallets prefilled with 100 ETH
   expect(await userWallet.getBalance()).to.be.gt(ethers.utils.parseEther("10"));
@@ -25,9 +21,9 @@ module.exports = async function () {
   return {
     userWallet: userWallet,
     userAddress: userAddress,
-    gelatoProviderWallet: gelatoProviderWallet,
+    gelatoProvider: gelatoProvider,
     gelatoProviderAddress: gelatoProviderAddress,
-    gelatoExecutorWallet: gelatoExecutorWallet,
+    executor: executor,
     gelatoExecutorAddress: gelatoExecutorAddress,
   };
 };

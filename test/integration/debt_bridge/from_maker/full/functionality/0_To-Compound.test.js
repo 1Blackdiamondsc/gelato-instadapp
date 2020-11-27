@@ -170,7 +170,7 @@ describe("Full Debt Bridge refinancing loan from Maker to Compound", function ()
 
     expect(
       await contracts.gelatoCore
-        .connect(wallets.gelatoExecutorWallet)
+        .connect(wallets.executor)
         .canExec(taskReceipt, constants.GAS_LIMIT, gelatoGasPrice)
     ).to.be.equal("ConditionNotOk:MakerVaultNotUnsafe");
 
@@ -181,7 +181,7 @@ describe("Full Debt Bridge refinancing loan from Maker to Compound", function ()
 
     expect(
       await contracts.gelatoCore
-        .connect(wallets.gelatoExecutorWallet)
+        .connect(wallets.executor)
         .canExec(taskReceipt, constants.GAS_LIMIT, gelatoGasPrice)
     ).to.be.equal("OK");
 
@@ -216,22 +216,18 @@ describe("Full Debt Bridge refinancing loan from Maker to Compound", function ()
     ).sub(gasFeesPaidFromCol);
 
     //#endregion
-    const providerBalanceBeforeExecution = await contracts.gelatoCore.providerFunds(
-      wallets.gelatoProviderAddress
-    );
+    const executorBalanceBeforeExecution = await wallets.executor.getBalance();
 
     await expect(
-      contracts.gelatoCore
-        .connect(wallets.gelatoExecutorWallet)
-        .exec(taskReceipt, {
-          gasPrice: gelatoGasPrice, // Exectutor must use gelatoGasPrice (Chainlink fast gwei)
-          gasLimit: constants.GAS_LIMIT,
-        })
+      contracts.gelatoCore.connect(wallets.executor).exec(taskReceipt, {
+        gasPrice: gelatoGasPrice, // Exectutor must use gelatoGasPrice (Chainlink fast gwei)
+        gasLimit: constants.GAS_LIMIT,
+      })
     ).to.emit(contracts.gelatoCore, "LogExecSuccess");
 
     // 🚧 For Debugging:
     // const txResponse2 = await contracts.gelatoCore
-    //   .connect(wallets.gelatoExecutorWallet)
+    //   .connect(wallets.executor)
     //   .exec(taskReceipt, {
     //     gasPrice: gelatoGasPrice,
     //     gasLimit: constants.GAS_LIMIT,
@@ -244,14 +240,12 @@ describe("Full Debt Bridge refinancing loan from Maker to Compound", function ()
     // }
     // await GelatoCoreLib.sleep(10000);
 
-    expect(
-      await contracts.gelatoCore.providerFunds(wallets.gelatoProviderAddress)
-    ).to.be.gt(
-      providerBalanceBeforeExecution.sub(
-        gasFeesPaidFromCol
-          .mul(await contracts.gelatoCore.totalSuccessShare())
-          .div(100)
-      )
+    expect(await wallets.executor.getBalance()).to.be.gt(
+      executorBalanceBeforeExecution
+    );
+
+    expect(await wallets.executor.getBalance()).to.be.gt(
+      executorBalanceBeforeExecution
     );
 
     // compound position of DSA on cDai and cEth

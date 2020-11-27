@@ -42,7 +42,7 @@ module.exports = async (hre) => {
       from: deployer,
       args: [
         connectorId,
-        (await deployments.get("ConnectGelatoProviderPayment")).address,
+        (await deployments.get("ConnectGelatoExecutorPayment")).address,
       ],
     });
 
@@ -63,7 +63,7 @@ module.exports = async (hre) => {
       from: deployer,
       args: [
         parseInt(process.env.ConnectGelatoDataFullMakerToMakerId),
-        (await deployments.get("ConnectGelatoProviderPayment")).address,
+        (await deployments.get("ConnectGelatoExecutorPayment")).address,
       ],
       gasPrice: hre.network.config.gasPrice,
       log: true,
@@ -77,5 +77,5 @@ module.exports.skip = async (hre) => {
     return process.env.ConnectGelatoDataFullMakerToMakerId === undefined;
   return false;
 };
-module.exports.dependencies = ["ConnectGelatoProviderPayment"];
+module.exports.dependencies = ["ConnectGelatoExecutorPayment"];
 module.exports.tags = ["ConnectGelatoDataFullMakerToMaker"];

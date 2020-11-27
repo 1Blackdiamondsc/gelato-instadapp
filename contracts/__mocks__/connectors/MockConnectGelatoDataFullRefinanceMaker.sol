@@ -32,13 +32,13 @@ import {
     _encodeBorrowMakerVault
 } from "../../functions/InstaDapp/connectors/FConnectMaker.sol";
 import {
-    _encodePayGelatoProvider
-} from "../../functions/InstaDapp/connectors/FConnectGelatoProviderPayment.sol";
+    _encodePayExecutor
+} from "../../functions/InstaDapp/connectors/FConnectGelatoExecutorPayment.sol";
 import {
     _encodeDepositCompound,
     _encodeBorrowCompound
 } from "../../functions/InstaDapp/connectors/FConnectCompound.sol";
-import {_getGelatoProviderFees} from "../../functions/gelato/FGelato.sol";
+import {_getGelatoExecutorFees} from "../../functions/gelato/FGelato.sol";
 import {
     _getGasCostMakerToMaker,
     _getGasCostMakerToCompound,
@@ -52,11 +52,11 @@ contract MockConnectGelatoDataFullRefinanceMaker is ConnectorInterface {
     string public constant override name =
         "MockConnectGelatoDataFullRefinanceMaker-v1.0";
     uint256 internal immutable _id;
-    address internal immutable _connectGelatoProviderPayment;
+    address internal immutable _connectGelatoExecutorPayment;
 
-    constructor(uint256 id, address connectGelatoProviderPayment) {
+    constructor(uint256 id, address connectGelatoExecutorPayment) {
         _id = id;
-        _connectGelatoProviderPayment = connectGelatoProviderPayment;
+        _connectGelatoExecutorPayment = connectGelatoExecutorPayment;
     }
 
     /// @dev Connector Details
@@ -147,7 +147,7 @@ contract MockConnectGelatoDataFullRefinanceMaker is ConnectorInterface {
             _getMakerVaultCollateralBalance(_vaultAId);
         uint256 route = _route;
         uint256 gasCost = _getGasCostMakerToMaker(_vaultBId == 0, route);
-        uint256 gasFeesPaidFromCol = _getGelatoProviderFees(gasCost);
+        uint256 gasFeesPaidFromCol = _getGelatoExecutorFees(gasCost);
 
         (address[] memory _targets, bytes[] memory _datas) =
             _vaultBId == 0
@@ -192,7 +192,7 @@ contract MockConnectGelatoDataFullRefinanceMaker is ConnectorInterface {
         targets[2] = CONNECT_MAKER; // open new B vault
         targets[3] = CONNECT_MAKER; // deposit
         targets[4] = CONNECT_MAKER; // borrow
-        targets[5] = _connectGelatoProviderPayment; // payProvider
+        targets[5] = _connectGelatoExecutorPayment; // payExecutor
         targets[6] = INSTA_POOL_V2; // flashPayback
 
         datas = new bytes[](7);
@@ -206,12 +206,7 @@ contract MockConnectGelatoDataFullRefinanceMaker is ConnectorInterface {
             0
         );
         datas[4] = _encodeBorrowMakerVault(0, 0, 600, 0);
-        datas[5] = _encodePayGelatoProvider(
-            _colToken,
-            _gasFeesPaidFromCol,
-            0,
-            0
-        );
+        datas[5] = _encodePayExecutor(_colToken, _gasFeesPaidFromCol, 0, 0);
         datas[6] = _encodeFlashPayback(DAI, _wDaiToBorrow, 0, 0);
     }
 
@@ -228,7 +223,7 @@ contract MockConnectGelatoDataFullRefinanceMaker is ConnectorInterface {
         targets[1] = CONNECT_MAKER; // withdraw
         targets[2] = CONNECT_MAKER; // deposit
         targets[3] = CONNECT_MAKER; // borrow
-        targets[4] = _connectGelatoProviderPayment; // payProvider
+        targets[4] = _connectGelatoExecutorPayment; // payExecutor
         targets[5] = INSTA_POOL_V2; // flashPayback
 
         datas = new bytes[](6);
@@ -241,12 +236,7 @@ contract MockConnectGelatoDataFullRefinanceMaker is ConnectorInterface {
             0
         );
         datas[3] = _encodeBorrowMakerVault(_vaultBId, 0, 600, 0);
-        datas[4] = _encodePayGelatoProvider(
-            _colToken,
-            _gasFeesPaidFromCol,
-            0,
-            0
-        );
+        datas[4] = _encodePayExecutor(_colToken, _gasFeesPaidFromCol, 0, 0);
         datas[5] = _encodeFlashPayback(DAI, _wDaiToBorrow, 0, 0);
     }
 
@@ -264,14 +254,14 @@ contract MockConnectGelatoDataFullRefinanceMaker is ConnectorInterface {
             _getMakerVaultCollateralBalance(_vaultId);
         uint256 route = _route;
         uint256 gasCost = _getGasCostMakerToCompound(route);
-        uint256 gasFeesPaidFromCol = _getGelatoProviderFees(gasCost);
+        uint256 gasFeesPaidFromCol = _getGelatoExecutorFees(gasCost);
 
         address[] memory _targets = new address[](6);
         _targets[0] = CONNECT_MAKER; // payback
         _targets[1] = CONNECT_MAKER; // withdraw
         _targets[2] = CONNECT_COMPOUND; // deposit
         _targets[3] = CONNECT_COMPOUND; // borrow
-        _targets[4] = _connectGelatoProviderPayment; // payProvider
+        _targets[4] = _connectGelatoExecutorPayment; // payExecutor
         _targets[5] = INSTA_POOL_V2; // flashPayback
 
         bytes[] memory _datas = new bytes[](6);
@@ -284,12 +274,7 @@ contract MockConnectGelatoDataFullRefinanceMaker is ConnectorInterface {
             0
         );
         _datas[3] = _encodeBorrowCompound(DAI, 0, 600, 0);
-        _datas[4] = _encodePayGelatoProvider(
-            _colToken,
-            gasFeesPaidFromCol,
-            0,
-            0
-        );
+        _datas[4] = _encodePayExecutor(_colToken, gasFeesPaidFromCol, 0, 0);
         _datas[5] = _encodeFlashPayback(DAI, wDaiToBorrow, 0, 0);
 
         datas = new bytes[](1);

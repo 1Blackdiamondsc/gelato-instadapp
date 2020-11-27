@@ -18,20 +18,20 @@ module.exports = async function () {
   const ABI = getABI();
 
   // Gelato Testing environment setup.
-  await stakeExecutor(wallets.gelatoExecutorWallet, contracts.gelatoCore);
+  await stakeExecutor(wallets.executor, contracts.gelatoCore);
   await provideFunds(
-    wallets.gelatoProviderWallet,
+    wallets.gelatoProvider,
     contracts.gelatoCore,
     constants.GAS_LIMIT,
     constants.GAS_PRICE_CEIL
   );
   await providerAssignsExecutor(
-    wallets.gelatoProviderWallet,
+    wallets.gelatoProvider,
     wallets.gelatoExecutorAddress,
     contracts.gelatoCore
   );
   await addProviderModuleDSA(
-    wallets.gelatoProviderWallet,
+    wallets.gelatoProvider,
     contracts.gelatoCore,
     contracts.dsaProviderModule.address
   );

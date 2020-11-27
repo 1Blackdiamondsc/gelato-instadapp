@@ -99,8 +99,8 @@ module.exports = async function () {
   const conditionDebtBridgeIsAffordable = await ethers.getContract(
     "ConditionDebtBridgeIsAffordable"
   );
-  const connectGelatoProviderPayment = await ethers.getContract(
-    "ConnectGelatoProviderPayment"
+  const connectGelatoExecutorPayment = await ethers.getContract(
+    "ConnectGelatoExecutorPayment"
   );
   const makerResolver = await ethers.getContract("MakerResolver");
   const connectGelatoDataFullMakerToMaker = await ethers.getContract(
@@ -140,7 +140,7 @@ module.exports = async function () {
     instaConnectors,
     compoundResolver,
     conditionMakerVaultUnsafe,
-    connectGelatoProviderPayment,
+    connectGelatoExecutorPayment,
     priceOracleResolver,
     dsa: ethers.constants.AddressZero,
     makerResolver,

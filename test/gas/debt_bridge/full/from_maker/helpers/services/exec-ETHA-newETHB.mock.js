@@ -30,7 +30,7 @@ module.exports = async function (
 
   expect(
     await contracts.mockDebtBridgeETHBExecutor
-      .connect(wallets.gelatoExecutorWallet)
+      .connect(wallets.executor)
       .canExec(taskReceipt, constants.GAS_LIMIT, gelatoGasPrice)
   ).to.be.equal("ConditionNotOk:MakerVaultNotUnsafe");
 
@@ -41,7 +41,7 @@ module.exports = async function (
 
   expect(
     await contracts.mockDebtBridgeETHBExecutor
-      .connect(wallets.gelatoExecutorWallet)
+      .connect(wallets.executor)
       .canExec(taskReceipt, constants.GAS_LIMIT, gelatoGasPrice)
   ).to.be.equal("OK");
 
@@ -52,7 +52,7 @@ module.exports = async function (
   if (mockRoute === 0) {
     await expect(
       contracts.mockDebtBridgeETHBExecutor
-        .connect(wallets.gelatoExecutorWallet)
+        .connect(wallets.executor)
         .execViaRoute0AndOpenVault(taskReceipt, {
           gasPrice: gelatoGasPrice, // Exectutor must use gelatoGasPrice (Chainlink fast gwei)
           gasLimit: constants.GAS_LIMIT,
@@ -61,7 +61,7 @@ module.exports = async function (
   } else if (mockRoute === 1) {
     await expect(
       contracts.mockDebtBridgeETHBExecutor
-        .connect(wallets.gelatoExecutorWallet)
+        .connect(wallets.executor)
         .execViaRoute1AndOpenVault(taskReceipt, {
           gasPrice: gelatoGasPrice, // Exectutor must use gelatoGasPrice (Chainlink fast gwei)
           gasLimit: constants.GAS_LIMIT,
@@ -70,7 +70,7 @@ module.exports = async function (
   } else if (mockRoute === 2) {
     await expect(
       contracts.mockDebtBridgeETHBExecutor
-        .connect(wallets.gelatoExecutorWallet)
+        .connect(wallets.executor)
         .execViaRoute2AndOpenVault(taskReceipt, {
           gasPrice: gelatoGasPrice, // Exectutor must use gelatoGasPrice (Chainlink fast gwei)
           gasLimit: constants.GAS_LIMIT,
@@ -79,7 +79,7 @@ module.exports = async function (
   } else if (mockRoute === 3) {
     await expect(
       contracts.mockDebtBridgeETHBExecutor
-        .connect(wallets.gelatoExecutorWallet)
+        .connect(wallets.executor)
         .execViaRoute3AndOpenVAult(taskReceipt, {
           gasPrice: gelatoGasPrice, // Exectutor must use gelatoGasPrice (Chainlink fast gwei)
           gasLimit: constants.GAS_LIMIT,
@@ -91,7 +91,7 @@ module.exports = async function (
 
   // 🚧 For Debugging:
   // const txResponse2 = await contracts.gelatoCore
-  //   .connect(wallets.gelatoExecutorWallet)
+  //   .connect(wallets.executor)
   //   .exec(taskReceipt, {
   //     gasPrice: gelatoGasPrice,
   //     gasLimit: constants.GAS_LIMIT,

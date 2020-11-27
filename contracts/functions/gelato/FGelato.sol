@@ -10,6 +10,6 @@ function _getGelatoGasPrice() view returns (uint256) {
     return uint256(oracleGasPrice);
 }
 
-function _getGelatoProviderFees(uint256 _gas) view returns (uint256) {
+function _getGelatoExecutorFees(uint256 _gas) view returns (uint256) {
     return mul(_gas, _getGelatoGasPrice());
 }

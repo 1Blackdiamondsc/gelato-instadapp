@@ -1,7 +1,7 @@
 const { expect } = require("chai");
 
 module.exports = async function (
-  gelatoProviderWallet,
+  gelatoProvider,
   gelatoExecutorAddress,
   gelatoCore
 ) {
@@ -10,11 +10,11 @@ module.exports = async function (
   // Provider choose a executor who will execute futur task
   // for the provider, it will be compensated by the provider.
 
-  const gelatoProviderAddress = await gelatoProviderWallet.getAddress();
+  const gelatoProviderAddress = await gelatoProvider.getAddress();
 
   await expect(
     gelatoCore
-      .connect(gelatoProviderWallet)
+      .connect(gelatoProvider)
       .providerAssignsExecutor(gelatoExecutorAddress)
   ).to.emit(gelatoCore, "LogProviderAssignedExecutor");
 

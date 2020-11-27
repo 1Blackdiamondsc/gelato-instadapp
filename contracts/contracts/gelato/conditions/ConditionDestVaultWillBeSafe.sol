@@ -18,7 +18,7 @@ import {
     _getGasCostMakerToMaker,
     _getRealisedDebt
 } from "../../../functions/gelato/FGelatoDebtBridge.sol";
-import {_getGelatoProviderFees} from "../../../functions/gelato/FGelato.sol";
+import {_getGelatoExecutorFees} from "../../../functions/gelato/FGelato.sol";
 import {GelatoBytes} from "../../../lib/GelatoBytes.sol";
 import {sub} from "../../../vendor/DSMath.sol";
 
@@ -70,7 +70,7 @@ contract ConditionDestVaultWillBeSafe is GelatoConditionsStandard {
         uint256 wColToDeposit =
             sub(
                 _getMakerVaultCollateralBalance(_fromVaultId),
-                _getGelatoProviderFees(
+                _getGelatoExecutorFees(
                     _getGasCostMakerToMaker(
                         _destVaultId == 0,
                         _getFlashLoanRoute(DAI, wDaiToBorrow)

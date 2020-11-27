@@ -44,13 +44,13 @@ module.exports = async function (wallets, contracts, constants, vaultId) {
 
   await expect(
     contracts.gelatoCore
-      .connect(wallets.gelatoProviderWallet)
+      .connect(wallets.gelatoProvider)
       .provideTaskSpecs([connectGelatoFullDebtBridgeFromMakerTaskSpec])
   ).to.emit(contracts.gelatoCore, "LogTaskSpecProvided");
 
   expect(
     await contracts.gelatoCore
-      .connect(wallets.gelatoProviderWallet)
+      .connect(wallets.gelatoProvider)
       .isTaskSpecProvided(
         wallets.gelatoProviderAddress,
         connectGelatoFullDebtBridgeFromMakerTaskSpec
@@ -59,11 +59,11 @@ module.exports = async function (wallets, contracts, constants, vaultId) {
 
   expect(
     await contracts.gelatoCore
-      .connect(wallets.gelatoProviderWallet)
+      .connect(wallets.gelatoProvider)
       .taskSpecGasPriceCeil(
         wallets.gelatoProviderAddress,
         await contracts.gelatoCore
-          .connect(wallets.gelatoProviderWallet)
+          .connect(wallets.gelatoProvider)
           .hashTaskSpec(connectGelatoFullDebtBridgeFromMakerTaskSpec)
       )
   ).to.be.equal(gasPriceCeil);

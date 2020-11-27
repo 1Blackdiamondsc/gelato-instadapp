@@ -1,6 +1,6 @@
 const { expect } = require("chai");
 
-module.exports = async function (gelatoExecutorWallet, gelatoCore) {
+module.exports = async function (executor, gelatoCore) {
   //#region Executor Stake on Gelato
 
   // For task execution provider will ask a executor to watch the
@@ -10,9 +10,9 @@ module.exports = async function (gelatoExecutorWallet, gelatoCore) {
   // For safety measure Gelato ask the executor to stake a minimum
   // amount.
 
-  const gelatoExecutorAddress = await gelatoExecutorWallet.getAddress();
+  const gelatoExecutorAddress = await executor.getAddress();
 
-  await gelatoCore.connect(gelatoExecutorWallet).stakeExecutor({
+  await gelatoCore.connect(executor).stakeExecutor({
     value: await gelatoCore.minExecutorStake(),
   });
 

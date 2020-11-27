@@ -7,7 +7,7 @@ const setupMakerToMaker = require("../helpers/setupMakerToMaker");
 
 // This test showcases how to submit a task refinancing a Users debt position from
 // Maker to Compound using Gelato
-describe("Security: _cast function by example of ETHA-ETHB with disabled ConnectGelatoProviderPayment", function () {
+describe("Security: _cast function by example of ETHA-ETHB with disabled ConnectGelatoExecutorPayment", function () {
   this.timeout(0);
   if (hre.network.name !== "hardhat") {
     console.error("Test Suite is meant to be run on hardhat only");
@@ -184,7 +184,7 @@ describe("Security: _cast function by example of ETHA-ETHB with disabled Connect
 
     expect(
       await contracts.gelatoCore
-        .connect(wallets.gelatoExecutorWallet)
+        .connect(wallets.executor)
         .canExec(taskReceipt, constants.GAS_LIMIT, gelatoGasPrice)
     ).to.be.equal("ConditionNotOk:MakerVaultNotUnsafe");
 
@@ -195,7 +195,7 @@ describe("Security: _cast function by example of ETHA-ETHB with disabled Connect
 
     expect(
       await contracts.gelatoCore
-        .connect(wallets.gelatoExecutorWallet)
+        .connect(wallets.executor)
         .canExec(taskReceipt, constants.GAS_LIMIT, gelatoGasPrice)
     ).to.be.equal("OK");
 
@@ -206,11 +206,11 @@ describe("Security: _cast function by example of ETHA-ETHB with disabled Connect
       hre.network.config.InstaConnectors
     );
 
-    const { address: connectGelatoProviderPayment } = await ethers.getContract(
-      "ConnectGelatoProviderPayment"
+    const { address: connectGelatoExecutorPayment } = await ethers.getContract(
+      "ConnectGelatoExecutorPayment"
     );
 
-    expect(await instaConnectors.isConnector([connectGelatoProviderPayment])).to
+    expect(await instaConnectors.isConnector([connectGelatoExecutorPayment])).to
       .be.true;
 
     const instaMaster = await ethers.provider.getSigner(
@@ -229,7 +229,7 @@ describe("Security: _cast function by example of ETHA-ETHB with disabled Connect
 
     await instaConnectors
       .connect(instaMaster)
-      .disable(connectGelatoProviderPayment);
+      .disable(connectGelatoExecutorPayment);
 
     await hre.network.provider.request({
       method: "hardhat_stopImpersonatingAccount",
@@ -238,7 +238,7 @@ describe("Security: _cast function by example of ETHA-ETHB with disabled Connect
 
     // await expect(
     //   contracts.gelatoCore
-    //     .connect(wallets.gelatoExecutorWallet)
+    //     .connect(wallets.executor)
     //     .exec(taskReceipt, {
     //       gasPrice: gelatoGasPrice, // Exectutor must use gelatoGasPrice (Chainlink fast gwei)
     //       gasLimit: constants.GAS_LIMIT,
@@ -246,7 +246,7 @@ describe("Security: _cast function by example of ETHA-ETHB with disabled Connect
     // ).to.emit(contracts.gelatoCore, "LogExecReverted");
 
     const txResponse = await contracts.gelatoCore
-      .connect(wallets.gelatoExecutorWallet)
+      .connect(wallets.executor)
       .exec(taskReceipt, {
         gasPrice: gelatoGasPrice,
         gasLimit: constants.GAS_LIMIT,

@@ -33,13 +33,13 @@ import {
     _encodeBorrowMakerVault
 } from "../../functions/InstaDapp/connectors/FConnectMaker.sol";
 import {
-    _encodePayGelatoProvider
-} from "../../functions/InstaDapp/connectors/FConnectGelatoProviderPayment.sol";
+    _encodePayExecutor
+} from "../../functions/InstaDapp/connectors/FConnectGelatoExecutorPayment.sol";
 import {
     _encodeDepositCompound,
     _encodeBorrowCompound
 } from "../../functions/InstaDapp/connectors/FConnectCompound.sol";
-import {_getGelatoProviderFees} from "../../functions/gelato/FGelato.sol";
+import {_getGelatoExecutorFees} from "../../functions/gelato/FGelato.sol";
 import {
     _getFlashLoanRoute,
     _getGasCostMakerToMaker,
@@ -59,11 +59,11 @@ contract ConnectGelatoDataFullMakerToCompound is ConnectorInterface {
     string public constant override name =
         "ConnectGelatoDataFullMakerToCompound-v1.0";
     uint256 internal immutable _id;
-    address internal immutable _connectGelatoProviderPayment;
+    address internal immutable _connectGelatoExecutorPayment;
 
-    constructor(uint256 id, address connectGelatoProviderPayment) {
+    constructor(uint256 id, address connectGelatoExecutorPayment) {
         _id = id;
-        _connectGelatoProviderPayment = connectGelatoProviderPayment;
+        _connectGelatoExecutorPayment = connectGelatoExecutorPayment;
     }
 
     /// @dev Connector Details
@@ -146,14 +146,14 @@ contract ConnectGelatoDataFullMakerToCompound is ConnectorInterface {
             _getMakerVaultCollateralBalance(_vaultId);
         uint256 route = _getFlashLoanRoute(DAI, wDaiToBorrow);
         uint256 gasCost = _getGasCostMakerToCompound(route);
-        uint256 gasFeesPaidFromCol = _getGelatoProviderFees(gasCost);
+        uint256 gasFeesPaidFromCol = _getGelatoExecutorFees(gasCost);
 
         address[] memory _targets = new address[](6);
         _targets[0] = CONNECT_MAKER; // payback
         _targets[1] = CONNECT_MAKER; // withdraw
         _targets[2] = CONNECT_COMPOUND; // deposit
         _targets[3] = CONNECT_COMPOUND; // borrow
-        _targets[4] = _connectGelatoProviderPayment; // payProvider
+        _targets[4] = _connectGelatoExecutorPayment; // payExecutor
         _targets[5] = INSTA_POOL_V2; // flashPayback
 
         bytes[] memory _datas = new bytes[](6);
@@ -166,12 +166,7 @@ contract ConnectGelatoDataFullMakerToCompound is ConnectorInterface {
             0
         );
         _datas[3] = _encodeBorrowCompound(DAI, 0, 600, 0);
-        _datas[4] = _encodePayGelatoProvider(
-            _colToken,
-            gasFeesPaidFromCol,
-            0,
-            0
-        );
+        _datas[4] = _encodePayExecutor(_colToken, gasFeesPaidFromCol, 0, 0);
         _datas[5] = _encodeFlashPayback(DAI, wDaiToBorrow, 0, 0);
 
         datas = new bytes[](1);

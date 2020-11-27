@@ -5,14 +5,14 @@ const { sleep } = require("@gelatonetwork/core");
 module.exports = async (hre) => {
   if (hre.network.name === "mainnet") {
     console.log(
-      "Deploying ConnectGelatoProviderPayment to mainnet. Hit ctrl + c to abort"
+      "Deploying ConnectGelatoExecutorPayment to mainnet. Hit ctrl + c to abort"
     );
     console.log("❗ CONNECTOR DEPLOYMENT: VERIFY & HARDCODE CONNECTOR ID");
     await sleep(10000);
   }
   const { deployments } = hre;
   const { deploy } = deployments;
-  const { deployer, gelatoProvider } = await hre.getNamedAccounts();
+  const { deployer } = await hre.getNamedAccounts();
 
   if (hre.network.name === "hardhat") {
     const deployerWallet = await ethers.provider.getSigner(deployer);
@@ -37,15 +37,15 @@ module.exports = async (hre) => {
     const connectorLength = await instaConnectors.connectorLength();
     const connectorId = connectorLength.add(1);
 
-    await deploy("ConnectGelatoProviderPayment", {
+    await deploy("ConnectGelatoExecutorPayment", {
       from: deployer,
-      args: [connectorId, gelatoProvider],
+      args: [connectorId],
     });
 
     await instaConnectors
       .connect(instaMaster)
       .enable(
-        (await ethers.getContract("ConnectGelatoProviderPayment")).address
+        (await ethers.getContract("ConnectGelatoExecutorPayment")).address
       );
 
     await hre.network.provider.request({
@@ -53,14 +53,11 @@ module.exports = async (hre) => {
       params: [await instaMaster.getAddress()],
     });
   } else {
-    // the following will only deploy "ConnectGelatoProviderPayment"
+    // the following will only deploy "ConnectGelatoExecutorPayment"
     // if the contract was never deployed or if the code changed since last deployment
-    await deploy("ConnectGelatoProviderPayment", {
+    await deploy("ConnectGelatoExecutorPayment", {
       from: deployer,
-      args: [
-        parseInt(process.env.ConnectGelatoProviderPaymentId),
-        gelatoProvider,
-      ],
+      args: [parseInt(process.env.ConnectGelatoExecutorPaymentId)],
       gasPrice: hre.network.config.gasPrice,
       log: true,
     });
@@ -70,7 +67,7 @@ module.exports = async (hre) => {
 module.exports.skip = async (hre) => {
   if (hre.network.name === "mainnet") return true;
   if (hre.network.name !== "hardhat")
-    return process.env.ConnectGelatoProviderPaymentId === undefined;
+    return process.env.ConnectGelatoExecutorPaymentId === undefined;
   return false;
 };
-module.exports.tags = ["ConnectGelatoProviderPayment"];
+module.exports.tags = ["ConnectGelatoExecutorPayment"];

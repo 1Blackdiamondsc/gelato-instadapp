@@ -85,6 +85,7 @@ describe("Gas Measurements: Full Debt Bridge From Maker ETH-A to ETH-B", functio
     conditionDestVaultWillBeSafe = new GelatoCoreLib.Condition({
       inst: contracts.conditionDestVaultWillBeSafe.address,
       data: await contracts.conditionDestVaultWillBeSafe.getConditionData(
+        contracts.dsa.address,
         vaultAId,
         vaultBId,
         "ETH-B"

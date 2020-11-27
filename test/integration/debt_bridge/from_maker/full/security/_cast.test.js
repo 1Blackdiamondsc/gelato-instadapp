@@ -105,6 +105,7 @@ describe("Security: _cast function by example of ETHA-ETHB with disabled Connect
     const conditionDestVaultWillBeSafe = new GelatoCoreLib.Condition({
       inst: contracts.conditionDestVaultWillBeSafe.address,
       data: await contracts.conditionDestVaultWillBeSafe.getConditionData(
+        contracts.dsa.address,
         vaultAId,
         vaultBId,
         "ETH-B"

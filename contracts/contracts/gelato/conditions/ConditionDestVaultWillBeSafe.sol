@@ -9,7 +9,8 @@ import {
     _getMakerVaultDebt,
     _getMakerVaultCollateralBalance,
     _vaultWillBeSafe,
-    _newVaultWillBeSafe
+    _newVaultWillBeSafe,
+    _isVaultOwner
 } from "../../../functions/dapps/FMaker.sol";
 import {DAI} from "../../../constants/CInstaDapp.sol";
 import {
@@ -25,6 +26,7 @@ contract ConditionDestVaultWillBeSafe is GelatoConditionsStandard {
     using GelatoBytes for bytes;
 
     function getConditionData(
+        address _dsa,
         uint256 _fromVaultId,
         uint256 _destVaultId,
         string calldata _destColType
@@ -32,6 +34,7 @@ contract ConditionDestVaultWillBeSafe is GelatoConditionsStandard {
         return
             abi.encodeWithSelector(
                 this.destVaultWillBeSafe.selector,
+                _dsa,
                 _fromVaultId,
                 _destVaultId,
                 _destColType
@@ -44,19 +47,24 @@ contract ConditionDestVaultWillBeSafe is GelatoConditionsStandard {
         uint256
     ) public view virtual override returns (string memory) {
         (
+            address _dsa,
             uint256 _fromVaultId,
             uint256 _destVaultId,
             string memory _destColType
-        ) = abi.decode(_conditionData[4:], (uint256, uint256, string));
+        ) = abi.decode(_conditionData[4:], (address, uint256, uint256, string));
 
-        return destVaultWillBeSafe(_fromVaultId, _destVaultId, _destColType);
+        return
+            destVaultWillBeSafe(_dsa, _fromVaultId, _destVaultId, _destColType);
     }
 
     function destVaultWillBeSafe(
+        address _dsa,
         uint256 _fromVaultId,
         uint256 _destVaultId,
         string memory _destColType
     ) public view returns (string memory) {
+        uint256 _destVaultId =
+            _isVaultOwner(_destVaultId, _dsa) ? _destVaultId : 0;
         uint256 wDaiToBorrow =
             _getRealisedDebt(_getMakerVaultDebt(_fromVaultId));
         uint256 wColToDeposit =

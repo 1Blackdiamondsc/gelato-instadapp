@@ -182,6 +182,7 @@ describe("ConditionDestVaultWillBeSafe Unit Test", function () {
     //#endregion Borrow
 
     const conditionData = await conditionDestVaultWillBeSafe.getConditionData(
+      dsa.address,
       cdpAId,
       0,
       "ETH-B"
@@ -239,6 +240,7 @@ describe("ConditionDestVaultWillBeSafe Unit Test", function () {
     //#endregion Borrow
 
     const conditionData = await conditionDestVaultWillBeSafe.getConditionData(
+      dsa.address,
       cdpAId,
       0,
       "ETH-B"
@@ -296,6 +298,7 @@ describe("ConditionDestVaultWillBeSafe Unit Test", function () {
     //#endregion Borrow
 
     const conditionData = await conditionDestVaultWillBeSafe.getConditionData(
+      dsa.address,
       cdpAId,
       cdpBId,
       "ETH-B"
@@ -351,6 +354,7 @@ describe("ConditionDestVaultWillBeSafe Unit Test", function () {
     //#endregion Borrow
 
     const conditionData = await conditionDestVaultWillBeSafe.getConditionData(
+      dsa.address,
       cdpAId,
       cdpBId,
       "ETH-B"
@@ -428,6 +432,7 @@ describe("ConditionDestVaultWillBeSafe Unit Test", function () {
     //#endregion Borrow
 
     const conditionData = await conditionDestVaultWillBeSafe.getConditionData(
+      dsa.address,
       cdpAId,
       cdpBId,
       "ETH-B"
@@ -437,7 +442,161 @@ describe("ConditionDestVaultWillBeSafe Unit Test", function () {
     ).to.be.equal("OK");
   });
 
-  it("#6: New Vault Case : destVaultWillBeSafeExplicit should return false when col is lower than borrow amount / spot", async function () {
+  it("#6: ok should return DestVaultWillNotBeSafe when the gas fees exceed a user define amount with closing the vaultB", async function () {
+    // Steps :
+    // 1 - Deposit in Vault ETH-A
+    // 4 - Close Vault ETH-B
+    // 5 - Test if vault ETH-B will be safe after debt bridge action
+    const amountToDeposit = amountToBorrow
+      .mul(ethers.utils.parseUnits("1", 27))
+      .div(ilkA[2]) // ilk[2] represent the liquidation ratio of ilk
+      .add(ethers.utils.parseUnits("1", 17)); // to be just above the liquidation ratio.
+
+    //#region Deposit on Vault ETH-B
+
+    await dsa.cast(
+      [hre.network.config.ConnectMaker],
+      [
+        await hre.run("abi-encode-withselector", {
+          abi: ConnectMaker.abi,
+          functionname: "close",
+          inputs: [cdpBId],
+        }),
+      ],
+      userAddress,
+      {
+        value: amountToDeposit,
+      }
+    );
+
+    //#endregion Deposit on Vault ETH-B
+
+    //#region Deposit on Vault ETH-A
+
+    await dsa.cast(
+      [hre.network.config.ConnectMaker],
+      [
+        await hre.run("abi-encode-withselector", {
+          abi: ConnectMaker.abi,
+          functionname: "deposit",
+          inputs: [cdpAId, amountToDeposit, 0, 0],
+        }),
+      ],
+      userAddress,
+      {
+        value: amountToDeposit,
+      }
+    );
+
+    //#endregion Deposit
+
+    //#region Borrow
+
+    await dsa.cast(
+      [hre.network.config.ConnectMaker],
+      [
+        await hre.run("abi-encode-withselector", {
+          abi: ConnectMaker.abi,
+          functionname: "borrow",
+          inputs: [cdpAId, amountToBorrow, 0, 0],
+        }),
+      ],
+      userAddress
+    );
+
+    expect(await DAI.balanceOf(dsa.address)).to.be.equal(amountToBorrow);
+
+    //#endregion Borrow
+
+    const conditionData = await conditionDestVaultWillBeSafe.getConditionData(
+      dsa.address,
+      cdpAId,
+      cdpBId,
+      "ETH-B"
+    );
+    expect(
+      await conditionDestVaultWillBeSafe.ok(0, conditionData, 0)
+    ).to.be.equal("DestVaultWillNotBeSafe");
+  });
+
+  it("#7: ok should return Ok when the gas fees didn't exceed a user define amount with closing the vaultB", async function () {
+    // Steps :
+    // 1 - Deposit in Vault ETH-A
+    // 4 - Close Vault ETH-B
+    // 5 - Test if vault ETH-B will be safe after debt bridge action
+    const amountToDeposit = amountToBorrow
+      .mul(ethers.utils.parseUnits("1", 27))
+      .div(ilkA[2]) // ilk[2] represent the liquidation ratio of ilk
+      .add(ethers.utils.parseUnits("4", 17)); // to be just above the liquidation ratio.
+
+    //#region Deposit on Vault ETH-B
+
+    await dsa.cast(
+      [hre.network.config.ConnectMaker],
+      [
+        await hre.run("abi-encode-withselector", {
+          abi: ConnectMaker.abi,
+          functionname: "close",
+          inputs: [cdpBId],
+        }),
+      ],
+      userAddress,
+      {
+        value: amountToDeposit,
+      }
+    );
+
+    //#endregion Deposit on Vault ETH-B
+
+    //#region Deposit on Vault ETH-A
+
+    await dsa.cast(
+      [hre.network.config.ConnectMaker],
+      [
+        await hre.run("abi-encode-withselector", {
+          abi: ConnectMaker.abi,
+          functionname: "deposit",
+          inputs: [cdpAId, amountToDeposit, 0, 0],
+        }),
+      ],
+      userAddress,
+      {
+        value: amountToDeposit,
+      }
+    );
+
+    //#endregion Deposit
+
+    //#region Borrow
+
+    await dsa.cast(
+      [hre.network.config.ConnectMaker],
+      [
+        await hre.run("abi-encode-withselector", {
+          abi: ConnectMaker.abi,
+          functionname: "borrow",
+          inputs: [cdpAId, amountToBorrow, 0, 0],
+        }),
+      ],
+      userAddress
+    );
+
+    expect(await DAI.balanceOf(dsa.address)).to.be.equal(amountToBorrow);
+
+    //#endregion Borrow
+
+    const conditionData = await conditionDestVaultWillBeSafe.getConditionData(
+      dsa.address,
+      cdpAId,
+      cdpBId,
+      "ETH-B"
+    );
+    expect(
+      await conditionDestVaultWillBeSafe.ok(0, conditionData, 0)
+    ).to.be.equal("OK");
+  });
+
+  it("#8: New Vault Case : destVaultWillBeSafeExplicit should return false when col is lower than borrow amount / spot", async function () {
     let amountOfColToDepo = amountToBorrow
       .mul(ilkB[1]) // ilk[1] represent accumulated rates
       .div(ethers.utils.parseUnits("1", 27));
@@ -456,7 +615,7 @@ describe("ConditionDestVaultWillBeSafe Unit Test", function () {
     ).to.be.false;
   });
 
-  it("#7: New Vault Case : destVaultWillBeSafeExplicit should return true when col is greater than borrow amount / spot", async function () {
+  it("#9: New Vault Case : destVaultWillBeSafeExplicit should return true when col is greater than borrow amount / spot", async function () {
     let amountOfColToDepo = amountToBorrow
       .mul(ilkB[1]) // ilk[1] represent accumulated rates
       .div(ethers.utils.parseUnits("1", 27));
@@ -475,7 +634,7 @@ describe("ConditionDestVaultWillBeSafe Unit Test", function () {
     ).to.be.true;
   });
 
-  it("#8: Old Vault Case : destVaultWillBeSafeExplicit should return false when col is lower than borrow amount / spot", async function () {
+  it("#10: Old Vault Case : destVaultWillBeSafeExplicit should return false when col is lower than borrow amount / spot", async function () {
     const openVault = await hre.run("abi-encode-withselector", {
       abi: ConnectMaker.abi,
       functionname: "open",
@@ -506,7 +665,7 @@ describe("ConditionDestVaultWillBeSafe Unit Test", function () {
     ).to.be.false;
   });
 
-  it("#9: Old Vault Case : destVaultWillBeSafeExplicit should return true when col is lower than borrow amount / spot", async function () {
+  it("#11: Old Vault Case : destVaultWillBeSafeExplicit should return true when col is lower than borrow amount / spot", async function () {
     let amountOfColToDepo = amountToBorrow
       .mul(ilkB[1]) // ilk[1] represent accumulated rates
       .div(ethers.utils.parseUnits("1", 27));
@@ -525,7 +684,7 @@ describe("ConditionDestVaultWillBeSafe Unit Test", function () {
     ).to.be.true;
   });
 
-  it("#10: Old Vault Case with existing deposit : destVaultWillBeSafeExplicit should return true when col is lower than borrow amount / spot due to initial deposit on Vault B", async function () {
+  it("#12: Old Vault Case with existing deposit : destVaultWillBeSafeExplicit should return true when col is lower than borrow amount / spot due to initial deposit on Vault B", async function () {
     let amountOfColToDepo = amountToBorrow
       .mul(ilkB[1]) // ilk[1] represent accumulated rates
       .div(ethers.utils.parseUnits("1", 27));

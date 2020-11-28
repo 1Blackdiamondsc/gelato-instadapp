@@ -4,9 +4,9 @@ pragma solidity 0.7.4;
 import {
     IConnectGelatoExecutorPayment
 } from "../../interfaces/InstaDapp/connectors/IConnectGelatoExecutorPayment.sol";
-import {Address} from "../../vendor/Address.sol";
-import {IERC20} from "../../vendor/IERC20.sol";
-import {SafeERC20} from "../../vendor/SafeERC20.sol";
+import {Address} from "@openzeppelin/contracts/utils/Address.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import {_getUint, _setUint} from "../../functions/InstaDapp/FInstaDapp.sol";
 import {ETH} from "../../constants/CInstaDapp.sol";
 

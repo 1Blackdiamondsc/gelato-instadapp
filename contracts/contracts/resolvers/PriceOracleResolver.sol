@@ -2,7 +2,7 @@
 pragma solidity 0.7.4;
 pragma experimental ABIEncoderV2;
 
-import {Ownable} from "../../vendor/Ownable.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {GelatoBytes} from "../../lib/GelatoBytes.sol";
 
 /// @title PriceOracleResolver

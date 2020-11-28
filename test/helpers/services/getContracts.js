@@ -112,8 +112,8 @@ module.exports = async function () {
   const mockDebtBridgeETHBExecutor = await ethers.getContract(
     "MockDebtBridgeETHBExecutor"
   );
-  const mockConnectGelatoDataFullRefinanceMaker = await ethers.getContract(
-    "MockConnectGelatoDataFullRefinanceMaker"
+  const mockConnectGelatoDataFullMakerToMaker = await ethers.getContract(
+    "MockConnectGelatoDataFullMakerToMaker"
   );
 
   const conditionDestVaultWillBeSafe = await ethers.getContract(
@@ -148,7 +148,7 @@ module.exports = async function () {
     dsaProviderModule,
     conditionDebtBridgeIsAffordable,
     mockDebtBridgeETHBExecutor,
-    mockConnectGelatoDataFullRefinanceMaker,
+    mockConnectGelatoDataFullMakerToMaker,
     conditionDestVaultWillBeSafe,
   };
 };

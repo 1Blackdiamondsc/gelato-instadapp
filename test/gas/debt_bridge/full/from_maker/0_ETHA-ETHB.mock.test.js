@@ -3,10 +3,10 @@ const hre = require("hardhat");
 const { deployments } = hre;
 const GelatoCoreLib = require("@gelatonetwork/core");
 
-const setupETHAToNewETHB = require("./helpers/setupETHA-newETHB.mock");
-const mockExecETHAnewETHB = require("./helpers/services/exec-ETHA-newETHB.mock");
+const mockSetupETHAETHB = require("./helpers/setupETHA-ETHB.mock");
+const mockExecETHAETHB = require("./helpers/services/exec-ETHA-ETHB.mock");
 
-describe("Gas Measurements: Full Debt Bridge From Maker ETH-A to NEW ETH-B", function () {
+describe("Gas Measurements: Full Debt Bridge From Maker ETH-A to ETH-B", function () {
   this.timeout(0);
   if (hre.network.name !== "hardhat") {
     console.error("Test Suite is meant to be run on hardhat only");
@@ -20,6 +20,7 @@ describe("Gas Measurements: Full Debt Bridge From Maker ETH-A to NEW ETH-B", fun
 
   // Payload Params for ConnectGelatoFullDebtBridgeFromMaker and ConditionMakerVaultUnsafe
   let vaultAId;
+  let vaultBId;
 
   let conditionMakerVaultUnsafeObj;
   let conditionDebtBridgeIsAffordableObj;
@@ -46,11 +47,12 @@ describe("Gas Measurements: Full Debt Bridge From Maker ETH-A to NEW ETH-B", fun
     // Reset back to a fresh forked state during runtime
     await deployments.fixture();
 
-    const result = await setupETHAToNewETHB(mockRoute);
+    const result = await mockSetupETHAETHB(mockRoute);
 
     wallets = result.wallets;
     contracts = result.contracts;
     vaultAId = result.vaultAId;
+    vaultBId = result.vaultBId;
     gelatoDebtBridgeSpells = result.spells;
 
     ABI = result.ABI;
@@ -85,12 +87,11 @@ describe("Gas Measurements: Full Debt Bridge From Maker ETH-A to NEW ETH-B", fun
       data: await contracts.conditionDestVaultWillBeSafe.getConditionData(
         contracts.dsa.address,
         vaultAId,
-        0,
+        vaultBId,
         "ETH-B"
       ),
     });
 
-    // ======= GELATO TASK SETUP ======
     refinanceFromEthAToBIfVaultUnsafe = new GelatoCoreLib.Task({
       conditions: [
         conditionMakerVaultUnsafeObj,
@@ -125,7 +126,7 @@ describe("Gas Measurements: Full Debt Bridge From Maker ETH-A to NEW ETH-B", fun
     mockRoute = mockRoute === 4 ? 0 : mockRoute + 1;
   });
 
-  it("#1: execViaRoute0AndOpenVault", async function () {
+  it("#1: execViaRoute0", async function () {
     //#region User submit a Debt Refinancing task if market move against him
 
     expect(mockRoute, "mockRoute mismatch").to.be.equal(0);
@@ -160,7 +161,7 @@ describe("Gas Measurements: Full Debt Bridge From Maker ETH-A to NEW ETH-B", fun
       expiryDate,
     });
 
-    await mockExecETHAnewETHB(
+    await mockExecETHAETHB(
       constants,
       contracts,
       wallets,
@@ -172,7 +173,7 @@ describe("Gas Measurements: Full Debt Bridge From Maker ETH-A to NEW ETH-B", fun
     //#endregion
   });
 
-  it("#2: execViaRoute1AndOpenVault", async function () {
+  it("#2: execViaRoute1", async function () {
     //#region User submit a Debt Refinancing task if market move against him
 
     expect(mockRoute, "mockRoute mismatch").to.be.equal(1);
@@ -207,7 +208,7 @@ describe("Gas Measurements: Full Debt Bridge From Maker ETH-A to NEW ETH-B", fun
       expiryDate,
     });
 
-    await mockExecETHAnewETHB(
+    await mockExecETHAETHB(
       constants,
       contracts,
       wallets,
@@ -219,7 +220,7 @@ describe("Gas Measurements: Full Debt Bridge From Maker ETH-A to NEW ETH-B", fun
     //#endregion
   });
 
-  it("#3: execViaRoute2AndOpenVault", async function () {
+  it("#3: execViaRoute2", async function () {
     //#region User submit a Debt Refinancing task if market move against him
 
     expect(mockRoute, "mockRoute mismatch").to.be.equal(2);
@@ -254,7 +255,7 @@ describe("Gas Measurements: Full Debt Bridge From Maker ETH-A to NEW ETH-B", fun
       expiryDate,
     });
 
-    await mockExecETHAnewETHB(
+    await mockExecETHAETHB(
       constants,
       contracts,
       wallets,
@@ -266,7 +267,7 @@ describe("Gas Measurements: Full Debt Bridge From Maker ETH-A to NEW ETH-B", fun
     //#endregion
   });
 
-  it("#4: execViaRoute3AndOpenVault", async function () {
+  it("#4: execViaRoute3", async function () {
     //#region User submit a Debt Refinancing task if market move against him
 
     expect(mockRoute, "mockRoute mismatch").to.be.equal(3);
@@ -301,7 +302,7 @@ describe("Gas Measurements: Full Debt Bridge From Maker ETH-A to NEW ETH-B", fun
       expiryDate,
     });
 
-    await mockExecETHAnewETHB(
+    await mockExecETHAETHB(
       constants,
       contracts,
       wallets,

@@ -6,7 +6,6 @@ const providerAssignsExecutor = require("../../../../../helpers/services/gelato/
 const addProviderModuleDSA = require("../../../../../helpers/services/gelato/addProviderModuleDSA");
 const createDSA = require("../../../../../helpers/services/InstaDapp/createDSA");
 const initializeMakerCdp = require("../../../../../helpers/services/maker/initializeMakerCdp");
-const createVaultForETHB = require("../../../../../helpers/services/maker/createVaultForETHB");
 const getMockSpellsETHAnewETHB = require("./services/getSpells-ETHA-newETHB.mock");
 const getABI = require("../../../../../helpers/services/getABI");
 
@@ -48,20 +47,12 @@ module.exports = async function (mockRoute) {
     constants.MAKER_INITIAL_DEBT,
     ABI.ConnectMakerABI
   );
-  const vaultBId = await createVaultForETHB(
-    wallets.userAddress,
-    contracts.DAI,
-    contracts.dsa,
-    contracts.getCdps,
-    contracts.dssCdpManager
-  );
   const spells = await getMockSpellsETHAnewETHB(
     wallets,
     contracts,
     constants,
     mockRoute,
-    vaultAId,
-    vaultBId
+    vaultAId
   );
 
   return {
@@ -69,7 +60,6 @@ module.exports = async function (mockRoute) {
     contracts,
     constants,
     vaultAId,
-    vaultBId,
     spells,
     ABI,
   };

@@ -6,7 +6,7 @@ const InstaConnector = require("../../../pre-compiles/InstaConnectors.json");
 module.exports = async (hre) => {
   if (hre.network.name === "mainnet") {
     console.log(
-      "Deploying MockConnectGelatoDataFullRefinanceMaker to mainnet. Hit ctrl + c to abort"
+      "Deploying MockConnectGelatoDataFullMakerToMaker to mainnet. Hit ctrl + c to abort"
     );
     console.log("❗ CONNECTOR DEPLOYMENT: VERIFY & HARDCODE CONNECTOR ID");
     await sleep(6000);
@@ -39,7 +39,7 @@ module.exports = async (hre) => {
     const connectorLength = await instaConnectors.connectorLength();
     const connectorId = connectorLength.add(1);
 
-    await deploy("MockConnectGelatoDataFullRefinanceMaker", {
+    await deploy("MockConnectGelatoDataFullMakerToMaker", {
       from: deployer,
       args: [
         connectorId,
@@ -50,7 +50,7 @@ module.exports = async (hre) => {
     await instaConnectors
       .connect(instaMaster)
       .enable(
-        (await ethers.getContract("MockConnectGelatoDataFullRefinanceMaker"))
+        (await ethers.getContract("MockConnectGelatoDataFullMakerToMaker"))
           .address
       );
 
@@ -59,9 +59,9 @@ module.exports = async (hre) => {
       params: [await instaMaster.getAddress()],
     });
   } else {
-    // the following will only deploy "MockConnectGelatoDataFullRefinanceMaker"
+    // the following will only deploy "MockConnectGelatoDataFullMakerToMaker"
     // if the contract was never deployed or if the code changed since last deployment
-    await deploy("MockConnectGelatoDataFullRefinanceMaker", {
+    await deploy("MockConnectGelatoDataFullMakerToMaker", {
       from: deployer,
       args: [
         parseInt(process.env.ConnectGelatoDataFullRefinanceMakerId),
@@ -80,4 +80,4 @@ module.exports.skip = async (hre) => {
   return false;
 };
 module.exports.dependencies = ["ConnectGelatoExecutorPayment"];
-module.exports.tags = ["MockConnectGelatoDataFullRefinanceMaker"];
+module.exports.tags = ["MockConnectGelatoDataFullMakerToMaker"];

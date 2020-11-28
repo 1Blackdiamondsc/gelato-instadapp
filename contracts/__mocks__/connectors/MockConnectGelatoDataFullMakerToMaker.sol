@@ -19,7 +19,8 @@ import {
 } from "../../constants/CInstaDapp.sol";
 import {
     _getMakerVaultDebt,
-    _getMakerVaultCollateralBalance
+    _getMakerVaultCollateralBalance,
+    _isVaultOwner
 } from "../../functions/dapps/FMaker.sol";
 import {
     _encodeFlashPayback
@@ -40,17 +41,23 @@ import {
 } from "../../functions/InstaDapp/connectors/FConnectCompound.sol";
 import {_getGelatoExecutorFees} from "../../functions/gelato/FGelato.sol";
 import {
+    _getFlashLoanRoute,
     _getGasCostMakerToMaker,
     _getGasCostMakerToCompound,
     _getRealisedDebt
 } from "../../functions/gelato/FGelatoDebtBridge.sol";
+import {
+    DataFlow
+} from "@gelatonetwork/core/contracts/gelato_core/interfaces/IGelatoCore.sol";
 
-contract MockConnectGelatoDataFullRefinanceMaker is ConnectorInterface {
+contract MockConnectGelatoDataFullMakerToMaker is ConnectorInterface {
     using GelatoBytes for bytes;
+
+    string public constant OK = "OK";
 
     // solhint-disable const-name-snakecase
     string public constant override name =
-        "MockConnectGelatoDataFullRefinanceMaker-v1.0";
+        "MockConnectGelatoDataFullMakerToMaker-v1.0";
     uint256 internal immutable _id;
     address internal immutable _connectGelatoExecutorPayment;
 
@@ -69,15 +76,39 @@ contract MockConnectGelatoDataFullRefinanceMaker is ConnectorInterface {
         (_type, id) = (1, _id); // Should put specific value.
     }
 
+    // ====== ACTION TERMS CHECK ==========
+    // Overriding IGelatoAction's function (optional)
+    function termsOk(
+        uint256, // taskReceipId
+        address _dsa,
+        bytes calldata _actionData,
+        DataFlow,
+        uint256, // value
+        uint256 // cycleId
+    ) public view returns (string memory) {
+        (, uint256 vaultAId, , , ) =
+            abi.decode(
+                _actionData[4:],
+                (uint256, uint256, uint256, address, string)
+            );
+
+        if (vaultAId == 0)
+            return "ConnectGelatoDataFullMakerToMaker: Vault A Id is not valid";
+        if (!_isVaultOwner(vaultAId, _dsa))
+            return
+                "ConnectGelatoDataFullMakerToMaker: Vault A not owned by dsa";
+        return OK;
+    }
+
     /// @notice Entry Point for DSA.cast DebtBridge from e.g ETH-A to ETH-B
     /// @dev payable to be compatible in conjunction with DSA.cast payable target
-    /// @param _route we mock this behavior for gas-reporter testing
+    /// @param _mockRoute we mock this behavior for gas-reporter testing
     /// @param _vaultAId Id of the unsafe vault of the client of Vault A Collateral.
     /// @param _vaultBId Id of the vault B Collateral of the client.
     /// @param _colToken  vault's col token address .
     /// @param _colType colType of the new vault. example : ETH-B, ETH-A.
     function getDataAndCastMakerToMaker(
-        uint256 _route,
+        uint256 _mockRoute,
         uint256 _vaultAId,
         uint256 _vaultBId,
         address _colToken,
@@ -85,28 +116,12 @@ contract MockConnectGelatoDataFullRefinanceMaker is ConnectorInterface {
     ) external payable {
         (address[] memory targets, bytes[] memory datas) =
             _dataMakerToMaker(
-                _route,
+                _mockRoute,
                 _vaultAId,
                 _vaultBId,
                 _colToken,
                 _colType
             );
-
-        _cast(targets, datas);
-    }
-
-    /// @notice Entry Point for DSA.cast DebtBridge from Maker to Compound
-    /// @dev payable to be compatible in conjunction with DSA.cast payable target
-    /// @param _route we mock this behavior for gas-reporter testing
-    /// @param _vaultId Id of the unsafe vault of the client.
-    /// @param _colToken  vault's col token address .
-    function getDataAndCastMakerToCompound(
-        uint256 _route,
-        uint256 _vaultId,
-        address _colToken
-    ) external payable {
-        (address[] memory targets, bytes[] memory datas) =
-            _dataMakerToCompound(_route, _vaultId, _colToken);
 
         _cast(targets, datas);
     }
@@ -120,20 +135,20 @@ contract MockConnectGelatoDataFullRefinanceMaker is ConnectorInterface {
                 datas,
                 msg.sender // msg.sender == GelatoCore
             );
+
         (bool success, bytes memory returndata) =
             address(this).delegatecall(castData);
         if (!success) {
             returndata.revertWithError(
-                "ConnectGelatoDataFullRefinanceMaker._cast:"
+                "ConnectGelatoDataFullMakerToMaker._cast:"
             );
         }
     }
 
     /* solhint-disable function-max-lines */
 
-    // @param _route we mock this behavior for gas-reporter testing
     function _dataMakerToMaker(
-        uint256 _route,
+        uint256 _mockRoute,
         uint256 _vaultAId,
         uint256 _vaultBId,
         address _colToken,
@@ -142,10 +157,16 @@ contract MockConnectGelatoDataFullRefinanceMaker is ConnectorInterface {
         targets = new address[](1);
         targets[0] = INSTA_POOL_V2;
 
+        _vaultBId = _isVaultOwner(_vaultBId, address(this)) ? _vaultBId : 0;
+
         uint256 wDaiToBorrow = _getRealisedDebt(_getMakerVaultDebt(_vaultAId));
         uint256 wColToWithdrawFromMaker =
             _getMakerVaultCollateralBalance(_vaultAId);
-        uint256 route = _route;
+        uint256 route = _getFlashLoanRoute(DAI, wDaiToBorrow);
+
+        // Mock Route
+        route = _mockRoute;
+
         uint256 gasCost = _getGasCostMakerToMaker(_vaultBId == 0, route);
         uint256 gasFeesPaidFromCol = _getGelatoExecutorFees(gasCost);
 
@@ -238,53 +259,6 @@ contract MockConnectGelatoDataFullRefinanceMaker is ConnectorInterface {
         datas[3] = _encodeBorrowMakerVault(_vaultBId, 0, 600, 0);
         datas[4] = _encodePayExecutor(_colToken, _gasFeesPaidFromCol, 0, 0);
         datas[5] = _encodeFlashPayback(DAI, _wDaiToBorrow, 0, 0);
-    }
-
-    // @param _route we mock this behavior for gas-reporter testing
-    function _dataMakerToCompound(
-        uint256 _route,
-        uint256 _vaultId,
-        address _colToken
-    ) internal view returns (address[] memory targets, bytes[] memory datas) {
-        targets = new address[](1);
-        targets[0] = INSTA_POOL_V2;
-
-        uint256 wDaiToBorrow = _getRealisedDebt(_getMakerVaultDebt(_vaultId));
-        uint256 wColToWithdrawFromMaker =
-            _getMakerVaultCollateralBalance(_vaultId);
-        uint256 route = _route;
-        uint256 gasCost = _getGasCostMakerToCompound(route);
-        uint256 gasFeesPaidFromCol = _getGelatoExecutorFees(gasCost);
-
-        address[] memory _targets = new address[](6);
-        _targets[0] = CONNECT_MAKER; // payback
-        _targets[1] = CONNECT_MAKER; // withdraw
-        _targets[2] = CONNECT_COMPOUND; // deposit
-        _targets[3] = CONNECT_COMPOUND; // borrow
-        _targets[4] = _connectGelatoExecutorPayment; // payExecutor
-        _targets[5] = INSTA_POOL_V2; // flashPayback
-
-        bytes[] memory _datas = new bytes[](6);
-        _datas[0] = _encodePaybackMakerVault(_vaultId, uint256(-1), 0, 600);
-        _datas[1] = _encodedWithdrawMakerVault(_vaultId, uint256(-1), 0, 0);
-        _datas[2] = _encodeDepositCompound(
-            _colToken,
-            sub(wColToWithdrawFromMaker, gasFeesPaidFromCol),
-            0,
-            0
-        );
-        _datas[3] = _encodeBorrowCompound(DAI, 0, 600, 0);
-        _datas[4] = _encodePayExecutor(_colToken, gasFeesPaidFromCol, 0, 0);
-        _datas[5] = _encodeFlashPayback(DAI, wDaiToBorrow, 0, 0);
-
-        datas = new bytes[](1);
-        datas[0] = abi.encodeWithSelector(
-            IConnectInstaPoolV2.flashBorrowAndCast.selector,
-            DAI,
-            wDaiToBorrow,
-            route,
-            abi.encode(_targets, _datas)
-        );
     }
 
     /* solhint-enable function-max-lines */

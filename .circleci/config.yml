@@ -20,7 +20,7 @@ jobs: # a collection of steps
             - ./node_modules
       - restore_cache: # restore hardhat compile cache
           name: Restore Hardhat Compilation Cache
-          key: solidity-files-cache-
+          key: solidity-files-cache-{{ checksum "./cache/solidity-files-cache.json" }}
       - run: # Compile
           name: Compile
           command: yarn compile
@@ -37,13 +37,13 @@ jobs: # a collection of steps
           command: yarn lint
       - restore_cache: # restore the Hardhat Network Fork Cache
           name: Restore Hardhat Network Fork Cache
-          key: v4-hardhat-network-fork-cache
+          key: v5-hardhat-network-fork-cache
       - run: # Tests
           name: Tests using hardhat mainnet fork and gas reporter
           command: yarn test:gas
       - save_cache: # special step to save the Hardhat Network Fork cache
           name: Save Hardhat Network Fork Cache
-          key: v4-hardhat-network-fork-cache
+          key: v5-hardhat-network-fork-cache
           paths:
             - ./cache/hardhat-network-fork
       - run: # Codechecks

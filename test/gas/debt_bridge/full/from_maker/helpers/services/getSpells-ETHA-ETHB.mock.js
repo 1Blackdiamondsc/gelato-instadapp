@@ -9,7 +9,8 @@ module.exports = async function (
   contracts,
   constants,
   mockRoute,
-  vaultAId
+  vaultAId,
+  vaultBId
 ) {
   //#region Step 9 Provider should whitelist task
 
@@ -27,7 +28,7 @@ module.exports = async function (
         await deployments.getArtifact("MockConnectGelatoDataFullMakerToMaker")
       ).abi,
       functionname: "getDataAndCastMakerToMaker",
-      inputs: [mockRoute, vaultAId, 0, constants.ETH, "ETH-B"],
+      inputs: [mockRoute, vaultAId, vaultBId, constants.ETH, "ETH-B"],
     }),
     operation: GelatoCoreLib.Operation.Delegatecall,
     termsOkCheck: true,

@@ -63,8 +63,7 @@ contract ConditionDestVaultWillBeSafe is GelatoConditionsStandard {
         uint256 _destVaultId,
         string memory _destColType
     ) public view returns (string memory) {
-        uint256 _destVaultId =
-            _isVaultOwner(_destVaultId, _dsa) ? _destVaultId : 0;
+        _destVaultId = _isVaultOwner(_destVaultId, _dsa) ? _destVaultId : 0;
         uint256 wDaiToBorrow =
             _getRealisedDebt(_getMakerVaultDebt(_fromVaultId));
         uint256 wColToDeposit =

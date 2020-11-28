@@ -95,7 +95,7 @@ contract MockDebtBridgeETHBExecutor {
         // console.log("Gas Cost execViaRoute3: %s", gasLeft - gasleft());
     }
 
-    function execViaRoute3AndOpenVAult(TaskReceipt memory _taskReceipt) public {
+    function execViaRoute3AndOpenVault(TaskReceipt memory _taskReceipt) public {
         // uint256 gasLeft = gasleft();
         IGelatoCore(gelatoCore).exec(_taskReceipt);
         // console.log(

@@ -80,7 +80,7 @@ module.exports = async function (
     await expect(
       contracts.mockDebtBridgeETHBExecutor
         .connect(wallets.executor)
-        .execViaRoute3AndOpenVAult(taskReceipt, {
+        .execViaRoute3AndOpenVault(taskReceipt, {
           gasPrice: gelatoGasPrice, // Exectutor must use gelatoGasPrice (Chainlink fast gwei)
           gasLimit: constants.GAS_LIMIT,
         })

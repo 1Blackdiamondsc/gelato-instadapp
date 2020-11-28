@@ -27,10 +27,7 @@ import {
 } from "../../functions/InstaDapp/connectors/FInstaPoolV2.sol";
 import {
     _encodePaybackMakerVault,
-    _encodedWithdrawMakerVault,
-    _encodeOpenMakerVault,
-    _encodedDepositMakerVault,
-    _encodeBorrowMakerVault
+    _encodedWithdrawMakerVault
 } from "../../functions/InstaDapp/connectors/FConnectMaker.sol";
 import {
     _encodePayExecutor
@@ -42,7 +39,6 @@ import {
 import {_getGelatoExecutorFees} from "../../functions/gelato/FGelato.sol";
 import {
     _getFlashLoanRoute,
-    _getGasCostMakerToMaker,
     _getGasCostMakerToCompound,
     _getRealisedDebt
 } from "../../functions/gelato/FGelatoDebtBridge.sol";

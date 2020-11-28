@@ -3,7 +3,7 @@ const { sleep } = require("@gelatonetwork/core");
 module.exports = async (hre) => {
   if (hre.network.name === "mainnet") {
     console.log(
-      "Deploying ConditionCompareUintsFromTwoSources to mainnet. Hit ctrl + c to abort"
+      "\n\n Deploying ConditionCompareUintsFromTwoSources to mainnet. Hit ctrl + c to abort"
     );
     await sleep(10000);
   }

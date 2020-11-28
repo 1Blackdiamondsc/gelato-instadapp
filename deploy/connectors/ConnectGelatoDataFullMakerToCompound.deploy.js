@@ -2,14 +2,16 @@ const hre = require("hardhat");
 const { ethers } = hre;
 const { sleep } = require("@gelatonetwork/core");
 const InstaConnector = require("../../pre-compiles/InstaConnectors.json");
+const assert = require("assert");
 
 module.exports = async (hre) => {
   if (hre.network.name === "mainnet") {
     console.log(
-      "Deploying ConnectGelatoDataFullMakerToCompound to mainnet. Hit ctrl + c to abort"
+      "\n\n Deploying ConnectGelatoDataFullMakerToCompound to mainnet. Hit ctrl + c to abort"
     );
     console.log("❗ CONNECTOR DEPLOYMENT: VERIFY & HARDCODE CONNECTOR ID");
-    await sleep(6000);
+    console.log(`Connector Id: ${[parseInt(process.env.CONNECTOR_ID)]}`);
+    await sleep(10000);
   }
 
   const { deployments } = hre;
@@ -59,12 +61,14 @@ module.exports = async (hre) => {
       params: [await instaMaster.getAddress()],
     });
   } else {
+    assert(process.env.CONNECTOR_ID);
+
     // the following will only deploy "ConnectGelatoDataFullMakerToCompound"
     // if the contract was never deployed or if the code changed since last deployment
     await deploy("ConnectGelatoDataFullMakerToCompound", {
       from: deployer,
       args: [
-        parseInt(process.env.ConnectGelatoDataFullMakerToCompoundId),
+        parseInt(process.env.CONNECTOR_ID),
         (await deployments.get("ConnectGelatoExecutorPayment")).address,
       ],
       gasPrice: hre.network.config.gasPrice,
@@ -76,7 +80,7 @@ module.exports = async (hre) => {
 module.exports.skip = async (hre) => {
   if (hre.network.name === "mainnet") return true;
   if (hre.network.name !== "hardhat")
-    return process.env.ConnectGelatoDataFullMakerToCompoundId === undefined;
+    return process.env.CONNECTOR_ID === undefined;
   return false;
 };
 module.exports.dependencies = ["ConnectGelatoExecutorPayment"];

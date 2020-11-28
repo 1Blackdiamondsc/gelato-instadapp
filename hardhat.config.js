@@ -21,7 +21,7 @@ require("dotenv").config();
 const ALCHEMY_ID = process.env.ALCHEMY_ID;
 assert.ok(ALCHEMY_ID, "no Alchemy ID in process.env");
 
-const DEPLOYER = "0xe1F076849B781b1395Fd332dC1758Dbc129be6EC"; // Gelato-Luis
+const DEPLOYER = "0x5B753BF02a42bC73B5846dfd16a8F2e082b99a6a"; // Gelato-Dev-Luis
 const DEPLOYER_PK_MAINNET = process.env.DEPLOYER_PK_MAINNET;
 
 // ================================= CONFIG =========================================
@@ -60,7 +60,7 @@ module.exports = {
       accounts: DEPLOYER_PK_MAINNET ? [DEPLOYER_PK_MAINNET] : [],
       chainId: 1,
       url: `https://eth-mainnet.alchemyapi.io/v2/${ALCHEMY_ID}`,
-      gasPrice: parseInt(utils.parseUnits("50", "gwei")),
+      gasPrice: parseInt(utils.parseUnits("15", "gwei")),
       timeout: 150000,
       // Custom
       ...mainnetDeployments,

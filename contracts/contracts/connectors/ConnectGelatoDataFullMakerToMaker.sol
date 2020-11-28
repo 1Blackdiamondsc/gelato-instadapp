@@ -14,7 +14,6 @@ import {
 import {
     DAI,
     CONNECT_MAKER,
-    CONNECT_COMPOUND,
     INSTA_POOL_V2
 } from "../../constants/CInstaDapp.sol";
 import {
@@ -35,15 +34,10 @@ import {
 import {
     _encodePayExecutor
 } from "../../functions/InstaDapp/connectors/FConnectGelatoExecutorPayment.sol";
-import {
-    _encodeDepositCompound,
-    _encodeBorrowCompound
-} from "../../functions/InstaDapp/connectors/FConnectCompound.sol";
 import {_getGelatoExecutorFees} from "../../functions/gelato/FGelato.sol";
 import {
     _getFlashLoanRoute,
     _getGasCostMakerToMaker,
-    _getGasCostMakerToCompound,
     _getRealisedDebt
 } from "../../functions/gelato/FGelatoDebtBridge.sol";
 import {

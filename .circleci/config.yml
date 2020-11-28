@@ -20,7 +20,7 @@ jobs: # a collection of steps
             - ./node_modules
       - restore_cache: # restore hardhat compile cache
           name: Restore Hardhat Compilation Cache
-          key: solidity-files-cache-{{ checksum "./cache/solidity-files-cache.json" }}
+          key: solidity-files-cache-
       - run: # Compile
           name: Compile
           command: yarn compile

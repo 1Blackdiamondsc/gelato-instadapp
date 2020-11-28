@@ -51,7 +51,7 @@ module.exports = {
       // timeout: 150000,
       forking: {
         url: `https://eth-mainnet.alchemyapi.io/v2/${ALCHEMY_ID}`,
-        blockNumber: 11310523,
+        blockNumber: 11346751,
       },
       // Custom
       ...mainnetDeployments,

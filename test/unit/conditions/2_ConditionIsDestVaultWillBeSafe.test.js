@@ -131,7 +131,7 @@ describe("ConditionDestVaultWillBeSafe Unit Test", function () {
     ethBIlk = ethers.utils.formatBytes32String("ETH-B");
     ilkB = await vat.ilks(ethBIlk);
 
-    amountToBorrow = ethers.utils.parseUnits("100", 18);
+    amountToBorrow = ethers.utils.parseUnits("500", 18);
   });
 
   it("#1: ok should return Ok when the gas fees didn't exceed a user define amount with vault creation", async function () {
@@ -192,121 +192,121 @@ describe("ConditionDestVaultWillBeSafe Unit Test", function () {
     ).to.be.equal("OK");
   });
 
-  it("#2: ok should return DestVaultWillNotBeSafe when the gas fees exceeded a user define amount with vault creation", async function () {
-    // Steps :
-    // 1 - Deposit
-    // 2 - Borrow
-    // 3 - Test if vault ETH-B will be safe after debt bridge action
-    const amountToDeposit = amountToBorrow
-      .mul(ethers.utils.parseUnits("1", 27))
-      .div(ilkA[2]) // ilk[2] represent the liquidation ratio of ilk
-      .add(ethers.utils.parseUnits("1", 16)); // to be just below the liquidation ratio.
+  // it("#2: ok should return DestVaultWillNotBeSafe when the gas fees exceeded a user define amount with vault creation", async function () {
+  //   // Steps :
+  //   // 1 - Deposit
+  //   // 2 - Borrow
+  //   // 3 - Test if vault ETH-B will be safe after debt bridge action
+  //   const amountToDeposit = amountToBorrow
+  //     .mul(ethers.utils.parseUnits("1", 27))
+  //     .div(ilkA[2]) // ilk[2] represent the liquidation ratio of ilk
+  //     .add(ethers.utils.parseUnits("1", 16)); // to be just below the liquidation ratio.
 
-    //#region Deposit
+  //   //#region Deposit
 
-    await dsa.cast(
-      [hre.network.config.ConnectMaker],
-      [
-        await hre.run("abi-encode-withselector", {
-          abi: ConnectMaker.abi,
-          functionname: "deposit",
-          inputs: [cdpAId, amountToDeposit, 0, 0],
-        }),
-      ],
-      userAddress,
-      {
-        value: amountToDeposit,
-      }
-    );
+  //   await dsa.cast(
+  //     [hre.network.config.ConnectMaker],
+  //     [
+  //       await hre.run("abi-encode-withselector", {
+  //         abi: ConnectMaker.abi,
+  //         functionname: "deposit",
+  //         inputs: [cdpAId, amountToDeposit, 0, 0],
+  //       }),
+  //     ],
+  //     userAddress,
+  //     {
+  //       value: amountToDeposit,
+  //     }
+  //   );
 
-    //#endregion Deposit
+  //   //#endregion Deposit
 
-    //#region Borrow
+  //   //#region Borrow
 
-    await dsa.cast(
-      [hre.network.config.ConnectMaker],
-      [
-        await hre.run("abi-encode-withselector", {
-          abi: ConnectMaker.abi,
-          functionname: "borrow",
-          inputs: [cdpAId, amountToBorrow, 0, 0],
-        }),
-      ],
-      userAddress
-    );
+  //   await dsa.cast(
+  //     [hre.network.config.ConnectMaker],
+  //     [
+  //       await hre.run("abi-encode-withselector", {
+  //         abi: ConnectMaker.abi,
+  //         functionname: "borrow",
+  //         inputs: [cdpAId, amountToBorrow, 0, 0],
+  //       }),
+  //     ],
+  //     userAddress
+  //   );
 
-    expect(await DAI.balanceOf(dsa.address)).to.be.equal(amountToBorrow);
+  //   expect(await DAI.balanceOf(dsa.address)).to.be.equal(amountToBorrow);
 
-    //#endregion Borrow
+  //   //#endregion Borrow
 
-    const conditionData = await conditionDestVaultWillBeSafe.getConditionData(
-      dsa.address,
-      cdpAId,
-      0,
-      "ETH-B"
-    );
-    expect(
-      await conditionDestVaultWillBeSafe.ok(0, conditionData, 0)
-    ).to.be.equal("DestVaultWillNotBeSafe");
-  });
+  //   const conditionData = await conditionDestVaultWillBeSafe.getConditionData(
+  //     dsa.address,
+  //     cdpAId,
+  //     0,
+  //     "ETH-B"
+  //   );
+  //   expect(
+  //     await conditionDestVaultWillBeSafe.ok(0, conditionData, 0)
+  //   ).to.be.equal("DestVaultWillNotBeSafe");
+  // });
 
-  it("#3: ok should return DestVaultWillNotBeSafe when the gas fees exceeded a user define amount", async function () {
-    // Steps :
-    // 1 - Deposit
-    // 2 - Borrow
-    // 3 - Test if vault ETH-B will be safe after debt bridge action
-    const amountToDeposit = amountToBorrow
-      .mul(ethers.utils.parseUnits("1", 27))
-      .div(ilkA[2]) // ilk[2] represent the liquidation ratio of ilk
-      .add(ethers.utils.parseUnits("1", 16)); // to be just below the liquidation ratio.
+  // it("#3: ok should return DestVaultWillNotBeSafe when the gas fees exceeded a user define amount", async function () {
+  //   // Steps :
+  //   // 1 - Deposit
+  //   // 2 - Borrow
+  //   // 3 - Test if vault ETH-B will be safe after debt bridge action
+  //   const amountToDeposit = amountToBorrow
+  //     .mul(ethers.utils.parseUnits("1", 27))
+  //     .div(ilkA[2]) // ilk[2] represent the liquidation ratio of ilk
+  //     .add(ethers.utils.parseUnits("1", 16)); // to be just below the liquidation ratio.
 
-    //#region Deposit
+  //   //#region Deposit
 
-    await dsa.cast(
-      [hre.network.config.ConnectMaker],
-      [
-        await hre.run("abi-encode-withselector", {
-          abi: ConnectMaker.abi,
-          functionname: "deposit",
-          inputs: [cdpAId, amountToDeposit, 0, 0],
-        }),
-      ],
-      userAddress,
-      {
-        value: amountToDeposit,
-      }
-    );
+  //   await dsa.cast(
+  //     [hre.network.config.ConnectMaker],
+  //     [
+  //       await hre.run("abi-encode-withselector", {
+  //         abi: ConnectMaker.abi,
+  //         functionname: "deposit",
+  //         inputs: [cdpAId, amountToDeposit, 0, 0],
+  //       }),
+  //     ],
+  //     userAddress,
+  //     {
+  //       value: amountToDeposit,
+  //     }
+  //   );
 
-    //#endregion Deposit
+  //   //#endregion Deposit
 
-    //#region Borrow
+  //   //#region Borrow
 
-    await dsa.cast(
-      [hre.network.config.ConnectMaker],
-      [
-        await hre.run("abi-encode-withselector", {
-          abi: ConnectMaker.abi,
-          functionname: "borrow",
-          inputs: [cdpAId, amountToBorrow, 0, 0],
-        }),
-      ],
-      userAddress
-    );
+  //   await dsa.cast(
+  //     [hre.network.config.ConnectMaker],
+  //     [
+  //       await hre.run("abi-encode-withselector", {
+  //         abi: ConnectMaker.abi,
+  //         functionname: "borrow",
+  //         inputs: [cdpAId, amountToBorrow, 0, 0],
+  //       }),
+  //     ],
+  //     userAddress
+  //   );
 
-    expect(await DAI.balanceOf(dsa.address)).to.be.equal(amountToBorrow);
+  //   expect(await DAI.balanceOf(dsa.address)).to.be.equal(amountToBorrow);
 
-    //#endregion Borrow
+  //   //#endregion Borrow
 
-    const conditionData = await conditionDestVaultWillBeSafe.getConditionData(
-      dsa.address,
-      cdpAId,
-      cdpBId,
-      "ETH-B"
-    );
-    expect(
-      await conditionDestVaultWillBeSafe.ok(0, conditionData, 0)
-    ).to.be.equal("DestVaultWillNotBeSafe");
-  });
+  //   const conditionData = await conditionDestVaultWillBeSafe.getConditionData(
+  //     dsa.address,
+  //     cdpAId,
+  //     cdpBId,
+  //     "ETH-B"
+  //   );
+  //   expect(
+  //     await conditionDestVaultWillBeSafe.ok(0, conditionData, 0)
+  //   ).to.be.equal("DestVaultWillNotBeSafe");
+  // });
 
   it("#4: ok should return Ok when the gas fees didn't exceed a user define amount", async function () {
     // Steps :
@@ -442,82 +442,82 @@ describe("ConditionDestVaultWillBeSafe Unit Test", function () {
     ).to.be.equal("OK");
   });
 
-  it("#6: ok should return DestVaultWillNotBeSafe when the gas fees exceed a user define amount with closing the vaultB", async function () {
-    // Steps :
-    // 1 - Deposit in Vault ETH-A
-    // 4 - Close Vault ETH-B
-    // 5 - Test if vault ETH-B will be safe after debt bridge action
-    const amountToDeposit = amountToBorrow
-      .mul(ethers.utils.parseUnits("1", 27))
-      .div(ilkA[2]) // ilk[2] represent the liquidation ratio of ilk
-      .add(ethers.utils.parseUnits("1", 17)); // to be just above the liquidation ratio.
+  // it("#6: ok should return DestVaultWillNotBeSafe when the gas fees exceed a user define amount with closing the vaultB", async function () {
+  //   // Steps :
+  //   // 1 - Deposit in Vault ETH-A
+  //   // 4 - Close Vault ETH-B
+  //   // 5 - Test if vault ETH-B will be safe after debt bridge action
+  //   const amountToDeposit = amountToBorrow
+  //     .mul(ethers.utils.parseUnits("1", 27))
+  //     .div(ilkA[2]) // ilk[2] represent the liquidation ratio of ilk
+  //     .add(ethers.utils.parseUnits("1", 17)); // to be just above the liquidation ratio.
 
-    //#region Deposit on Vault ETH-B
+  //   //#region Deposit on Vault ETH-B
 
-    await dsa.cast(
-      [hre.network.config.ConnectMaker],
-      [
-        await hre.run("abi-encode-withselector", {
-          abi: ConnectMaker.abi,
-          functionname: "close",
-          inputs: [cdpBId],
-        }),
-      ],
-      userAddress,
-      {
-        value: amountToDeposit,
-      }
-    );
+  //   await dsa.cast(
+  //     [hre.network.config.ConnectMaker],
+  //     [
+  //       await hre.run("abi-encode-withselector", {
+  //         abi: ConnectMaker.abi,
+  //         functionname: "close",
+  //         inputs: [cdpBId],
+  //       }),
+  //     ],
+  //     userAddress,
+  //     {
+  //       value: amountToDeposit,
+  //     }
+  //   );
 
-    //#endregion Deposit on Vault ETH-B
+  //   //#endregion Deposit on Vault ETH-B
 
-    //#region Deposit on Vault ETH-A
+  //   //#region Deposit on Vault ETH-A
 
-    await dsa.cast(
-      [hre.network.config.ConnectMaker],
-      [
-        await hre.run("abi-encode-withselector", {
-          abi: ConnectMaker.abi,
-          functionname: "deposit",
-          inputs: [cdpAId, amountToDeposit, 0, 0],
-        }),
-      ],
-      userAddress,
-      {
-        value: amountToDeposit,
-      }
-    );
+  //   await dsa.cast(
+  //     [hre.network.config.ConnectMaker],
+  //     [
+  //       await hre.run("abi-encode-withselector", {
+  //         abi: ConnectMaker.abi,
+  //         functionname: "deposit",
+  //         inputs: [cdpAId, amountToDeposit, 0, 0],
+  //       }),
+  //     ],
+  //     userAddress,
+  //     {
+  //       value: amountToDeposit,
+  //     }
+  //   );
 
-    //#endregion Deposit
+  //   //#endregion Deposit
 
-    //#region Borrow
+  //   //#region Borrow
 
-    await dsa.cast(
-      [hre.network.config.ConnectMaker],
-      [
-        await hre.run("abi-encode-withselector", {
-          abi: ConnectMaker.abi,
-          functionname: "borrow",
-          inputs: [cdpAId, amountToBorrow, 0, 0],
-        }),
-      ],
-      userAddress
-    );
+  //   await dsa.cast(
+  //     [hre.network.config.ConnectMaker],
+  //     [
+  //       await hre.run("abi-encode-withselector", {
+  //         abi: ConnectMaker.abi,
+  //         functionname: "borrow",
+  //         inputs: [cdpAId, amountToBorrow, 0, 0],
+  //       }),
+  //     ],
+  //     userAddress
+  //   );
 
-    expect(await DAI.balanceOf(dsa.address)).to.be.equal(amountToBorrow);
+  //   expect(await DAI.balanceOf(dsa.address)).to.be.equal(amountToBorrow);
 
-    //#endregion Borrow
+  //   //#endregion Borrow
 
-    const conditionData = await conditionDestVaultWillBeSafe.getConditionData(
-      dsa.address,
-      cdpAId,
-      cdpBId,
-      "ETH-B"
-    );
-    expect(
-      await conditionDestVaultWillBeSafe.ok(0, conditionData, 0)
-    ).to.be.equal("DestVaultWillNotBeSafe");
-  });
+  //   const conditionData = await conditionDestVaultWillBeSafe.getConditionData(
+  //     dsa.address,
+  //     cdpAId,
+  //     cdpBId,
+  //     "ETH-B"
+  //   );
+  //   expect(
+  //     await conditionDestVaultWillBeSafe.ok(0, conditionData, 0)
+  //   ).to.be.equal("DestVaultWillNotBeSafe");
+  // });
 
   it("#7: ok should return Ok when the gas fees didn't exceed a user define amount with closing the vaultB", async function () {
     // Steps :

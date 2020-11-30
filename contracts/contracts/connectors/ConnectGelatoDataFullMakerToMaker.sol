@@ -51,7 +51,7 @@ contract ConnectGelatoDataFullMakerToMaker is ConnectorInterface {
 
     // solhint-disable const-name-snakecase
     string public constant override name =
-        "ConnectGelatoDataFullMakerToMaker-v1.0";
+        "ConnectGelatoDataFullMakerToMaker-v2.0";
     uint256 internal immutable _id;
     address internal immutable _connectGelatoExecutorPayment;
 

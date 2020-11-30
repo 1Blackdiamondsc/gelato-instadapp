@@ -1,4 +1,4 @@
 module.exports = {
-  PREMIUM: 20,
-  VAULT_CREATION_COST: 150000,
+  PREMIUM: 30,
+  VAULT_CREATION_COST: 200000,
 };

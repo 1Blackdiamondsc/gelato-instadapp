@@ -111,7 +111,7 @@ describe("Full Debt Bridge refinancing loan from Maker to Compound", function ()
 
     const gelatoExternalProvider = new GelatoCoreLib.GelatoProvider({
       addr: wallets.gelatoProviderAddress, // Gelato Provider Address
-      module: contracts.dsaProviderModule.address, // Gelato DSA module
+      module: contracts.providerModuleDSA.address, // Gelato DSA module
     });
 
     const expiryDate = 0;

@@ -30,7 +30,7 @@ module.exports = async function (mockRoute) {
   await addProviderModuleDSA(
     wallets.gelatoProvider,
     contracts.gelatoCore,
-    contracts.dsaProviderModule.address
+    contracts.providerModuleDSA.address
   );
   contracts.dsa = await createDSA(
     wallets.userAddress,

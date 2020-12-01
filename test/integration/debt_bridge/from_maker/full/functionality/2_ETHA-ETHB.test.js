@@ -126,7 +126,7 @@ describe("Full Debt Bridge refinancing loan from ETH-A to ETH-B", function () {
 
     const gelatoExternalProvider = new GelatoCoreLib.GelatoProvider({
       addr: wallets.gelatoProviderAddress, // Gelato Provider Address
-      module: contracts.dsaProviderModule.address, // Gelato DSA module
+      module: contracts.providerModuleDSA.address, // Gelato DSA module
     });
 
     const expiryDate = 0;

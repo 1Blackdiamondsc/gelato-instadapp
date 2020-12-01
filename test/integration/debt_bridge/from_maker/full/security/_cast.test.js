@@ -124,7 +124,7 @@ describe("Security: _cast function by example of ETHA-ETHB with disabled Connect
 
     const gelatoExternalProvider = new GelatoCoreLib.GelatoProvider({
       addr: wallets.gelatoProviderAddress, // Gelato Provider Address
-      module: contracts.dsaProviderModule.address, // Gelato DSA module
+      module: contracts.providerModuleDSA.address, // Gelato DSA module
     });
 
     const expiryDate = 0;

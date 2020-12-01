@@ -4,7 +4,6 @@ const GelatoCoreLib = require("@gelatonetwork/core");
 
 const InstaIndex = require("../../../pre-compiles/InstaIndex.json");
 const InstaList = require("../../../pre-compiles/InstaList.json");
-const ConnectGelato = require("../../../pre-compiles/ConnectGelato.json");
 const ConnectMaker = require("../../../pre-compiles/ConnectMaker.json");
 const ConnectCompound = require("../../../pre-compiles/ConnectCompound.json");
 const ConnectInstaPool = require("../../../pre-compiles/ConnectInstaPool.json");
@@ -16,7 +15,6 @@ const GetCdps = require("../../../pre-compiles/GetCdps.json");
 const IERC20 = require("../../../pre-compiles/IERC20.json");
 const CTokenInterface = require("../../../pre-compiles/CTokenInterface.json");
 const CompoundResolver = require("../../../pre-compiles/InstaCompoundResolver.json");
-const DsaProviderModuleABI = require("../../../pre-compiles/ProviderModuleDsa_ABI.json");
 const InstaPoolResolver = require("../../../artifacts/contracts/interfaces/InstaDapp/resolvers/IInstaPoolResolver.sol/IInstaPoolResolver.json");
 
 module.exports = async function () {
@@ -36,10 +34,6 @@ module.exports = async function () {
   const instaList = await ethers.getContractAt(
     InstaList.abi,
     hre.network.config.InstaList
-  );
-  const connectGelato = await ethers.getContractAt(
-    ConnectGelato.abi,
-    hre.network.config.ConnectGelato
   );
   const connectMaker = await ethers.getContractAt(
     ConnectMaker.abi,
@@ -82,42 +76,43 @@ module.exports = async function () {
     CompoundResolver.abi,
     hre.network.config.CompoundResolver
   );
-  const dsaProviderModule = await ethers.getContractAt(
-    DsaProviderModuleABI,
-    hre.network.config.ProviderModuleDsa
-  );
   const instaPoolResolver = await ethers.getContractAt(
     InstaPoolResolver.abi,
     hre.network.config.InstaPoolResolver
   );
 
   // ===== Get deployed contracts ==================
-  const priceOracleResolver = await ethers.getContract("PriceOracleResolver");
-  const conditionMakerVaultUnsafe = await ethers.getContract(
-    "ConditionMakerVaultUnsafe"
-  );
-  const conditionDebtBridgeIsAffordable = await ethers.getContract(
-    "ConditionDebtBridgeIsAffordable"
-  );
-  const connectGelatoExecutorPayment = await ethers.getContract(
-    "ConnectGelatoExecutorPayment"
-  );
-  const makerResolver = await ethers.getContract("MakerResolver");
+  const connectGelato = await ethers.getContract("ConnectGelato");
   const connectGelatoDataFullMakerToMaker = await ethers.getContract(
     "ConnectGelatoDataFullMakerToMaker"
   );
   const connectGelatoDataFullMakerToCompound = await ethers.getContract(
     "ConnectGelatoDataFullMakerToCompound"
   );
+  const connectGelatoExecutorPayment = await ethers.getContract(
+    "ConnectGelatoExecutorPayment"
+  );
+
+  const providerModuleDSA = await ethers.getContract("ProviderModuleDSA");
+
+  const conditionMakerVaultUnsafe = await ethers.getContract(
+    "ConditionMakerVaultUnsafe"
+  );
+  const conditionDebtBridgeIsAffordable = await ethers.getContract(
+    "ConditionDebtBridgeIsAffordable"
+  );
+  const conditionDestVaultWillBeSafe = await ethers.getContract(
+    "ConditionDestVaultWillBeSafe"
+  );
+
+  const priceOracleResolver = await ethers.getContract("PriceOracleResolver");
+  const makerResolver = await ethers.getContract("MakerResolver");
+
   const mockDebtBridgeETHBExecutor = await ethers.getContract(
     "MockDebtBridgeETHBExecutor"
   );
   const mockConnectGelatoDataFullMakerToMaker = await ethers.getContract(
     "MockConnectGelatoDataFullMakerToMaker"
-  );
-
-  const conditionDestVaultWillBeSafe = await ethers.getContract(
-    "ConditionDestVaultWillBeSafe"
   );
 
   return {
@@ -145,7 +140,7 @@ module.exports = async function () {
     dsa: ethers.constants.AddressZero,
     makerResolver,
     instaPoolResolver,
-    dsaProviderModule,
+    providerModuleDSA,
     conditionDebtBridgeIsAffordable,
     mockDebtBridgeETHBExecutor,
     mockConnectGelatoDataFullMakerToMaker,

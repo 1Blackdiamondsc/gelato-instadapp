@@ -148,7 +148,7 @@
 //   let connectGelatoPartialDebtBridgeFromMaker;
 //   let connectGelatoExecutorPayment;
 //   let priceOracleResolver;
-//   let dsaProviderModule;
+//   let providerModuleDSA;
 
 //   // Creation during test
 //   let dsa;
@@ -268,14 +268,14 @@
 //     );
 //     await connectGelatoExecutorPayment.deployed();
 
-//     const ProviderModuleDsa = await ethers.getContractFactory(
-//       "ProviderModuleDsa"
+//     const ProviderModuleDSA = await ethers.getContractFactory(
+//       "ProviderModuleDSA"
 //     );
-//     dsaProviderModule = await ProviderModuleDsa.deploy(
+//     providerModuleDSA = await ProviderModuleDSA.deploy(
 //       hre.network.config.GelatoCore,
 //       connectGelatoExecutorPayment.address
 //     );
-//     await dsaProviderModule.deployed();
+//     await providerModuleDSA.deployed();
 
 //     ///////////////////////////////////////////////////////////////////////////////////////////////////
 //     ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -426,13 +426,13 @@
 //     await expect(
 //       gelatoCore
 //         .connect(gelatoProvider)
-//         .addProviderModules([dsaProviderModule.address])
+//         .addProviderModules([providerModuleDSA.address])
 //     ).to.emit(gelatoCore, "LogProviderModuleAdded");
 
 //     expect(
 //       await gelatoCore
 //         .connect(gelatoProvider)
-//         .isModuleProvided(gelatoProviderAddress, dsaProviderModule.address)
+//         .isModuleProvided(gelatoProviderAddress, providerModuleDSA.address)
 //     ).to.be.true;
 
 //     //#endregion
@@ -726,7 +726,7 @@
 
 //     const gelatoExternalProvider = new GelatoCoreLib.GelatoProvider({
 //       addr: gelatoProviderAddress,
-//       module: dsaProviderModule.address,
+//       module: providerModuleDSA.address,
 //     });
 
 //     const expiryDate = 0;

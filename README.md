@@ -22,7 +22,7 @@ Furtheremore the following contracts were added to showcase the automation of th
 
 - `ConditionCompareUintsFromTwoSource`: a generic Gelato Condition that allows you to read and compare data from 2 arbitrary on-chain sources (returndata expected to be uint256 and normalized => hence MockDSR and MockCDAI). This Condition was used to compare DSR to CDAI rates and in the test suite we showcase how a change in the CDAI rate (it going above the DSR) can trigger an automatic rebalancing from DSR to CDAI via DSA Connectors.
 
-- `ProviderModuleDsa`: this is needed for any Gelato integration. It tells Gelato how the execution payload should be formatted. In this prototype, it formats the payload for the `DSA.cast` function.
+- `ProviderModuleDSA`: this is needed for any Gelato integration. It tells Gelato how the execution payload should be formatted. In this prototype, it formats the payload for the `DSA.cast` function.
 
 - `ConnectGelato`: this is a Connector needed for the DSA to be able to submit Tasks to Gelato. In the test suite we unlock the DSA MultiSig Master account at 0xfCD22438AD6eD564a1C26151Df73F6B33B817B56, in order to be able to enable this Connector in our mainnet fork running on the local hardhat network instance.
 

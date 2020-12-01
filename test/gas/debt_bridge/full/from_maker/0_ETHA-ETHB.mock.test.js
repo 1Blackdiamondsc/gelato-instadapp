@@ -103,7 +103,7 @@ describe("Gas Measurements: Full Debt Bridge From Maker ETH-A to ETH-B", functio
 
     gelatoExternalProvider = new GelatoCoreLib.GelatoProvider({
       addr: wallets.gelatoProviderAddress, // Gelato Provider Address
-      module: contracts.dsaProviderModule.address, // Gelato DSA module
+      module: contracts.providerModuleDSA.address, // Gelato DSA module
     });
 
     await contracts.dsa.cast(

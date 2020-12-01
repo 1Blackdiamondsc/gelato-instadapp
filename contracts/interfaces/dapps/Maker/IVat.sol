@@ -16,4 +16,9 @@ interface IVat {
     function dai(address) external view returns (uint256);
 
     function urns(bytes32, address) external view returns (uint256, uint256);
+
+    function debt() external view returns (uint256);
+
+    // solhint-disable-next-line
+    function Line() external view returns (uint256);
 }

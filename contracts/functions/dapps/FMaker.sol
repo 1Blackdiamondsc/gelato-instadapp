@@ -107,6 +107,87 @@ function _newVaultWillBeSafe(
     return tab <= mul(ink, spot);
 }
 
+function _debtCeilingIsReachedNewVault(
+    string memory _colType,
+    uint256 _amtToBorrow
+) view returns (bool) {
+    IMcdManager manager = IMcdManager(MCD_MANAGER);
+    IVat vat = IVat(manager.vat());
+
+    bytes32 ilk = _stringToBytes32(_colType);
+
+    (uint256 Art, uint256 rate, , uint256 line, ) = vat.ilks(ilk);
+    uint256 Line = vat.Line();
+    uint256 debt = vat.debt();
+
+    uint256 dart = _getBorrowAmt(_amtToBorrow, 0, rate);
+    uint256 dtab = mul(rate, dart);
+
+    debt = add(debt, dtab);
+    Art = add(Art, dart);
+
+    return mul(Art, rate) > line || debt > Line;
+}
+
+function _debtCeilingIsReached(uint256 _vaultId, uint256 _amtToBorrow)
+    view
+    returns (bool)
+{
+    IMcdManager manager = IMcdManager(MCD_MANAGER);
+    IVat vat = IVat(manager.vat());
+
+    (bytes32 ilk, address urn) = _getVaultData(manager, _vaultId);
+
+    (uint256 Art, uint256 rate, , uint256 line, ) = vat.ilks(ilk);
+    uint256 dai = vat.dai(urn);
+    uint256 Line = vat.Line();
+    uint256 debt = vat.debt();
+
+    uint256 dart = _getBorrowAmt(_amtToBorrow, dai, rate);
+    uint256 dtab = mul(rate, dart);
+
+    debt = add(debt, dtab);
+    Art = add(Art, dart);
+
+    return mul(Art, rate) > line || debt > Line;
+}
+
+function _debtIsDustNewVault(string memory _colType, uint256 _amtToBorrow)
+    view
+    returns (bool)
+{
+    IMcdManager manager = IMcdManager(MCD_MANAGER);
+    IVat vat = IVat(manager.vat());
+
+    bytes32 ilk = _stringToBytes32(_colType);
+
+    (, uint256 rate, , , uint256 dust) = vat.ilks(ilk);
+    uint256 art = _getBorrowAmt(_amtToBorrow, 0, rate);
+
+    uint256 tab = mul(rate, art);
+
+    return tab < dust;
+}
+
+function _debtIsDust(uint256 _vaultId, uint256 _amtToBorrow)
+    view
+    returns (bool)
+{
+    IMcdManager manager = IMcdManager(MCD_MANAGER);
+    IVat vat = IVat(manager.vat());
+
+    (bytes32 ilk, address urn) = _getVaultData(manager, _vaultId);
+    (, uint256 art) = vat.urns(ilk, urn);
+    (, uint256 rate, , , uint256 dust) = vat.ilks(ilk);
+
+    uint256 dai = vat.dai(urn);
+    uint256 dart = _getBorrowAmt(_amtToBorrow, dai, rate);
+    art = add(art, dart);
+    uint256 tab = mul(rate, art);
+
+    return tab < dust;
+}
+
 function _getVaultData(IMcdManager manager, uint256 vault)
     view
     returns (bytes32 ilk, address urn)

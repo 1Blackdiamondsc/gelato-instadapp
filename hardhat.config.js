@@ -53,6 +53,10 @@ module.exports = {
         url: `https://eth-mainnet.alchemyapi.io/v2/${ALCHEMY_ID}`,
         blockNumber: 11346751,
       },
+      // Accounts
+      accounts: {
+        accountsBalance: "1000000000000000000000000",
+      },
       // Custom
       ...mainnetDeployments,
     },

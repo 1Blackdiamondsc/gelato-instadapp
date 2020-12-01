@@ -142,7 +142,7 @@ describe("ConditionDestVaultWillBeSafe Unit Test", function () {
     const amountToDeposit = amountToBorrow
       .mul(ethers.utils.parseUnits("1", 27))
       .div(ilkA[2]) // ilk[2] represent the liquidation ratio of ilk
-      .add(ethers.utils.parseUnits("4", 17)); // to be just above the liquidation ratio.
+      .add(ethers.utils.parseUnits("8", 17)); // to be just above the liquidation ratio.
 
     //#region Deposit
 
@@ -316,7 +316,7 @@ describe("ConditionDestVaultWillBeSafe Unit Test", function () {
     const amountToDeposit = amountToBorrow
       .mul(ethers.utils.parseUnits("1", 27))
       .div(ilkA[2]) // ilk[2] represent the liquidation ratio of ilk
-      .add(ethers.utils.parseUnits("4", 17)); // to be just above the liquidation ratio.
+      .add(ethers.utils.parseUnits("5", 17)); // to be just above the liquidation ratio.
 
     //#region Deposit
 
@@ -373,7 +373,7 @@ describe("ConditionDestVaultWillBeSafe Unit Test", function () {
     const amountToDeposit = amountToBorrow
       .mul(ethers.utils.parseUnits("1", 27))
       .div(ilkA[2]) // ilk[2] represent the liquidation ratio of ilk
-      .add(ethers.utils.parseUnits("1", 17)); // to be just above the liquidation ratio.
+      .add(ethers.utils.parseUnits("5", 17)); // to be just above the liquidation ratio.
 
     //#region Deposit on Vault ETH-A
 
@@ -527,7 +527,7 @@ describe("ConditionDestVaultWillBeSafe Unit Test", function () {
     const amountToDeposit = amountToBorrow
       .mul(ethers.utils.parseUnits("1", 27))
       .div(ilkA[2]) // ilk[2] represent the liquidation ratio of ilk
-      .add(ethers.utils.parseUnits("4", 17)); // to be just above the liquidation ratio.
+      .add(ethers.utils.parseUnits("48", 17)); // to be just above the liquidation ratio.
 
     //#region Deposit on Vault ETH-B
 

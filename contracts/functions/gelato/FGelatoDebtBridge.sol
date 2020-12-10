@@ -96,6 +96,11 @@ function _getGasCostMakerToCompound(uint256 _route) pure returns (uint256) {
     return _getGasCostPremium(GAS_COSTS_FOR_FULL_REFINANCE()[_route]);
 }
 
+function _getGasCostMakerToAave(uint256 _route) pure returns (uint256) {
+    _checkRouteIndex(_route);
+    return _getGasCostPremium(GAS_COSTS_FOR_FULL_REFINANCE()[_route]);
+}
+
 function _getGasCostPremium(uint256 _rawGasCost) pure returns (uint256) {
     return mul(_rawGasCost, add(100, PREMIUM)) / 100;
 }

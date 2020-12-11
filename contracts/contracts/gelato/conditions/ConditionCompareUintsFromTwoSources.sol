@@ -3,7 +3,7 @@ pragma solidity 0.7.4;
 
 import {
     GelatoConditionsStandard
-} from "@gelatonetwork/core/contracts/conditions/GelatoConditionsStandard.sol";
+} from "@gelatonetwork/core/contracts/gelato_conditions/GelatoConditionsStandard.sol";
 import {SafeMath} from "@openzeppelin/contracts/math/SafeMath.sol";
 import {
     IGelatoCore

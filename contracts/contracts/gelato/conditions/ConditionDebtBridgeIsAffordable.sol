@@ -4,7 +4,7 @@ pragma experimental ABIEncoderV2;
 
 import {
     GelatoConditionsStandard
-} from "@gelatonetwork/core/contracts/conditions/GelatoConditionsStandard.sol";
+} from "@gelatonetwork/core/contracts/gelato_conditions/GelatoConditionsStandard.sol";
 import {GelatoBytes} from "../../../lib/GelatoBytes.sol";
 import {
     _getMakerVaultDebt,

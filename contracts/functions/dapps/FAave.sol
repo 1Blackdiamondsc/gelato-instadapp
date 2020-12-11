@@ -13,12 +13,8 @@ import {
 import {
     ChainLinkInterface
 } from "../../interfaces/dapps/Aave/ChainLinkInterface.sol";
-import {
-    ILendingPool,
-    AaveUserData,
-    TokenPrice,
-    AaveTokenData
-} from "../../interfaces/dapps/Aave/ILendingPool.sol";
+import {ILendingPool} from "../../interfaces/dapps/Aave/ILendingPool.sol";
+import {AaveUserData, AaveTokenData} from "../../structs/SAave.sol";
 import {
     LENDING_POOL_ADDRESSES_PROVIDER,
     CHAINLINK_ETH_FEED,

@@ -4,12 +4,12 @@ pragma experimental ABIEncoderV2;
 
 import {
     GelatoConditionsStandard
-} from "@gelatonetwork/core/contracts/conditions/GelatoConditionsStandard.sol";
-import {wmul, wdiv} from "../../../vendor/DSMath.sol";
-import {GelatoBytes} from "../../../lib/GelatoBytes.sol";
+} from "@gelatonetwork/core/contracts/gelato_conditions/GelatoConditionsStandard.sol";
+import {wmul, wdiv} from "../../../../vendor/DSMath.sol";
+import {GelatoBytes} from "../../../../lib/GelatoBytes.sol";
 import {
     IInstaMakerResolver
-} from "../../../interfaces/InstaDapp/resolvers/IInstaMakerResolver.sol";
+} from "../../../../interfaces/InstaDapp/resolvers/IInstaMakerResolver.sol";
 
 /// @title ConditionMakerVaultUnsafe
 /// @notice Condition tracking Maker vault collateralization safety requirements.

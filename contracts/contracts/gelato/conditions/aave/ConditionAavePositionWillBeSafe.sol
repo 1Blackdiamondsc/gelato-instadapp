@@ -4,30 +4,26 @@ pragma experimental ABIEncoderV2;
 
 import {
     GelatoConditionsStandard
-} from "@gelatonetwork/core/contracts/conditions/GelatoConditionsStandard.sol";
-import {GelatoBytes} from "../../../lib/GelatoBytes.sol";
+} from "@gelatonetwork/core/contracts/gelato_conditions/GelatoConditionsStandard.sol";
+import {GelatoBytes} from "../../../../lib/GelatoBytes.sol";
 import {
     _getMakerVaultDebt,
     _getMakerVaultCollateralBalance
-} from "../../../functions/dapps/FMaker.sol";
-import {DAI} from "../../../constants/CInstaDapp.sol";
+} from "../../../../functions/dapps/FMaker.sol";
+import {DAI} from "../../../../constants/CInstaDapp.sol";
 import {
     _getFlashLoanRoute,
-    _getGasCostMakerToMaker,
+    _getGasCostMakerToAave,
     _getRealisedDebt
-} from "../../../functions/gelato/FGelatoDebtBridge.sol";
-import {_getGelatoExecutorFees} from "../../../functions/gelato/FGelato.sol";
+} from "../../../../functions/gelato/FGelatoDebtBridge.sol";
+import {_getGelatoExecutorFees} from "../../../../functions/gelato/FGelato.sol";
 import {
     _getPosition,
     _percentDiv,
     _collateralData
-} from "../../../functions/dapps/FAave.sol";
-import {add, sub, mul} from "../../../vendor/DSMath.sol";
-import {
-    AaveUserData,
-    AaveTokenData
-} from "../../../interfaces/dapps/Aave/ILendingPool.sol";
-import "hardhat/console.sol";
+} from "../../../../functions/dapps/FAave.sol";
+import {add, sub, mul} from "../../../../vendor/DSMath.sol";
+import {AaveUserData, AaveTokenData} from "../../../../structs/SAave.sol";
 
 contract ConditionAavePositionWillBeSafe is GelatoConditionsStandard {
     using GelatoBytes for bytes;
@@ -83,8 +79,7 @@ contract ConditionAavePositionWillBeSafe is GelatoConditionsStandard {
             sub(
                 _getMakerVaultCollateralBalance(_fromVaultId),
                 _getGelatoExecutorFees(
-                    _getGasCostMakerToMaker(
-                        false,
+                    _getGasCostMakerToAave(
                         _getFlashLoanRoute(DAI, wDaiToBorrow)
                     )
                 )
@@ -105,7 +100,7 @@ contract ConditionAavePositionWillBeSafe is GelatoConditionsStandard {
         AaveTokenData memory tokenData = _collateralData(DAI);
 
         return
-            overCollateralized(
+            isOverCollateralized(
                 add(
                     userData.totalBorrowsETH,
                     mul(wDaiToBorrow / colPriceInWad, 1e8)
@@ -119,11 +114,11 @@ contract ConditionAavePositionWillBeSafe is GelatoConditionsStandard {
 
     /* solhint-enable function-max-lines */
 
-    function overCollateralized(
+    function isOverCollateralized(
         uint256 totalBorrowETH,
         uint256 totalCollateralETH,
         uint256 ltv
-    ) public view returns (bool) {
+    ) public pure returns (bool) {
         return _percentDiv(totalBorrowETH, ltv) <= totalCollateralETH;
     }
 }

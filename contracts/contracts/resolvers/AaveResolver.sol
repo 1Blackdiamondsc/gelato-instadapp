@@ -3,11 +3,8 @@ pragma solidity 0.7.4;
 pragma experimental ABIEncoderV2;
 
 import {_getPosition, _percentDiv} from "../../functions/dapps/FAave.sol";
-import {
-    ILendingPool,
-    AaveUserData,
-    TokenPrice
-} from "../../interfaces/dapps/Aave/ILendingPool.sol";
+import {ILendingPool} from "../../interfaces/dapps/Aave/ILendingPool.sol";
+import {AaveUserData, TokenPrice} from "../../structs/SAave.sol";
 
 contract AaveResolver {
     function getPosition(address user)

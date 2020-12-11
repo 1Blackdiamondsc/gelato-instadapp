@@ -164,7 +164,7 @@ describe("ConditionAaveHasLiquidity Unit Test", function () {
     // 2 - Borrow.
     // 3 - Test if Aave has enough liquidity for the futur borrow.
 
-    let amountToBorrow = ethers.utils.parseUnits("3000000", 18); // for Block 11423903 the amount of DAI in Aave is ~1.5 millions dollars
+    const amountToBorrow = ethers.utils.parseUnits("3000000", 18); // for Block 11423903 the amount of DAI in Aave is ~1.5 millions dollars
     const amountToDeposit = ethers.utils.parseUnits("10000", 18);
 
     //#region Deposit

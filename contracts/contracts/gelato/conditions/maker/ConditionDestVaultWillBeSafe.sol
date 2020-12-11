@@ -4,19 +4,25 @@ pragma experimental ABIEncoderV2;
 
 import {
     GelatoConditionsStandard
-} from "@gelatonetwork/core/contracts/conditions/GelatoConditionsStandard.sol";
-import {GelatoBytes} from "../../../lib/GelatoBytes.sol";
+} from "@gelatonetwork/core/contracts/gelato_conditions/GelatoConditionsStandard.sol";
 import {
-    _debtCeilingIsReachedNewVault,
-    _debtCeilingIsReached,
     _getMakerVaultDebt,
+    _getMakerVaultCollateralBalance,
+    _vaultWillBeSafe,
+    _newVaultWillBeSafe,
     _isVaultOwner
-} from "../../../functions/dapps/FMaker.sol";
+} from "../../../../functions/dapps/FMaker.sol";
+import {DAI} from "../../../../constants/CInstaDapp.sol";
 import {
+    _getFlashLoanRoute,
+    _getGasCostMakerToMaker,
     _getRealisedDebt
-} from "../../../functions/gelato/FGelatoDebtBridge.sol";
+} from "../../../../functions/gelato/FGelatoDebtBridge.sol";
+import {_getGelatoExecutorFees} from "../../../../functions/gelato/FGelato.sol";
+import {GelatoBytes} from "../../../../lib/GelatoBytes.sol";
+import {sub} from "../../../../vendor/DSMath.sol";
 
-contract ConditionDebtCeilingIsReached is GelatoConditionsStandard {
+contract ConditionDestVaultWillBeSafe is GelatoConditionsStandard {
     using GelatoBytes for bytes;
 
     function getConditionData(
@@ -27,7 +33,7 @@ contract ConditionDebtCeilingIsReached is GelatoConditionsStandard {
     ) public pure virtual returns (bytes memory) {
         return
             abi.encodeWithSelector(
-                this.isDebtCeilingReached.selector,
+                this.destVaultWillBeSafe.selector,
                 _dsa,
                 _fromVaultId,
                 _destVaultId,
@@ -48,43 +54,49 @@ contract ConditionDebtCeilingIsReached is GelatoConditionsStandard {
         ) = abi.decode(_conditionData[4:], (address, uint256, uint256, string));
 
         return
-            isDebtCeilingReached(
-                _dsa,
-                _fromVaultId,
-                _destVaultId,
-                _destColType
-            );
+            destVaultWillBeSafe(_dsa, _fromVaultId, _destVaultId, _destColType);
     }
 
-    function isDebtCeilingReached(
+    function destVaultWillBeSafe(
         address _dsa,
         uint256 _fromVaultId,
         uint256 _destVaultId,
         string memory _destColType
     ) public view returns (string memory) {
         _destVaultId = _isVaultOwner(_destVaultId, _dsa) ? _destVaultId : 0;
-
         uint256 wDaiToBorrow =
             _getRealisedDebt(_getMakerVaultDebt(_fromVaultId));
+        uint256 wColToDeposit =
+            sub(
+                _getMakerVaultCollateralBalance(_fromVaultId),
+                _getGelatoExecutorFees(
+                    _getGasCostMakerToMaker(
+                        _destVaultId == 0,
+                        _getFlashLoanRoute(DAI, wDaiToBorrow)
+                    )
+                )
+            );
 
         return
-            debtCeilingIsReachedExplicit(
+            destVaultWillBeSafeExplicit(
                 _destVaultId,
                 wDaiToBorrow,
+                wColToDeposit,
                 _destColType
             )
-                ? "DebtCeilingReached"
-                : OK;
+                ? OK
+                : "DestVaultWillNotBeSafe";
     }
 
-    function debtCeilingIsReachedExplicit(
+    function destVaultWillBeSafeExplicit(
         uint256 _vaultId,
         uint256 _wDaiToBorrow,
+        uint256 _wColToDeposit,
         string memory _colType
     ) public view returns (bool) {
         return
             _vaultId == 0
-                ? _debtCeilingIsReachedNewVault(_colType, _wDaiToBorrow)
-                : _debtCeilingIsReached(_vaultId, _wDaiToBorrow);
+                ? _newVaultWillBeSafe(_colType, _wDaiToBorrow, _wColToDeposit)
+                : _vaultWillBeSafe(_vaultId, _wDaiToBorrow, _wColToDeposit);
     }
 }

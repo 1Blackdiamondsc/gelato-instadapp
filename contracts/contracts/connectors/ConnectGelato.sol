@@ -252,7 +252,7 @@ abstract contract GelatoResolver is GelatoHelpers {
         uint256 _setId
     ) external payable {
         uint256 ethToDeposit = getUint(_getId, _ethToDeposit);
-        ethToDeposit = ethToDeposit == uint256(-1)
+        ethToDeposit = ethToDeposit == type(uint256).max
             ? address(this).balance
             : ethToDeposit;
 

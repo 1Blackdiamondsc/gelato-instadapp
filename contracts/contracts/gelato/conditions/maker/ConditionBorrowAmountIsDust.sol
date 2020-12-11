@@ -4,14 +4,14 @@ pragma experimental ABIEncoderV2;
 
 import {
     GelatoConditionsStandard
-} from "@gelatonetwork/core/contracts/conditions/GelatoConditionsStandard.sol";
-import {GelatoBytes} from "../../../lib/GelatoBytes.sol";
+} from "@gelatonetwork/core/contracts/gelato_conditions/GelatoConditionsStandard.sol";
+import {GelatoBytes} from "../../../../lib/GelatoBytes.sol";
 import {
     _debtIsDustNewVault,
     _debtIsDust,
     _getMakerVaultDebt,
     _isVaultOwner
-} from "../../../functions/dapps/FMaker.sol";
+} from "../../../../functions/dapps/FMaker.sol";
 
 contract ConditionBorrowAmountIsDust is GelatoConditionsStandard {
     using GelatoBytes for bytes;

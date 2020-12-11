@@ -2,47 +2,47 @@
 pragma solidity 0.7.4;
 pragma experimental ABIEncoderV2;
 
-import {GelatoBytes} from "../../lib/GelatoBytes.sol";
-import {sub, wmul} from "../../vendor/DSMath.sol";
+import {GelatoBytes} from "../../../../lib/GelatoBytes.sol";
+import {sub, wmul} from "../../../../vendor/DSMath.sol";
 import {
     AccountInterface,
     ConnectorInterface
-} from "../../interfaces/InstaDapp/IInstaDapp.sol";
+} from "../../../../interfaces/InstaDapp/IInstaDapp.sol";
 import {
     IConnectInstaPoolV2
-} from "../../interfaces/InstaDapp/connectors/IConnectInstaPoolV2.sol";
+} from "../../../../interfaces/InstaDapp/connectors/IConnectInstaPoolV2.sol";
 import {
     DAI,
     CONNECT_MAKER,
     CONNECT_COMPOUND,
     INSTA_POOL_V2
-} from "../../constants/CInstaDapp.sol";
+} from "../../../../constants/CInstaDapp.sol";
 import {
     _getMakerVaultDebt,
     _getMakerVaultCollateralBalance
-} from "../../functions/dapps/FMaker.sol";
+} from "../../../../functions/dapps/FMaker.sol";
 import {
     _encodeFlashPayback
-} from "../../functions/InstaDapp/connectors/FInstaPoolV2.sol";
+} from "../../../../functions/InstaDapp/connectors/FInstaPoolV2.sol";
 import {
     _encodePaybackMakerVault,
     _encodedWithdrawMakerVault,
     _encodeOpenMakerVault,
     _encodedDepositMakerVault,
     _encodeBorrowMakerVault
-} from "../../functions/InstaDapp/connectors/FConnectMaker.sol";
+} from "../../../../functions/InstaDapp/connectors/FConnectMaker.sol";
 import {
     _encodePayExecutor
-} from "../../functions/InstaDapp/connectors/FConnectGelatoExecutorPayment.sol";
+} from "../../../../functions/InstaDapp/connectors/FConnectGelatoExecutorPayment.sol";
 import {
     _encodeDepositCompound,
     _encodeBorrowCompound
-} from "../../functions/InstaDapp/connectors/FConnectCompound.sol";
-import {_getGelatoExecutorFees} from "../../functions/gelato/FGelato.sol";
+} from "../../../../functions/InstaDapp/connectors/FConnectCompound.sol";
+import {_getGelatoExecutorFees} from "../../../../functions/gelato/FGelato.sol";
 import {
     _wCalcCollateralToWithdraw,
     _wCalcDebtToRepay
-} from "../../functions/gelato/FGelatoDebtBridge.sol";
+} from "../../../../functions/gelato/FGelatoDebtBridge.sol";
 
 contract ConnectGelatoDataPartialRefinanceMaker is ConnectorInterface {
     using GelatoBytes for bytes;
@@ -165,13 +165,13 @@ contract ConnectGelatoDataPartialRefinanceMaker is ConnectorInterface {
         bytes[] memory _datas = new bytes[](7);
         _datas[0] = _encodePaybackMakerVault(
             _payload.vaultId,
-            uint256(-1),
+            type(uint256).max,
             0,
             0
         );
         _datas[1] = _encodedWithdrawMakerVault(
             _payload.vaultId,
-            uint256(-1),
+            type(uint256).max,
             0,
             0
         );
@@ -233,13 +233,13 @@ contract ConnectGelatoDataPartialRefinanceMaker is ConnectorInterface {
         bytes[] memory _datas = new bytes[](6);
         _datas[0] = _encodePaybackMakerVault(
             _payload.vaultId,
-            uint256(-1),
+            type(uint256).max,
             0,
             0
         );
         _datas[1] = _encodedWithdrawMakerVault(
             _payload.vaultId,
-            uint256(-1),
+            type(uint256).max,
             0,
             0
         );

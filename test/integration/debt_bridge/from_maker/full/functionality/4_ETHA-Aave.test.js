@@ -267,46 +267,42 @@ describe("Full Debt Bridge refinancing loan from Maker to Aave", function () {
       executorBalanceBeforeExecution
     );
 
-    expect(await wallets.executor.getBalance()).to.be.gt(
-      executorBalanceBeforeExecution
-    );
-
     // aave position of DSA on cDai and cEth
-    const aaveResolver = await contracts.aaveResolver.getPosition(
+    const dsaAavePosition = await contracts.aaveResolver.getPosition(
       contracts.dsa.address
     );
     // Estimated amount to borrowed token should be equal to the actual one read on aave contracts
     if (route === 1) {
       expect(debtOnMakerBefore).to.be.lte(
-        aaveResolver.totalBorrowsETH
-          .mul(aaveResolver.ethPriceInUsd)
+        dsaAavePosition.totalBorrowsETH
+          .mul(dsaAavePosition.ethPriceInUsd)
           .div(ethers.utils.parseUnits("1", 8))
       );
     } else {
       expect(
         debtOnMakerBefore.sub(
-          aaveResolver.totalBorrowsETH
-            .mul(aaveResolver.ethPriceInUsd)
+          dsaAavePosition.totalBorrowsETH
+            .mul(dsaAavePosition.ethPriceInUsd)
             .div(ethers.utils.parseUnits("1", 8))
         )
       ).to.be.lt(ethers.utils.parseUnits("2", 0));
     }
 
     // Estimated amount of collateral should be equal to the actual one read on aave contracts
-    expect(pricedCollateral.sub(aaveResolver.totalCollateralETH)).to.be.lt(
+    expect(pricedCollateral.sub(dsaAavePosition.totalCollateralETH)).to.be.lt(
       ethers.utils.parseUnits("1", 12)
     );
 
-    const collateralOnMakerOnVaultAAfter = await contracts.makerResolver.getMakerVaultCollateralBalance(
-      vaultId
-    ); // in Ether.
-    const debtOnMakerOnVaultAAfter = await contracts.makerResolver.getMakerVaultDebt(
-      vaultId
-    );
-
     // We should not have deposited ether or borrowed DAI on maker.
-    expect(collateralOnMakerOnVaultAAfter).to.be.equal(ethers.constants.Zero);
-    expect(debtOnMakerOnVaultAAfter).to.be.equal(ethers.constants.Zero);
+    expect(
+      await contracts.makerResolver.getMakerVaultCollateralBalance(vaultId),
+      "collateralOnMakerOnVaultAAfter"
+    ).to.be.equal(ethers.constants.Zero); // in Ether.
+
+    expect(
+      await contracts.makerResolver.getMakerVaultDebt(vaultId),
+      "debtOnMakerOnVaultAAfter"
+    ).to.be.equal(ethers.constants.Zero);
 
     // DSA contain 1000 DAI
     expect(await contracts.DAI.balanceOf(contracts.dsa.address)).to.be.equal(

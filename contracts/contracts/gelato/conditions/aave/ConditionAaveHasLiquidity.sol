@@ -4,18 +4,18 @@ pragma experimental ABIEncoderV2;
 
 import {
     GelatoConditionsStandard
-} from "@gelatonetwork/core/contracts/conditions/GelatoConditionsStandard.sol";
-import {GelatoBytes} from "../../../lib/GelatoBytes.sol";
-import {IERC20} from "../../../interfaces/dapps/IERC20.sol";
+} from "@gelatonetwork/core/contracts/gelato_conditions/GelatoConditionsStandard.sol";
+import {GelatoBytes} from "../../../../lib/GelatoBytes.sol";
+import {IERC20} from "../../../../interfaces/dapps/IERC20.sol";
 import {
     ILendingPoolAddressesProvider
-} from "../../../interfaces/dapps/Aave/ILendingPoolAddressesProvider.sol";
-import {ILendingPool} from "../../../interfaces/dapps/Aave/ILendingPool.sol";
-import {LENDING_POOL_ADDRESSES_PROVIDER} from "../../../constants/CAave.sol";
+} from "../../../../interfaces/dapps/Aave/ILendingPoolAddressesProvider.sol";
+import {ILendingPool} from "../../../../interfaces/dapps/Aave/ILendingPool.sol";
+import {LENDING_POOL_ADDRESSES_PROVIDER} from "../../../../constants/CAave.sol";
 import {
     _getRealisedDebt
-} from "../../../functions/gelato/FGelatoDebtBridge.sol";
-import {_getMakerVaultDebt} from "../../../functions/dapps/FMaker.sol";
+} from "../../../../functions/gelato/FGelatoDebtBridge.sol";
+import {_getMakerVaultDebt} from "../../../../functions/dapps/FMaker.sol";
 
 contract ConditionAaveHasLiquidity is GelatoConditionsStandard {
     using GelatoBytes for bytes;

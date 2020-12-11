@@ -2,58 +2,60 @@
 pragma solidity 0.7.4;
 pragma experimental ABIEncoderV2;
 
-import {GelatoBytes} from "../../lib/GelatoBytes.sol";
-import {sub} from "../../vendor/DSMath.sol";
+import {GelatoBytes} from "../../../../../lib/GelatoBytes.sol";
+import {sub} from "../../../../../vendor/DSMath.sol";
 import {
     AccountInterface,
     ConnectorInterface
-} from "../../interfaces/InstaDapp/IInstaDapp.sol";
+} from "../../../../../interfaces/InstaDapp/IInstaDapp.sol";
 import {
     IConnectInstaPoolV2
-} from "../../interfaces/InstaDapp/connectors/IConnectInstaPoolV2.sol";
+} from "../../../../../interfaces/InstaDapp/connectors/IConnectInstaPoolV2.sol";
 import {
     DAI,
     CONNECT_MAKER,
-    CONNECT_COMPOUND,
+    CONNECT_AAVE_V2,
     INSTA_POOL_V2
-} from "../../constants/CInstaDapp.sol";
+} from "../../../../../constants/CInstaDapp.sol";
 import {
     _getMakerVaultDebt,
     _getMakerVaultCollateralBalance,
     _isVaultOwner
-} from "../../functions/dapps/FMaker.sol";
+} from "../../../../../functions/dapps/FMaker.sol";
 import {
     _encodeFlashPayback
-} from "../../functions/InstaDapp/connectors/FInstaPoolV2.sol";
+} from "../../../../../functions/InstaDapp/connectors/FInstaPoolV2.sol";
 import {
     _encodePaybackMakerVault,
     _encodedWithdrawMakerVault
-} from "../../functions/InstaDapp/connectors/FConnectMaker.sol";
+} from "../../../../../functions/InstaDapp/connectors/FConnectMaker.sol";
+import {
+    _encodeDepositAave,
+    _encodeBorrowAave
+} from "../../../../../functions/InstaDapp/connectors/FConnectAave.sol";
 import {
     _encodePayExecutor
-} from "../../functions/InstaDapp/connectors/FConnectGelatoExecutorPayment.sol";
+} from "../../../../../functions/InstaDapp/connectors/FConnectGelatoExecutorPayment.sol";
 import {
-    _encodeDepositCompound,
-    _encodeBorrowCompound
-} from "../../functions/InstaDapp/connectors/FConnectCompound.sol";
-import {_getGelatoExecutorFees} from "../../functions/gelato/FGelato.sol";
+    _getGelatoExecutorFees
+} from "../../../../../functions/gelato/FGelato.sol";
 import {
     _getFlashLoanRoute,
-    _getGasCostMakerToCompound,
+    _getGasCostMakerToAave,
     _getRealisedDebt
-} from "../../functions/gelato/FGelatoDebtBridge.sol";
+} from "../../../../../functions/gelato/FGelatoDebtBridge.sol";
 import {
     DataFlow
 } from "@gelatonetwork/core/contracts/gelato_core/interfaces/IGelatoCore.sol";
 
-contract ConnectGelatoDataFullMakerToCompound is ConnectorInterface {
+contract ConnectGelatoDataFullMakerToAave is ConnectorInterface {
     using GelatoBytes for bytes;
 
     string public constant OK = "OK";
 
     // solhint-disable const-name-snakecase
     string public constant override name =
-        "ConnectGelatoDataFullMakerToCompound-v1.0";
+        "ConnectGelatoDataFullMakerToAave-v1.0";
     uint256 internal immutable _id;
     address internal immutable _connectGelatoExecutorPayment;
 
@@ -73,37 +75,34 @@ contract ConnectGelatoDataFullMakerToCompound is ConnectorInterface {
     }
 
     // ====== ACTION TERMS CHECK ==========
-    /// @notice GelatoCore protocol standard function
-    /// @dev GelatoCore calls this to verify that a Task is executable
+    // Overriding IGelatoAction's function (optional)
     function termsOk(
         uint256, // taskReceipId
         address _dsa,
         bytes calldata _actionData,
-        DataFlow, // DataFlow
+        DataFlow,
         uint256, // value
         uint256 // cycleId
     ) public view returns (string memory) {
         (uint256 vaultId, ) = abi.decode(_actionData[4:], (uint256, address));
 
         if (vaultId == 0)
-            return
-                "ConnectGelatoDataFullMakerToCompound: Vault Id is not valid";
+            return "ConnectGelatoDataFullMakerToAave: Vault Id is not valid";
         if (!_isVaultOwner(vaultId, _dsa))
-            return
-                "ConnectGelatoDataFullMakerToCompound: Vault not owned by dsa";
+            return "ConnectGelatoDataFullMakerToAave: Vault not owned by dsa";
         return OK;
     }
 
-    /// @notice Entry Point for DSA.cast DebtBridge from Maker to Compound
+    /// @notice Entry Point for DSA.cast DebtBridge from e.g ETH-A to ETH-B
     /// @dev payable to be compatible in conjunction with DSA.cast payable target
-    /// @param _vaultId Id of the unsafe vault of the client.
+    /// @param _vaultId Id of the unsafe vault of the client of Vault A Collateral.
     /// @param _colToken  vault's col token address .
-    function getDataAndCastMakerToCompound(uint256 _vaultId, address _colToken)
+    function getDataAndCastMakerToAave(uint256 _vaultId, address _colToken)
         external
         payable
     {
         (address[] memory targets, bytes[] memory datas) =
-            _dataMakerToCompound(_vaultId, _colToken);
+            _dataMakerToAave(_vaultId, _colToken);
 
         _cast(targets, datas);
     }
@@ -122,18 +121,20 @@ contract ConnectGelatoDataFullMakerToCompound is ConnectorInterface {
             address(this).delegatecall(castData);
         if (!success) {
             returndata.revertWithError(
-                "ConnectGelatoDataFullRefinanceMaker._cast:"
+                "ConnectGelatoDataFullMakerToAave._cast:"
             );
         }
     }
 
     /* solhint-disable function-max-lines */
 
-    function _dataMakerToCompound(uint256 _vaultId, address _colToken)
+    function _dataMakerToAave(uint256 _vaultId, address _colToken)
         internal
         view
         returns (address[] memory targets, bytes[] memory datas)
     {
+        address[] memory _targets;
+        bytes[] memory _datas;
         targets = new address[](1);
         targets[0] = INSTA_POOL_V2;
 
@@ -141,29 +142,16 @@ contract ConnectGelatoDataFullMakerToCompound is ConnectorInterface {
         uint256 wColToWithdrawFromMaker =
             _getMakerVaultCollateralBalance(_vaultId);
         uint256 route = _getFlashLoanRoute(DAI, wDaiToBorrow);
-        uint256 gasCost = _getGasCostMakerToCompound(route);
+        uint256 gasCost = _getGasCostMakerToAave(route);
         uint256 gasFeesPaidFromCol = _getGelatoExecutorFees(gasCost);
 
-        address[] memory _targets = new address[](6);
-        _targets[0] = CONNECT_MAKER; // payback
-        _targets[1] = CONNECT_MAKER; // withdraw
-        _targets[2] = CONNECT_COMPOUND; // deposit
-        _targets[3] = CONNECT_COMPOUND; // borrow
-        _targets[4] = _connectGelatoExecutorPayment; // payExecutor
-        _targets[5] = INSTA_POOL_V2; // flashPayback
-
-        bytes[] memory _datas = new bytes[](6);
-        _datas[0] = _encodePaybackMakerVault(_vaultId, uint256(-1), 0, 600);
-        _datas[1] = _encodedWithdrawMakerVault(_vaultId, uint256(-1), 0, 0);
-        _datas[2] = _encodeDepositCompound(
+        (_targets, _datas) = _spellsMakerToAave(
+            _vaultId,
             _colToken,
-            sub(wColToWithdrawFromMaker, gasFeesPaidFromCol),
-            0,
-            0
+            wDaiToBorrow,
+            wColToWithdrawFromMaker,
+            gasFeesPaidFromCol
         );
-        _datas[3] = _encodeBorrowCompound(DAI, 0, 600, 0);
-        _datas[4] = _encodePayExecutor(_colToken, gasFeesPaidFromCol, 0, 0);
-        _datas[5] = _encodeFlashPayback(DAI, wDaiToBorrow, 0, 0);
 
         datas = new bytes[](1);
         datas[0] = abi.encodeWithSelector(
@@ -173,6 +161,45 @@ contract ConnectGelatoDataFullMakerToCompound is ConnectorInterface {
             route,
             abi.encode(_targets, _datas)
         );
+    }
+
+    function _spellsMakerToAave(
+        uint256 _vaultId,
+        address _colToken,
+        uint256 _wDaiToBorrow,
+        uint256 _wColToWithdrawFromMaker,
+        uint256 _gasFeesPaidFromCol
+    ) internal view returns (address[] memory targets, bytes[] memory datas) {
+        targets = new address[](6);
+        targets[0] = CONNECT_MAKER; // payback
+        targets[1] = CONNECT_MAKER; // withdraw
+        targets[2] = CONNECT_AAVE_V2; // deposit
+        targets[3] = CONNECT_AAVE_V2; // borrow
+        targets[4] = _connectGelatoExecutorPayment; // payExecutor
+        targets[5] = INSTA_POOL_V2; // flashPayback
+
+        datas = new bytes[](6);
+        datas[0] = _encodePaybackMakerVault(
+            _vaultId,
+            type(uint256).max,
+            0,
+            600
+        );
+        datas[1] = _encodedWithdrawMakerVault(
+            _vaultId,
+            type(uint256).max,
+            0,
+            0
+        );
+        datas[2] = _encodeDepositAave(
+            _colToken,
+            sub(_wColToWithdrawFromMaker, _gasFeesPaidFromCol),
+            0,
+            0
+        );
+        datas[3] = _encodeBorrowAave(DAI, 0, 2, 600, 0); // Variable rate by default.
+        datas[4] = _encodePayExecutor(_colToken, _gasFeesPaidFromCol, 0, 0);
+        datas[5] = _encodeFlashPayback(DAI, _wDaiToBorrow, 0, 0);
     }
 
     /* solhint-enable function-max-lines */

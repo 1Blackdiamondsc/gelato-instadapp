@@ -163,9 +163,9 @@ describe("ConditionAavePositionWillBeSafe Unit Test", function () {
     ).to.be.equal("OK");
   });
 
-  it("#2: overCollateralized should return false the position is undercollateralized", async function () {
+  it("#2: isOverCollateralized should return false, if the position is undercollateralized", async function () {
     expect(
-      await conditionAavePositionWillBeSafe.overCollateralized(
+      await conditionAavePositionWillBeSafe.isOverCollateralized(
         ethers.utils.parseUnits("100", 18),
         ethers.utils.parseUnits("105", 18),
         7500
@@ -173,9 +173,9 @@ describe("ConditionAavePositionWillBeSafe Unit Test", function () {
     ).to.be.false;
   });
 
-  it("#3: overCollateralized should return true the position is overcollateralized", async function () {
+  it("#3: isOverCollateralized should return true, if the position is overcollateralized", async function () {
     expect(
-      await conditionAavePositionWillBeSafe.overCollateralized(
+      await conditionAavePositionWillBeSafe.isOverCollateralized(
         ethers.utils.parseUnits("100", 18),
         ethers.utils.parseUnits("134", 18),
         7500

@@ -29,7 +29,7 @@ module.exports = async function (
   );
 
   expect(
-    await contracts.mockDebtBridgeETHBExecutor
+    await contracts.mockDebtBridgeExecutor
       .connect(wallets.executor)
       .canExec(taskReceipt, constants.GAS_LIMIT, gelatoGasPrice)
   ).to.be.equal("ConditionNotOk:MakerVaultNotUnsafe");
@@ -40,7 +40,7 @@ module.exports = async function (
   );
 
   expect(
-    await contracts.mockDebtBridgeETHBExecutor
+    await contracts.mockDebtBridgeExecutor
       .connect(wallets.executor)
       .canExec(taskReceipt, constants.GAS_LIMIT, gelatoGasPrice)
   ).to.be.equal("OK");
@@ -51,7 +51,7 @@ module.exports = async function (
 
   if (mockRoute === 0) {
     await expect(
-      contracts.mockDebtBridgeETHBExecutor
+      contracts.mockDebtBridgeExecutor
         .connect(wallets.executor)
         .execViaRoute0(taskReceipt, {
           gasPrice: gelatoGasPrice, // Exectutor must use gelatoGasPrice (Chainlink fast gwei)
@@ -60,7 +60,7 @@ module.exports = async function (
     ).to.emit(contracts.gelatoCore, "LogExecSuccess");
   } else if (mockRoute === 1) {
     await expect(
-      contracts.mockDebtBridgeETHBExecutor
+      contracts.mockDebtBridgeExecutor
         .connect(wallets.executor)
         .execViaRoute1(taskReceipt, {
           gasPrice: gelatoGasPrice, // Exectutor must use gelatoGasPrice (Chainlink fast gwei)
@@ -69,7 +69,7 @@ module.exports = async function (
     ).to.emit(contracts.gelatoCore, "LogExecSuccess");
   } else if (mockRoute === 2) {
     await expect(
-      contracts.mockDebtBridgeETHBExecutor
+      contracts.mockDebtBridgeExecutor
         .connect(wallets.executor)
         .execViaRoute2(taskReceipt, {
           gasPrice: gelatoGasPrice, // Exectutor must use gelatoGasPrice (Chainlink fast gwei)
@@ -78,7 +78,7 @@ module.exports = async function (
     ).to.emit(contracts.gelatoCore, "LogExecSuccess");
   } else if (mockRoute === 3) {
     await expect(
-      contracts.mockDebtBridgeETHBExecutor
+      contracts.mockDebtBridgeExecutor
         .connect(wallets.executor)
         .execViaRoute3(taskReceipt, {
           gasPrice: gelatoGasPrice, // Exectutor must use gelatoGasPrice (Chainlink fast gwei)

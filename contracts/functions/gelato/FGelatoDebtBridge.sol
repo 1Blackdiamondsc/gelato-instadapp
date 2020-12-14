@@ -8,7 +8,9 @@ import {
     ROUTE_1_TOLERANCE
 } from "../../constants/CInstaDapp.sol";
 import {
-    GAS_COSTS_FOR_FULL_REFINANCE,
+    GAS_COSTS_FOR_FULL_REFINANCE_MAKER_TO_MAKER,
+    GAS_COSTS_FOR_FULL_REFINANCE_MAKER_TO_COMPOUND,
+    GAS_COSTS_FOR_FULL_REFINANCE_MAKER_TO_AAVE,
     PREMIUM,
     VAULT_CREATION_COST
 } from "../../constants/CDebtBridge.sol";
@@ -79,26 +81,41 @@ function _getGasCostMakerToMaker(bool _newVault, uint256 _route)
     pure
     returns (uint256)
 {
-    _checkRouteIndex(_route);
+    _checkRouteIndex(
+        _route,
+        "FGelatoDebtBridge._getGasCostMakerToMaker: invalid route index"
+    );
     return
         _getGasCostPremium(
             _newVault
                 ? add(
-                    GAS_COSTS_FOR_FULL_REFINANCE()[_route],
+                    GAS_COSTS_FOR_FULL_REFINANCE_MAKER_TO_MAKER()[_route],
                     VAULT_CREATION_COST
                 )
-                : GAS_COSTS_FOR_FULL_REFINANCE()[_route]
+                : GAS_COSTS_FOR_FULL_REFINANCE_MAKER_TO_MAKER()[_route]
         );
 }
 
 function _getGasCostMakerToCompound(uint256 _route) pure returns (uint256) {
-    _checkRouteIndex(_route);
-    return _getGasCostPremium(GAS_COSTS_FOR_FULL_REFINANCE()[_route]);
+    _checkRouteIndex(
+        _route,
+        "FGelatoDebtBridge._getGasCostMakerToCompound: invalid route index"
+    );
+    return
+        _getGasCostPremium(
+            GAS_COSTS_FOR_FULL_REFINANCE_MAKER_TO_COMPOUND()[_route]
+        );
 }
 
 function _getGasCostMakerToAave(uint256 _route) pure returns (uint256) {
-    _checkRouteIndex(_route);
-    return _getGasCostPremium(GAS_COSTS_FOR_FULL_REFINANCE()[_route]);
+    _checkRouteIndex(
+        _route,
+        "FGelatoDebtBridge._getGasCostMakerToAave: invalid route index"
+    );
+    return
+        _getGasCostPremium(
+            GAS_COSTS_FOR_FULL_REFINANCE_MAKER_TO_AAVE()[_route]
+        );
 }
 
 function _getGasCostPremium(uint256 _rawGasCost) pure returns (uint256) {
@@ -109,9 +126,6 @@ function _getRealisedDebt(uint256 _debtToMove) pure returns (uint256) {
     return wmul(_debtToMove, ROUTE_1_TOLERANCE);
 }
 
-function _checkRouteIndex(uint256 _route) pure {
-    require(
-        _route <= 4,
-        "FGelatoDebtBridge._getGasCostMakerToMaker: invalid route index"
-    );
+function _checkRouteIndex(uint256 _route, string memory _revertMsg) pure {
+    require(_route <= 4, _revertMsg);
 }

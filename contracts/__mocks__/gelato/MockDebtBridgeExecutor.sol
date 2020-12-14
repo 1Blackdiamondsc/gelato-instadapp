@@ -14,9 +14,9 @@ import {
 } from "@gelatonetwork/core/contracts/gelato_core/interfaces/IGelatoExecutors.sol";
 import {GelatoBytes} from "../../lib/GelatoBytes.sol";
 
-/// @dev Automatic gas-reporting for ConnectGelatoDataFullRefinanceMaker ETHA => ETHB
+/// @dev Automatic gas-reporting for Debt Bridge use case
 //   via hardhat-gas-reporter
-contract MockDebtBridgeETHBExecutor {
+contract MockDebtBridgeExecutor {
     using GelatoBytes for bytes;
     address public gelatoCore;
 

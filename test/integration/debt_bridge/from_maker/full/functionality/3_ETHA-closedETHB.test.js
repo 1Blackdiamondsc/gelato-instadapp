@@ -5,7 +5,7 @@ const GelatoCoreLib = require("@gelatonetwork/core");
 
 const setupMakerToMaker = require("../helpers/setupMakerToMaker");
 const getInstaPoolV2Route = require("../../../../../helpers/services/InstaDapp/getInstaPoolV2Route");
-const getGasCost = require("../helpers/services/getGasCost");
+const getGasCost = require("../helpers/services/getGasCostMakerToMaker");
 
 // This test showcases how to submit a task refinancing a Users debt position from
 // Maker to Compound using Gelato

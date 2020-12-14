@@ -120,11 +120,19 @@ module.exports = async function () {
   const makerResolver = await ethers.getContract("MakerResolver");
   const aaveResolver = await ethers.getContract("AaveResolver");
 
-  const mockDebtBridgeETHBExecutor = await ethers.getContract(
-    "MockDebtBridgeETHBExecutor"
+  const mockDebtBridgeExecutor = await ethers.getContract(
+    "MockDebtBridgeExecutor"
   );
   const mockConnectGelatoDataFullMakerToMaker = await ethers.getContract(
     "MockConnectGelatoDataFullMakerToMaker"
+  );
+
+  const mockConnectGelatoDataFullMakerToAave = await ethers.getContract(
+    "MockConnectGelatoDataFullMakerToAave"
+  );
+
+  const mockConnectGelatoDataFullMakerToCompound = await ethers.getContract(
+    "MockConnectGelatoDataFullMakerToCompound"
   );
 
   return {
@@ -156,8 +164,10 @@ module.exports = async function () {
     instaPoolResolver,
     providerModuleDSA,
     conditionDebtBridgeIsAffordable,
-    mockDebtBridgeETHBExecutor,
+    mockDebtBridgeExecutor,
     mockConnectGelatoDataFullMakerToMaker,
+    mockConnectGelatoDataFullMakerToAave,
+    mockConnectGelatoDataFullMakerToCompound,
     conditionDestVaultWillBeSafe,
     conditionAavePositionWillBeSafe,
     conditionAaveHasLiquidity,

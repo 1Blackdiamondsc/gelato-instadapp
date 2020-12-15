@@ -3,10 +3,10 @@ const hre = require("hardhat");
 const { deployments } = hre;
 const GelatoCoreLib = require("@gelatonetwork/core");
 
-const setupMAKERAAVE = require("./helpers/setupMAKER-AAVE.mock");
-const mockExecMAKERAAVE = require("./helpers/services/exec-MAKER-AAVE.mock");
+const mockSetupETHAToCompound = require("./helpers/setupETHAToCompound.mock");
+const mockExecETHAToCompound = require("./helpers/services/execETHAToCompound.mock");
 
-describe("Gas Measurements: Full Debt Bridge From Maker to Aave", function () {
+describe("Gas Measurements ETHA => Compound: MockDebtBridgeExecutorCompound", function () {
   this.timeout(0);
   if (hre.network.name !== "hardhat") {
     console.error("Test Suite is meant to be run on hardhat only");
@@ -23,12 +23,10 @@ describe("Gas Measurements: Full Debt Bridge From Maker to Aave", function () {
 
   let conditionMakerVaultUnsafeObj;
   let conditionDebtBridgeIsAffordableObj;
-  let conditionAavePositionWillBeSafeObj;
-  let conditionHasLiquidityObj;
 
   // For TaskSpec and for Task
   let gelatoDebtBridgeSpells = [];
-  let refinanceFromMakerToAave;
+  let refinanceFromMakerToCompound;
   let gelatoExternalProvider;
   const expiryDate = 0;
 
@@ -47,7 +45,7 @@ describe("Gas Measurements: Full Debt Bridge From Maker to Aave", function () {
     // Reset back to a fresh forked state during runtime
     await deployments.fixture();
 
-    const result = await setupMAKERAAVE(mockRoute);
+    const result = await mockSetupETHAToCompound(mockRoute);
 
     wallets = result.wallets;
     contracts = result.contracts;
@@ -81,35 +79,11 @@ describe("Gas Measurements: Full Debt Bridge From Maker to Aave", function () {
       ),
     });
 
-    conditionAavePositionWillBeSafeObj = new GelatoCoreLib.Condition({
-      inst: contracts.conditionAavePositionWillBeSafe.address,
-      data: await contracts.conditionAavePositionWillBeSafe.getConditionData(
-        contracts.dsa.address,
-        vaultAId,
-        contracts.priceOracleResolver.address,
-        await hre.run("abi-encode-withselector", {
-          abi: (await deployments.getArtifact("PriceOracleResolver")).abi,
-          functionname: "getMockPrice",
-          inputs: [wallets.userAddress],
-        })
-      ),
-    });
-
-    conditionHasLiquidityObj = new GelatoCoreLib.Condition({
-      inst: contracts.conditionAaveHasLiquidity.address,
-      data: await contracts.conditionAaveHasLiquidity.getConditionData(
-        contracts.DAI.address,
-        vaultAId
-      ),
-    });
-
     // ======= GELATO TASK SETUP ======
-    refinanceFromMakerToAave = new GelatoCoreLib.Task({
+    refinanceFromMakerToCompound = new GelatoCoreLib.Task({
       conditions: [
         conditionMakerVaultUnsafeObj,
         conditionDebtBridgeIsAffordableObj,
-        conditionAavePositionWillBeSafeObj,
-        conditionHasLiquidityObj,
       ],
       actions: gelatoDebtBridgeSpells,
     });
@@ -139,7 +113,7 @@ describe("Gas Measurements: Full Debt Bridge From Maker to Aave", function () {
     mockRoute = mockRoute === 4 ? 0 : mockRoute + 1;
   });
 
-  it("#1: execViaRoute0AndOpenVault", async function () {
+  it("#1: execViaRoute0", async function () {
     //#region User submit a Debt Refinancing task if market move against him
 
     expect(mockRoute, "mockRoute mismatch").to.be.equal(0);
@@ -154,7 +128,7 @@ describe("Gas Measurements: Full Debt Bridge From Maker to Aave", function () {
             functionname: "submitTask",
             inputs: [
               gelatoExternalProvider,
-              refinanceFromMakerToAave,
+              refinanceFromMakerToCompound,
               expiryDate,
             ],
           }),
@@ -170,11 +144,11 @@ describe("Gas Measurements: Full Debt Bridge From Maker to Aave", function () {
       id: await contracts.gelatoCore.currentTaskReceiptId(),
       userProxy: contracts.dsa.address,
       provider: gelatoExternalProvider,
-      tasks: [refinanceFromMakerToAave],
+      tasks: [refinanceFromMakerToCompound],
       expiryDate,
     });
 
-    await mockExecMAKERAAVE(
+    await mockExecETHAToCompound(
       constants,
       contracts,
       wallets,
@@ -186,7 +160,7 @@ describe("Gas Measurements: Full Debt Bridge From Maker to Aave", function () {
     //#endregion
   });
 
-  it("#2: execViaRoute1AndOpenVault", async function () {
+  it("#2: execViaRoute1", async function () {
     //#region User submit a Debt Refinancing task if market move against him
 
     expect(mockRoute, "mockRoute mismatch").to.be.equal(1);
@@ -201,7 +175,7 @@ describe("Gas Measurements: Full Debt Bridge From Maker to Aave", function () {
             functionname: "submitTask",
             inputs: [
               gelatoExternalProvider,
-              refinanceFromMakerToAave,
+              refinanceFromMakerToCompound,
               expiryDate,
             ],
           }),
@@ -217,11 +191,11 @@ describe("Gas Measurements: Full Debt Bridge From Maker to Aave", function () {
       id: await contracts.gelatoCore.currentTaskReceiptId(),
       userProxy: contracts.dsa.address,
       provider: gelatoExternalProvider,
-      tasks: [refinanceFromMakerToAave],
+      tasks: [refinanceFromMakerToCompound],
       expiryDate,
     });
 
-    await mockExecMAKERAAVE(
+    await mockExecETHAToCompound(
       constants,
       contracts,
       wallets,
@@ -233,7 +207,7 @@ describe("Gas Measurements: Full Debt Bridge From Maker to Aave", function () {
     //#endregion
   });
 
-  it("#3: execViaRoute2AndOpenVault", async function () {
+  it("#3: execViaRoute2", async function () {
     //#region User submit a Debt Refinancing task if market move against him
 
     expect(mockRoute, "mockRoute mismatch").to.be.equal(2);
@@ -248,7 +222,7 @@ describe("Gas Measurements: Full Debt Bridge From Maker to Aave", function () {
             functionname: "submitTask",
             inputs: [
               gelatoExternalProvider,
-              refinanceFromMakerToAave,
+              refinanceFromMakerToCompound,
               expiryDate,
             ],
           }),
@@ -264,11 +238,11 @@ describe("Gas Measurements: Full Debt Bridge From Maker to Aave", function () {
       id: await contracts.gelatoCore.currentTaskReceiptId(),
       userProxy: contracts.dsa.address,
       provider: gelatoExternalProvider,
-      tasks: [refinanceFromMakerToAave],
+      tasks: [refinanceFromMakerToCompound],
       expiryDate,
     });
 
-    await mockExecMAKERAAVE(
+    await mockExecETHAToCompound(
       constants,
       contracts,
       wallets,
@@ -280,7 +254,7 @@ describe("Gas Measurements: Full Debt Bridge From Maker to Aave", function () {
     //#endregion
   });
 
-  it("#4: execViaRoute3AndOpenVault", async function () {
+  it("#4: execViaRoute3", async function () {
     //#region User submit a Debt Refinancing task if market move against him
 
     expect(mockRoute, "mockRoute mismatch").to.be.equal(3);
@@ -295,7 +269,7 @@ describe("Gas Measurements: Full Debt Bridge From Maker to Aave", function () {
             functionname: "submitTask",
             inputs: [
               gelatoExternalProvider,
-              refinanceFromMakerToAave,
+              refinanceFromMakerToCompound,
               expiryDate,
             ],
           }),
@@ -311,11 +285,11 @@ describe("Gas Measurements: Full Debt Bridge From Maker to Aave", function () {
       id: await contracts.gelatoCore.currentTaskReceiptId(),
       userProxy: contracts.dsa.address,
       provider: gelatoExternalProvider,
-      tasks: [refinanceFromMakerToAave],
+      tasks: [refinanceFromMakerToCompound],
       expiryDate,
     });
 
-    await mockExecMAKERAAVE(
+    await mockExecETHAToCompound(
       constants,
       contracts,
       wallets,

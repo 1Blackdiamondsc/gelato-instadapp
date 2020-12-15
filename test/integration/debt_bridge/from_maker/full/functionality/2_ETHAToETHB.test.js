@@ -3,13 +3,13 @@ const hre = require("hardhat");
 const { deployments, ethers } = hre;
 const GelatoCoreLib = require("@gelatonetwork/core");
 
-const setupMakerToMaker = require("../helpers/setupMakerToMaker");
+const setupETHAToETHB = require("../helpers/setupETHAToETHB");
 const getInstaPoolV2Route = require("../../../../../helpers/services/InstaDapp/getInstaPoolV2Route");
-const getGasCost = require("../helpers/services/getGasCostMakerToMaker");
+const getGasCost = require("../helpers/constants/getGasCostETHAToETHB");
 
 // This test showcases how to submit a task refinancing a Users debt position from
 // Maker to Compound using Gelato
-describe("Full Debt Bridge refinancing loan from ETH-A to ETH-B with Vault B creation due to the closing of the previous one", function () {
+describe("Full Debt Bridge refinancing loan ETH-A => ETH-B", function () {
   this.timeout(0);
   if (hre.network.name !== "hardhat") {
     console.error("Test Suite is meant to be run on hardhat only");
@@ -35,7 +35,7 @@ describe("Full Debt Bridge refinancing loan from ETH-A to ETH-B with Vault B cre
     // Reset back to a fresh forked state during runtime
     await deployments.fixture();
 
-    const result = await setupMakerToMaker();
+    const result = await setupETHAToETHB();
 
     wallets = result.wallets;
     contracts = result.contracts;
@@ -161,25 +161,6 @@ describe("Full Debt Bridge refinancing loan from ETH-A to ETH-B with Vault B cre
     });
 
     //#endregion
-
-    //#region Closing of the vault B
-
-    await contracts.dsa.cast(
-      [hre.network.config.ConnectMaker],
-      [
-        await hre.run("abi-encode-withselector", {
-          abi: ABI.ConnectMakerABI,
-          functionname: "close",
-          inputs: [vaultBId],
-        }),
-      ],
-      wallets.userAddress, // origin
-      {
-        gasLimit: 5000000,
-      }
-    );
-
-    //#endregion Closing of the vault B
   });
 
   // This test showcases the part which is automatically done by the Gelato Executor Network on mainnet
@@ -245,7 +226,7 @@ describe("Full Debt Bridge refinancing loan from ETH-A to ETH-B with Vault B cre
       );
     }
 
-    const gasCost = await getGasCost(route, true);
+    const gasCost = await getGasCost(route);
 
     const gasFeesPaidFromCol = ethers.BigNumber.from(gasCost).mul(
       gelatoGasPrice
@@ -284,11 +265,8 @@ describe("Full Debt Bridge refinancing loan from ETH-A to ETH-B with Vault B cre
       contracts.dssCdpManager.address,
       contracts.dsa.address
     );
-    const oldVaultBId = vaultBId;
-    vaultBId = String(cdps.ids[1]);
+    let vaultBId = String(cdps.ids[1]);
     expect(cdps.ids[1].isZero()).to.be.false;
-
-    expect(oldVaultBId).to.be.not.equal(vaultBId);
 
     let debtOnMakerVaultB;
     if (route === 1) {

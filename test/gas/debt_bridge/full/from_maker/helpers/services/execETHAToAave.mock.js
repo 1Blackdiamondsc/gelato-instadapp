@@ -53,7 +53,7 @@ module.exports = async function (
     await expect(
       contracts.mockDebtBridgeExecutorAave
         .connect(wallets.executor)
-        .execViaRoute0Aave(taskReceipt, {
+        .execViaRoute0(taskReceipt, {
           gasPrice: gelatoGasPrice, // Exectutor must use gelatoGasPrice (Chainlink fast gwei)
           gasLimit: constants.GAS_LIMIT,
         })
@@ -62,7 +62,7 @@ module.exports = async function (
     await expect(
       contracts.mockDebtBridgeExecutorAave
         .connect(wallets.executor)
-        .execViaRoute1Aave(taskReceipt, {
+        .execViaRoute1(taskReceipt, {
           gasPrice: gelatoGasPrice, // Exectutor must use gelatoGasPrice (Chainlink fast gwei)
           gasLimit: constants.GAS_LIMIT,
         })
@@ -71,7 +71,7 @@ module.exports = async function (
     await expect(
       contracts.mockDebtBridgeExecutorAave
         .connect(wallets.executor)
-        .execViaRoute2Aave(taskReceipt, {
+        .execViaRoute2(taskReceipt, {
           gasPrice: gelatoGasPrice, // Exectutor must use gelatoGasPrice (Chainlink fast gwei)
           gasLimit: constants.GAS_LIMIT,
         })
@@ -80,7 +80,7 @@ module.exports = async function (
     await expect(
       contracts.mockDebtBridgeExecutorAave
         .connect(wallets.executor)
-        .execViaRoute3Aave(taskReceipt, {
+        .execViaRoute3(taskReceipt, {
           gasPrice: gelatoGasPrice, // Exectutor must use gelatoGasPrice (Chainlink fast gwei)
           gasLimit: constants.GAS_LIMIT,
         })

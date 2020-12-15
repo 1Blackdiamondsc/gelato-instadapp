@@ -146,7 +146,7 @@ contract MockConnectGelatoDataFullMakerToAave is ConnectorInterface {
         uint256 gasCost = _getGasCostMakerToAave(route);
         uint256 gasFeesPaidFromCol = _getGelatoExecutorFees(gasCost);
 
-        (_targets, _datas) = _spellMakerToAave(
+        (_targets, _datas) = _spellsMakerToAave(
             _vaultId,
             _colToken,
             wDaiToBorrow,
@@ -164,7 +164,7 @@ contract MockConnectGelatoDataFullMakerToAave is ConnectorInterface {
         );
     }
 
-    function _spellMakerToAave(
+    function _spellsMakerToAave(
         uint256 _vaultId,
         address _colToken,
         uint256 _wDaiToBorrow,

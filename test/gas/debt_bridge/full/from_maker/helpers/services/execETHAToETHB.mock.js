@@ -29,7 +29,7 @@ module.exports = async function (
   );
 
   expect(
-    await contracts.mockDebtBridgeExecutorCompound
+    await contracts.mockDebtBridgeExecutorETHB
       .connect(wallets.executor)
       .canExec(taskReceipt, constants.GAS_LIMIT, gelatoGasPrice)
   ).to.be.equal("ConditionNotOk:MakerVaultNotUnsafe");
@@ -40,7 +40,7 @@ module.exports = async function (
   );
 
   expect(
-    await contracts.mockDebtBridgeExecutorCompound
+    await contracts.mockDebtBridgeExecutorETHB
       .connect(wallets.executor)
       .canExec(taskReceipt, constants.GAS_LIMIT, gelatoGasPrice)
   ).to.be.equal("OK");
@@ -51,36 +51,36 @@ module.exports = async function (
 
   if (mockRoute === 0) {
     await expect(
-      contracts.mockDebtBridgeExecutorCompound
+      contracts.mockDebtBridgeExecutorETHB
         .connect(wallets.executor)
-        .execViaRoute0Compound(taskReceipt, {
+        .execViaRoute0(taskReceipt, {
           gasPrice: gelatoGasPrice, // Exectutor must use gelatoGasPrice (Chainlink fast gwei)
           gasLimit: constants.GAS_LIMIT,
         })
     ).to.emit(contracts.gelatoCore, "LogExecSuccess");
   } else if (mockRoute === 1) {
     await expect(
-      contracts.mockDebtBridgeExecutorCompound
+      contracts.mockDebtBridgeExecutorETHB
         .connect(wallets.executor)
-        .execViaRoute1Compound(taskReceipt, {
+        .execViaRoute1(taskReceipt, {
           gasPrice: gelatoGasPrice, // Exectutor must use gelatoGasPrice (Chainlink fast gwei)
           gasLimit: constants.GAS_LIMIT,
         })
     ).to.emit(contracts.gelatoCore, "LogExecSuccess");
   } else if (mockRoute === 2) {
     await expect(
-      contracts.mockDebtBridgeExecutorCompound
+      contracts.mockDebtBridgeExecutorETHB
         .connect(wallets.executor)
-        .execViaRoute2Compound(taskReceipt, {
+        .execViaRoute2(taskReceipt, {
           gasPrice: gelatoGasPrice, // Exectutor must use gelatoGasPrice (Chainlink fast gwei)
           gasLimit: constants.GAS_LIMIT,
         })
     ).to.emit(contracts.gelatoCore, "LogExecSuccess");
   } else if (mockRoute === 3) {
     await expect(
-      contracts.mockDebtBridgeExecutorCompound
+      contracts.mockDebtBridgeExecutorETHB
         .connect(wallets.executor)
-        .execViaRoute3Compound(taskReceipt, {
+        .execViaRoute3(taskReceipt, {
           gasPrice: gelatoGasPrice, // Exectutor must use gelatoGasPrice (Chainlink fast gwei)
           gasLimit: constants.GAS_LIMIT,
         })

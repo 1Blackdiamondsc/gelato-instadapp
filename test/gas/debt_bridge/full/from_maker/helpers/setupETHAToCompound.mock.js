@@ -1,23 +1,21 @@
 const getWallets = require("../../../../../helpers/services/getWallets");
-const getDebtBridgeFromMakerConstants = require("../../services/getDebtBridgeFromMakerConstants");
 const getContracts = require("../../../../../helpers/services/getContracts");
-const stakeExecutor = require("../../../../../helpers/services/gelato/stakeExecutor");
+const getDebtBridgeFromMakerConstants = require("../../../../../integration/debt_bridge/from_maker/services/getDebtBridgeFromMakerConstants");
 const provideFunds = require("../../../../../helpers/services/gelato/provideFunds");
 const providerAssignsExecutor = require("../../../../../helpers/services/gelato/providerAssignsExecutor");
 const addProviderModuleDSA = require("../../../../../helpers/services/gelato/addProviderModuleDSA");
 const createDSA = require("../../../../../helpers/services/InstaDapp/createDSA");
 const initializeMakerCdp = require("../../../../../helpers/services/maker/initializeMakerCdp");
-const getSpellsToAave = require("./services/getSpells-To-Aave");
+const getMockSpellsETHAToCompound = require("./services/getSpellsETHAToCompound.mock");
 const getABI = require("../../../../../helpers/services/getABI");
 
-module.exports = async function () {
+module.exports = async function (mockRoute) {
   const wallets = await getWallets();
   const contracts = await getContracts();
   const constants = await getDebtBridgeFromMakerConstants();
   const ABI = getABI();
 
   // Gelato Testing environment setup.
-  await stakeExecutor(wallets.executor, contracts.gelatoCore);
   await provideFunds(
     wallets.gelatoProvider,
     contracts.gelatoCore,
@@ -26,7 +24,7 @@ module.exports = async function () {
   );
   await providerAssignsExecutor(
     wallets.gelatoProvider,
-    wallets.gelatoExecutorAddress,
+    contracts.mockDebtBridgeExecutorCompound.address,
     contracts.gelatoCore
   );
   await addProviderModuleDSA(
@@ -39,7 +37,7 @@ module.exports = async function () {
     contracts.instaIndex,
     contracts.instaList
   );
-  const vaultId = await initializeMakerCdp(
+  const vaultAId = await initializeMakerCdp(
     wallets.userAddress,
     contracts.DAI,
     contracts.dsa,
@@ -49,14 +47,19 @@ module.exports = async function () {
     constants.MAKER_INITIAL_DEBT,
     ABI.ConnectMakerABI
   );
-
-  const spells = await getSpellsToAave(wallets, contracts, constants, vaultId);
+  const spells = await getMockSpellsETHAToCompound(
+    mockRoute,
+    wallets,
+    contracts,
+    constants,
+    vaultAId
+  );
 
   return {
     wallets,
     contracts,
     constants,
-    vaultId,
+    vaultAId,
     spells,
     ABI,
   };

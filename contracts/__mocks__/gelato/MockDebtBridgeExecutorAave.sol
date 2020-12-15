@@ -38,25 +38,25 @@ contract MockDebtBridgeExecutorAave {
             );
     }
 
-    function execViaRoute0Aave(TaskReceipt memory _taskReceipt) public {
+    function execViaRoute0(TaskReceipt memory _taskReceipt) public {
         // uint256 gasLeft = gasleft();
         IGelatoCore(gelatoCore).exec(_taskReceipt);
         // console.log("Gas Cost execViaRoute0: %s", gasLeft - gasleft());
     }
 
-    function execViaRoute1Aave(TaskReceipt memory _taskReceipt) public {
+    function execViaRoute1(TaskReceipt memory _taskReceipt) public {
         // uint256 gasLeft = gasleft();
         IGelatoCore(gelatoCore).exec(_taskReceipt);
         // console.log("Gas Cost execViaRoute1: %s", gasLeft - gasleft());
     }
 
-    function execViaRoute2Aave(TaskReceipt memory _taskReceipt) public {
+    function execViaRoute2(TaskReceipt memory _taskReceipt) public {
         // uint256 gasLeft = gasleft();
         IGelatoCore(gelatoCore).exec(_taskReceipt);
         // console.log("Gas Cost execViaRoute2: %s", gasLeft - gasleft());
     }
 
-    function execViaRoute3Aave(TaskReceipt memory _taskReceipt) public {
+    function execViaRoute3(TaskReceipt memory _taskReceipt) public {
         // uint256 gasLeft = gasleft();
         IGelatoCore(gelatoCore).exec(_taskReceipt);
         // console.log("Gas Cost execViaRoute3: %s", gasLeft - gasleft());

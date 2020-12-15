@@ -1,14 +1,13 @@
 const getWallets = require("../../../../../helpers/services/getWallets");
-const getContracts = require("../../../../../helpers/services/getContracts");
 const getDebtBridgeFromMakerConstants = require("../../services/getDebtBridgeFromMakerConstants");
+const getContracts = require("../../../../../helpers/services/getContracts");
 const stakeExecutor = require("../../../../../helpers/services/gelato/stakeExecutor");
 const provideFunds = require("../../../../../helpers/services/gelato/provideFunds");
 const providerAssignsExecutor = require("../../../../../helpers/services/gelato/providerAssignsExecutor");
 const addProviderModuleDSA = require("../../../../../helpers/services/gelato/addProviderModuleDSA");
 const createDSA = require("../../../../../helpers/services/InstaDapp/createDSA");
 const initializeMakerCdp = require("../../../../../helpers/services/maker/initializeMakerCdp");
-const createVaultForETHB = require("../../../../../helpers/services/maker/createVaultForETHB");
-const getSpellsEthAEthB = require("./services/getSpells-ETHA-ETHB");
+const getSpellsETHAToAave = require("./services/getSpellsETHAToAave");
 const getABI = require("../../../../../helpers/services/getABI");
 
 module.exports = async function () {
@@ -40,7 +39,7 @@ module.exports = async function () {
     contracts.instaIndex,
     contracts.instaList
   );
-  const vaultAId = await initializeMakerCdp(
+  const vaultId = await initializeMakerCdp(
     wallets.userAddress,
     contracts.DAI,
     contracts.dsa,
@@ -50,27 +49,19 @@ module.exports = async function () {
     constants.MAKER_INITIAL_DEBT,
     ABI.ConnectMakerABI
   );
-  const vaultBId = await createVaultForETHB(
-    wallets.userAddress,
-    contracts.DAI,
-    contracts.dsa,
-    contracts.getCdps,
-    contracts.dssCdpManager
-  );
-  const spells = await getSpellsEthAEthB(
+
+  const spells = await getSpellsETHAToAave(
     wallets,
     contracts,
     constants,
-    vaultAId,
-    vaultBId
+    vaultId
   );
 
   return {
     wallets,
     contracts,
     constants,
-    vaultAId,
-    vaultBId,
+    vaultId,
     spells,
     ABI,
   };

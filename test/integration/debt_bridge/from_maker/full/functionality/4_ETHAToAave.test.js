@@ -4,13 +4,13 @@ const { deployments, ethers } = hre;
 
 const GelatoCoreLib = require("@gelatonetwork/core");
 
-const setupMakerToAave = require("../helpers/setupMakerToAave");
+const setupETHAToAave = require("../helpers/setupETHAToAave");
 const getInstaPoolV2Route = require("../../../../../helpers/services/InstaDapp/getInstaPoolV2Route");
-const getGasCost = require("../helpers/services/getGasCostMakerToAave");
+const getGasCost = require("../helpers/constants/getGasCostETHAToAave");
 
 // This test showcases how to submit a task refinancing a Users debt position from
 // Maker to Aave using Gelato
-describe("Full Debt Bridge refinancing loan from Maker to Aave", function () {
+describe("Full Debt Bridge refinancing ETHA => Aave", function () {
   this.timeout(0);
   if (hre.network.name !== "hardhat") {
     console.error("Test Suite is meant to be run on hardhat only");
@@ -34,7 +34,7 @@ describe("Full Debt Bridge refinancing loan from Maker to Aave", function () {
   before(async function () {
     await deployments.fixture();
 
-    const result = await setupMakerToAave();
+    const result = await setupETHAToAave();
     wallets = result.wallets;
     contracts = result.contracts;
     vaultId = result.vaultId;

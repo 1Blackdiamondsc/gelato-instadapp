@@ -1,13 +1,14 @@
 const getWallets = require("../../../../../helpers/services/getWallets");
-const getDebtBridgeFromMakerConstants = require("../../services/getDebtBridgeFromMakerConstants");
 const getContracts = require("../../../../../helpers/services/getContracts");
+const getDebtBridgeFromMakerConstants = require("../../services/getDebtBridgeFromMakerConstants");
 const stakeExecutor = require("../../../../../helpers/services/gelato/stakeExecutor");
 const provideFunds = require("../../../../../helpers/services/gelato/provideFunds");
 const providerAssignsExecutor = require("../../../../../helpers/services/gelato/providerAssignsExecutor");
 const addProviderModuleDSA = require("../../../../../helpers/services/gelato/addProviderModuleDSA");
 const createDSA = require("../../../../../helpers/services/InstaDapp/createDSA");
 const initializeMakerCdp = require("../../../../../helpers/services/maker/initializeMakerCdp");
-const getSpellsToCompound = require("./services/getSpells-To-Compound");
+const createVaultForETHB = require("../../../../../helpers/services/maker/createVaultForETHB");
+const getSpellsETHAToETHB = require("./services/getSpellsETHAToETHB");
 const getABI = require("../../../../../helpers/services/getABI");
 
 module.exports = async function () {
@@ -39,7 +40,7 @@ module.exports = async function () {
     contracts.instaIndex,
     contracts.instaList
   );
-  const vaultId = await initializeMakerCdp(
+  const vaultAId = await initializeMakerCdp(
     wallets.userAddress,
     contracts.DAI,
     contracts.dsa,
@@ -49,19 +50,27 @@ module.exports = async function () {
     constants.MAKER_INITIAL_DEBT,
     ABI.ConnectMakerABI
   );
-
-  const spells = await getSpellsToCompound(
+  const vaultBId = await createVaultForETHB(
+    wallets.userAddress,
+    contracts.DAI,
+    contracts.dsa,
+    contracts.getCdps,
+    contracts.dssCdpManager
+  );
+  const spells = await getSpellsETHAToETHB(
     wallets,
     contracts,
     constants,
-    vaultId
+    vaultAId,
+    vaultBId
   );
 
   return {
     wallets,
     contracts,
     constants,
-    vaultId,
+    vaultAId,
+    vaultBId,
     spells,
     ABI,
   };

@@ -44,15 +44,13 @@ contract MockDebtBridgeExecutorETHB {
         // console.log("Gas Cost for Task Execution %s", gasLeft - gasleft());
     }
 
-    function execViaRoute0ETHB(TaskReceipt memory _taskReceipt) public {
+    function execViaRoute0(TaskReceipt memory _taskReceipt) public {
         // uint256 gasLeft = gasleft();
         IGelatoCore(gelatoCore).exec(_taskReceipt);
         // console.log("Gas Cost execViaRoute0: %s", gasLeft - gasleft());
     }
 
-    function execViaRoute0AndOpenVaultETHB(TaskReceipt memory _taskReceipt)
-        public
-    {
+    function execViaRoute0AndOpenVault(TaskReceipt memory _taskReceipt) public {
         // uint256 gasLeft = gasleft();
         IGelatoCore(gelatoCore).exec(_taskReceipt);
         // console.log(
@@ -61,15 +59,13 @@ contract MockDebtBridgeExecutorETHB {
         // );
     }
 
-    function execViaRoute1ETHB(TaskReceipt memory _taskReceipt) public {
+    function execViaRoute1(TaskReceipt memory _taskReceipt) public {
         // uint256 gasLeft = gasleft();
         IGelatoCore(gelatoCore).exec(_taskReceipt);
         // console.log("Gas Cost execViaRoute1: %s", gasLeft - gasleft());
     }
 
-    function execViaRoute1AndOpenVaultETHB(TaskReceipt memory _taskReceipt)
-        public
-    {
+    function execViaRoute1AndOpenVault(TaskReceipt memory _taskReceipt) public {
         // uint256 gasLeft = gasleft();
         IGelatoCore(gelatoCore).exec(_taskReceipt);
         // console.log(
@@ -78,15 +74,13 @@ contract MockDebtBridgeExecutorETHB {
         // );
     }
 
-    function execViaRoute2ETHB(TaskReceipt memory _taskReceipt) public {
+    function execViaRoute2(TaskReceipt memory _taskReceipt) public {
         // uint256 gasLeft = gasleft();
         IGelatoCore(gelatoCore).exec(_taskReceipt);
         // console.log("Gas Cost execViaRoute2: %s", gasLeft - gasleft());
     }
 
-    function execViaRoute2AndOpenVaultETHB(TaskReceipt memory _taskReceipt)
-        public
-    {
+    function execViaRoute2AndOpenVault(TaskReceipt memory _taskReceipt) public {
         // uint256 gasLeft = gasleft();
         IGelatoCore(gelatoCore).exec(_taskReceipt);
         // console.log(
@@ -95,15 +89,13 @@ contract MockDebtBridgeExecutorETHB {
         // );
     }
 
-    function execViaRoute3ETHB(TaskReceipt memory _taskReceipt) public {
+    function execViaRoute3(TaskReceipt memory _taskReceipt) public {
         // uint256 gasLeft = gasleft();
         IGelatoCore(gelatoCore).exec(_taskReceipt);
         // console.log("Gas Cost execViaRoute3: %s", gasLeft - gasleft());
     }
 
-    function execViaRoute3AndOpenVaultETHB(TaskReceipt memory _taskReceipt)
-        public
-    {
+    function execViaRoute3AndOpenVault(TaskReceipt memory _taskReceipt) public {
         // uint256 gasLeft = gasleft();
         IGelatoCore(gelatoCore).exec(_taskReceipt);
         // console.log(

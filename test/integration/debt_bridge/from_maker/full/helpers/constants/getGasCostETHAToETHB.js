@@ -1,4 +1,4 @@
-const { PREMIUM, VAULT_CREATION_COST } = require("../constants/costs");
+const { PREMIUM, VAULT_CREATION_COST } = require("./costs");
 
 module.exports = (route, withVaultCreation) => {
   let rawGasCost;

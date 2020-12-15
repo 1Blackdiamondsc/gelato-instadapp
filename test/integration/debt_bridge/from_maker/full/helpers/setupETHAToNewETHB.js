@@ -1,21 +1,23 @@
 const getWallets = require("../../../../../helpers/services/getWallets");
 const getContracts = require("../../../../../helpers/services/getContracts");
-const getDebtBridgeFromMakerConstants = require("../../../../../integration/debt_bridge/from_maker/services/getDebtBridgeFromMakerConstants");
+const getDebtBridgeFromMakerConstants = require("../../services/getDebtBridgeFromMakerConstants");
+const stakeExecutor = require("../../../../../helpers/services/gelato/stakeExecutor");
 const provideFunds = require("../../../../../helpers/services/gelato/provideFunds");
 const providerAssignsExecutor = require("../../../../../helpers/services/gelato/providerAssignsExecutor");
 const addProviderModuleDSA = require("../../../../../helpers/services/gelato/addProviderModuleDSA");
 const createDSA = require("../../../../../helpers/services/InstaDapp/createDSA");
 const initializeMakerCdp = require("../../../../../helpers/services/maker/initializeMakerCdp");
-const getMockSpellsMakerCompound = require("./services/getSpells-MAKER-COMPOUND.mock");
+const getSpellsETHANewETHB = require("./services/getSpellsETHAToNewETHB");
 const getABI = require("../../../../../helpers/services/getABI");
 
-module.exports = async function (mockRoute) {
+module.exports = async function () {
   const wallets = await getWallets();
   const contracts = await getContracts();
   const constants = await getDebtBridgeFromMakerConstants();
   const ABI = getABI();
 
   // Gelato Testing environment setup.
+  await stakeExecutor(wallets.executor, contracts.gelatoCore);
   await provideFunds(
     wallets.gelatoProvider,
     contracts.gelatoCore,
@@ -24,7 +26,7 @@ module.exports = async function (mockRoute) {
   );
   await providerAssignsExecutor(
     wallets.gelatoProvider,
-    contracts.mockDebtBridgeExecutorCompound.address,
+    wallets.gelatoExecutorAddress,
     contracts.gelatoCore
   );
   await addProviderModuleDSA(
@@ -47,8 +49,8 @@ module.exports = async function (mockRoute) {
     constants.MAKER_INITIAL_DEBT,
     ABI.ConnectMakerABI
   );
-  const spells = await getMockSpellsMakerCompound(
-    mockRoute,
+
+  const spells = await getSpellsETHANewETHB(
     wallets,
     contracts,
     constants,

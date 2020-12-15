@@ -3,8 +3,8 @@ const hre = require("hardhat");
 const { deployments, ethers } = hre;
 
 const InstaPoolResolver = require("../../../artifacts/contracts/interfaces/InstaDapp/resolvers/IInstaPoolResolver.sol/IInstaPoolResolver.json");
-const getGasCostMakerToMaker = require("../../integration/debt_bridge/from_maker/full/helpers/services/getGasCostMakerToMaker");
-const getGasCostMakerToCompound = require("../../integration/debt_bridge/from_maker/full/helpers/services/getGasCostMakerToCompound");
+const getGasCostMakerToMaker = require("../../integration/debt_bridge/from_maker/full/helpers/constants/getGasCostETHAToETHB");
+const getGasCostMakerToCompound = require("../../integration/debt_bridge/from_maker/full/helpers/constants/getGasCostETHAToCompound");
 const DAI = hre.network.config.DAI;
 
 describe("FGelatoDebtBridge Unit Tests", function () {
@@ -79,59 +79,51 @@ describe("FGelatoDebtBridge Unit Tests", function () {
   });
 
   it("getGasCostMakerToMaker should return 3534700 gas limit for route 0 (Dydx) and new vault", async function () {
-    const expectedGasCost = await getGasCostMakerToMaker(0, true);
     expect(
       await fGelatoDebtBridgeMock.getGasCostMakerToMaker(true, 0)
-    ).to.be.equal(expectedGasCost);
+    ).to.be.equal(await getGasCostMakerToMaker(0, true));
   });
 
   it("getGasCostMakerToMaker should return 3274700 gas limit for route 0 (Dydx)", async function () {
-    const expectedGasCost = await getGasCostMakerToMaker(0);
     expect(
       await fGelatoDebtBridgeMock.getGasCostMakerToMaker(false, 0)
-    ).to.be.equal(expectedGasCost);
+    ).to.be.equal(await getGasCostMakerToMaker(0));
   });
 
   it("getGasCostMakerToMaker should return 4342650 gas limit for route 1 (maker) and new vault", async function () {
-    const expectedGasCost = await getGasCostMakerToMaker(1, true);
     expect(
       await fGelatoDebtBridgeMock.getGasCostMakerToMaker(true, 1)
-    ).to.be.equal(expectedGasCost);
+    ).to.be.equal(await getGasCostMakerToMaker(1, true));
   });
 
   it("getGasCostMakerToMaker should return 4082650 gas limit for route 1 (maker)", async function () {
-    const expectedGasCost = await getGasCostMakerToMaker(1);
     expect(
       await fGelatoDebtBridgeMock.getGasCostMakerToMaker(false, 1)
-    ).to.be.equal(expectedGasCost);
+    ).to.be.equal(await getGasCostMakerToMaker(1));
   });
 
   it("getGasCostMakerToMaker should return 5422300 gas limit for route 2 (compound) and new vault", async function () {
-    const expectedGasCost = await getGasCostMakerToMaker(2, true);
     expect(
       await fGelatoDebtBridgeMock.getGasCostMakerToMaker(true, 2)
-    ).to.be.equal(expectedGasCost);
+    ).to.be.equal(await getGasCostMakerToMaker(2, true));
   });
 
   it("getGasCostMakerToMaker should return 5162300 gas limit for route 2 (compound)", async function () {
-    const expectedGasCost = await getGasCostMakerToMaker(2);
     expect(
       await fGelatoDebtBridgeMock.getGasCostMakerToMaker(false, 2)
-    ).to.be.equal(expectedGasCost);
+    ).to.be.equal(await getGasCostMakerToMaker(2));
   });
 
   it("getGasCostMakerToMaker should return 5908500 gas limit for route 3 (aave) and new vault", async function () {
-    const expectedGasCost = await getGasCostMakerToMaker(3, true);
     expect(
       await fGelatoDebtBridgeMock.getGasCostMakerToMaker(true, 3)
-    ).to.be.equal(expectedGasCost);
+    ).to.be.equal(await getGasCostMakerToMaker(3, true));
   });
 
   it("getGasCostMakerToMaker should return 5648500 gas limit for route 3 (aave)", async function () {
-    const expectedGasCost = await getGasCostMakerToMaker(3);
     expect(
       await fGelatoDebtBridgeMock.getGasCostMakerToMaker(false, 3)
-    ).to.be.equal(expectedGasCost);
+    ).to.be.equal(await getGasCostMakerToMaker(3));
   });
 
   it("getGasCostMakerToMaker should revert with invalid route index when the inputed route exceed 4", async function () {
@@ -143,31 +135,27 @@ describe("FGelatoDebtBridge Unit Tests", function () {
   });
 
   it("getGasCostMakerToCompound should return 3274700 gas limit for route 0 (Dydx)", async function () {
-    const expectedGasCost = await getGasCostMakerToCompound(0);
     expect(
       await fGelatoDebtBridgeMock.getGasCostMakerToCompound(0)
-    ).to.be.equal(expectedGasCost);
+    ).to.be.equal(await getGasCostMakerToCompound(0));
   });
 
   it("getGasCostMakerToCompound should return 4082650 gas limit for route 1 (Maker)", async function () {
-    const expectedGasCost = await getGasCostMakerToCompound(1);
     expect(
       await fGelatoDebtBridgeMock.getGasCostMakerToCompound(1)
-    ).to.be.equal(expectedGasCost);
+    ).to.be.equal(await getGasCostMakerToCompound(1));
   });
 
   it("getGasCostMakerToCompound should return 5162300 gas limit for route 2 (Compound)", async function () {
-    const expectedGasCost = await getGasCostMakerToCompound(2);
     expect(
       await fGelatoDebtBridgeMock.getGasCostMakerToCompound(2)
-    ).to.be.equal(expectedGasCost);
+    ).to.be.equal(await getGasCostMakerToCompound(2));
   });
 
   it("getGasCostMakerToCompound should return 5648500 gas limit for route 3 (Aave)", async function () {
-    const expectedGasCost = await getGasCostMakerToCompound(3);
     expect(
       await fGelatoDebtBridgeMock.getGasCostMakerToCompound(3)
-    ).to.be.equal(expectedGasCost);
+    ).to.be.equal(await getGasCostMakerToCompound(3));
   });
 
   it("getGasCostMakerToCompound should revert with invalid route index when the inputed route exceed 4", async function () {
@@ -180,10 +168,9 @@ describe("FGelatoDebtBridge Unit Tests", function () {
 
   it("getRealisedDebt should increase the inputed uint by 0,5%", async function () {
     const debtToMove = ethers.utils.parseUnits("1000", 18);
-    const expectedRealisedDebt = ethers.utils.parseUnits("1005", 18);
 
     expect(await fGelatoDebtBridgeMock.getRealisedDebt(debtToMove)).to.be.equal(
-      expectedRealisedDebt
+      ethers.utils.parseUnits("1005", 18)
     );
   });
 });

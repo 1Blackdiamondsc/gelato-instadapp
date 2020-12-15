@@ -3,7 +3,7 @@ const hre = require("hardhat");
 const { deployments, ethers } = hre;
 const GelatoCoreLib = require("@gelatonetwork/core");
 
-const setupMakerToMaker = require("../helpers/setupMakerToMaker");
+const setupETHAToETHB = require("../helpers/setupETHAToETHB");
 
 // This test showcases how to submit a task refinancing a Users debt position from
 // Maker to Compound using Gelato
@@ -33,7 +33,7 @@ describe("Security: _cast function by example of ETHA-ETHB with disabled Connect
     // Reset back to a fresh forked state during runtime
     await deployments.fixture();
 
-    const result = await setupMakerToMaker();
+    const result = await setupETHAToETHB();
 
     wallets = result.wallets;
     contracts = result.contracts;

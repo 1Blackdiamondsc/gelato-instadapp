@@ -3,10 +3,10 @@ const hre = require("hardhat");
 const { deployments } = hre;
 const GelatoCoreLib = require("@gelatonetwork/core");
 
-const mockSetupETHAETHB = require("./helpers/setupETHA-ETHB.mock");
-const mockExecETHAETHB = require("./helpers/services/exec-MAKER-MAKER.mock");
+const mockSetupETHAToAave = require("./helpers/setupETHAToAave.mock");
+const mockExecETHAToAave = require("./helpers/services/execETHAToAave.mock");
 
-describe("Gas Measurements: Full Debt Bridge From Maker ETH-A to ETH-B", function () {
+describe("Gas Measurements ETHA => Aave: MockDebtBridgeExecutorAave", function () {
   this.timeout(0);
   if (hre.network.name !== "hardhat") {
     console.error("Test Suite is meant to be run on hardhat only");
@@ -20,15 +20,15 @@ describe("Gas Measurements: Full Debt Bridge From Maker ETH-A to ETH-B", functio
 
   // Payload Params for ConnectGelatoFullDebtBridgeFromMaker and ConditionMakerVaultUnsafe
   let vaultAId;
-  let vaultBId;
 
   let conditionMakerVaultUnsafeObj;
   let conditionDebtBridgeIsAffordableObj;
-  let conditionDestVaultWillBeSafe;
+  let conditionAavePositionWillBeSafeObj;
+  let conditionHasLiquidityObj;
 
   // For TaskSpec and for Task
   let gelatoDebtBridgeSpells = [];
-  let refinanceFromEthAToBIfVaultUnsafe;
+  let refinanceFromMakerToAave;
   let gelatoExternalProvider;
   const expiryDate = 0;
 
@@ -47,12 +47,11 @@ describe("Gas Measurements: Full Debt Bridge From Maker ETH-A to ETH-B", functio
     // Reset back to a fresh forked state during runtime
     await deployments.fixture();
 
-    const result = await mockSetupETHAETHB(mockRoute);
+    const result = await mockSetupETHAToAave(mockRoute);
 
     wallets = result.wallets;
     contracts = result.contracts;
     vaultAId = result.vaultAId;
-    vaultBId = result.vaultBId;
     gelatoDebtBridgeSpells = result.spells;
 
     ABI = result.ABI;
@@ -82,21 +81,35 @@ describe("Gas Measurements: Full Debt Bridge From Maker ETH-A to ETH-B", functio
       ),
     });
 
-    conditionDestVaultWillBeSafe = new GelatoCoreLib.Condition({
-      inst: contracts.conditionDestVaultWillBeSafe.address,
-      data: await contracts.conditionDestVaultWillBeSafe.getConditionData(
+    conditionAavePositionWillBeSafeObj = new GelatoCoreLib.Condition({
+      inst: contracts.conditionAavePositionWillBeSafe.address,
+      data: await contracts.conditionAavePositionWillBeSafe.getConditionData(
         contracts.dsa.address,
         vaultAId,
-        vaultBId,
-        "ETH-B"
+        contracts.priceOracleResolver.address,
+        await hre.run("abi-encode-withselector", {
+          abi: (await deployments.getArtifact("PriceOracleResolver")).abi,
+          functionname: "getMockPrice",
+          inputs: [wallets.userAddress],
+        })
       ),
     });
 
-    refinanceFromEthAToBIfVaultUnsafe = new GelatoCoreLib.Task({
+    conditionHasLiquidityObj = new GelatoCoreLib.Condition({
+      inst: contracts.conditionAaveHasLiquidity.address,
+      data: await contracts.conditionAaveHasLiquidity.getConditionData(
+        contracts.DAI.address,
+        vaultAId
+      ),
+    });
+
+    // ======= GELATO TASK SETUP ======
+    refinanceFromMakerToAave = new GelatoCoreLib.Task({
       conditions: [
         conditionMakerVaultUnsafeObj,
         conditionDebtBridgeIsAffordableObj,
-        conditionDestVaultWillBeSafe,
+        conditionAavePositionWillBeSafeObj,
+        conditionHasLiquidityObj,
       ],
       actions: gelatoDebtBridgeSpells,
     });
@@ -141,7 +154,7 @@ describe("Gas Measurements: Full Debt Bridge From Maker ETH-A to ETH-B", functio
             functionname: "submitTask",
             inputs: [
               gelatoExternalProvider,
-              refinanceFromEthAToBIfVaultUnsafe,
+              refinanceFromMakerToAave,
               expiryDate,
             ],
           }),
@@ -157,11 +170,11 @@ describe("Gas Measurements: Full Debt Bridge From Maker ETH-A to ETH-B", functio
       id: await contracts.gelatoCore.currentTaskReceiptId(),
       userProxy: contracts.dsa.address,
       provider: gelatoExternalProvider,
-      tasks: [refinanceFromEthAToBIfVaultUnsafe],
+      tasks: [refinanceFromMakerToAave],
       expiryDate,
     });
 
-    await mockExecETHAETHB(
+    await mockExecETHAToAave(
       constants,
       contracts,
       wallets,
@@ -188,7 +201,7 @@ describe("Gas Measurements: Full Debt Bridge From Maker ETH-A to ETH-B", functio
             functionname: "submitTask",
             inputs: [
               gelatoExternalProvider,
-              refinanceFromEthAToBIfVaultUnsafe,
+              refinanceFromMakerToAave,
               expiryDate,
             ],
           }),
@@ -204,11 +217,11 @@ describe("Gas Measurements: Full Debt Bridge From Maker ETH-A to ETH-B", functio
       id: await contracts.gelatoCore.currentTaskReceiptId(),
       userProxy: contracts.dsa.address,
       provider: gelatoExternalProvider,
-      tasks: [refinanceFromEthAToBIfVaultUnsafe],
+      tasks: [refinanceFromMakerToAave],
       expiryDate,
     });
 
-    await mockExecETHAETHB(
+    await mockExecETHAToAave(
       constants,
       contracts,
       wallets,
@@ -235,7 +248,7 @@ describe("Gas Measurements: Full Debt Bridge From Maker ETH-A to ETH-B", functio
             functionname: "submitTask",
             inputs: [
               gelatoExternalProvider,
-              refinanceFromEthAToBIfVaultUnsafe,
+              refinanceFromMakerToAave,
               expiryDate,
             ],
           }),
@@ -251,11 +264,11 @@ describe("Gas Measurements: Full Debt Bridge From Maker ETH-A to ETH-B", functio
       id: await contracts.gelatoCore.currentTaskReceiptId(),
       userProxy: contracts.dsa.address,
       provider: gelatoExternalProvider,
-      tasks: [refinanceFromEthAToBIfVaultUnsafe],
+      tasks: [refinanceFromMakerToAave],
       expiryDate,
     });
 
-    await mockExecETHAETHB(
+    await mockExecETHAToAave(
       constants,
       contracts,
       wallets,
@@ -282,7 +295,7 @@ describe("Gas Measurements: Full Debt Bridge From Maker ETH-A to ETH-B", functio
             functionname: "submitTask",
             inputs: [
               gelatoExternalProvider,
-              refinanceFromEthAToBIfVaultUnsafe,
+              refinanceFromMakerToAave,
               expiryDate,
             ],
           }),
@@ -298,11 +311,11 @@ describe("Gas Measurements: Full Debt Bridge From Maker ETH-A to ETH-B", functio
       id: await contracts.gelatoCore.currentTaskReceiptId(),
       userProxy: contracts.dsa.address,
       provider: gelatoExternalProvider,
-      tasks: [refinanceFromEthAToBIfVaultUnsafe],
+      tasks: [refinanceFromMakerToAave],
       expiryDate,
     });
 
-    await mockExecETHAETHB(
+    await mockExecETHAToAave(
       constants,
       contracts,
       wallets,

@@ -24,7 +24,7 @@ module.exports = async function (mockRoute) {
   );
   await providerAssignsExecutor(
     wallets.gelatoProvider,
-    contracts.mockDebtBridgeExecutor.address,
+    contracts.mockDebtBridgeExecutorCompound.address,
     contracts.gelatoCore
   );
   await addProviderModuleDSA(

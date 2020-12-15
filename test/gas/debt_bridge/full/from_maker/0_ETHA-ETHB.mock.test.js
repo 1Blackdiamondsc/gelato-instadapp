@@ -4,7 +4,7 @@ const { deployments } = hre;
 const GelatoCoreLib = require("@gelatonetwork/core");
 
 const mockSetupETHAETHB = require("./helpers/setupETHA-ETHB.mock");
-const mockExecETHAETHB = require("./helpers/services/exec-From-MAKER.mock");
+const mockExecETHAETHB = require("./helpers/services/exec-MAKER-MAKER.mock");
 
 describe("Gas Measurements: Full Debt Bridge From Maker ETH-A to ETH-B", function () {
   this.timeout(0);

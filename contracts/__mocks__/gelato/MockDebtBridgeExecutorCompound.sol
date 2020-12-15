@@ -16,7 +16,7 @@ import {GelatoBytes} from "../../lib/GelatoBytes.sol";
 
 /// @dev Automatic gas-reporting for Debt Bridge use case
 //   via hardhat-gas-reporter
-contract MockDebtBridgeExecutor {
+contract MockDebtBridgeExecutorCompound {
     using GelatoBytes for bytes;
     address public gelatoCore;
 
@@ -38,69 +38,27 @@ contract MockDebtBridgeExecutor {
             );
     }
 
-    function exec(TaskReceipt memory _taskReceipt) public {
-        // uint256 gasLeft = gasleft();
-        IGelatoCore(gelatoCore).exec(_taskReceipt);
-        // console.log("Gas Cost for Task Execution %s", gasLeft - gasleft());
-    }
-
-    function execViaRoute0(TaskReceipt memory _taskReceipt) public {
+    function execViaRoute0Compound(TaskReceipt memory _taskReceipt) public {
         // uint256 gasLeft = gasleft();
         IGelatoCore(gelatoCore).exec(_taskReceipt);
         // console.log("Gas Cost execViaRoute0: %s", gasLeft - gasleft());
     }
 
-    function execViaRoute0AndOpenVault(TaskReceipt memory _taskReceipt) public {
-        // uint256 gasLeft = gasleft();
-        IGelatoCore(gelatoCore).exec(_taskReceipt);
-        // console.log(
-        //     "Gas Cost execViaRoute0AndOpenVault: %s",
-        //     gasLeft - gasleft()
-        // );
-    }
-
-    function execViaRoute1(TaskReceipt memory _taskReceipt) public {
+    function execViaRoute1Compound(TaskReceipt memory _taskReceipt) public {
         // uint256 gasLeft = gasleft();
         IGelatoCore(gelatoCore).exec(_taskReceipt);
         // console.log("Gas Cost execViaRoute1: %s", gasLeft - gasleft());
     }
 
-    function execViaRoute1AndOpenVault(TaskReceipt memory _taskReceipt) public {
-        // uint256 gasLeft = gasleft();
-        IGelatoCore(gelatoCore).exec(_taskReceipt);
-        // console.log(
-        //     "Gas Cost execViaRoute1AndOpenVault: %s",
-        //     gasLeft - gasleft()
-        // );
-    }
-
-    function execViaRoute2(TaskReceipt memory _taskReceipt) public {
+    function execViaRoute2Compound(TaskReceipt memory _taskReceipt) public {
         // uint256 gasLeft = gasleft();
         IGelatoCore(gelatoCore).exec(_taskReceipt);
         // console.log("Gas Cost execViaRoute2: %s", gasLeft - gasleft());
     }
 
-    function execViaRoute2AndOpenVault(TaskReceipt memory _taskReceipt) public {
-        // uint256 gasLeft = gasleft();
-        IGelatoCore(gelatoCore).exec(_taskReceipt);
-        // console.log(
-        //     "Gas Cost execViaRoute2AndOpenVault %s",
-        //     gasLeft - gasleft()
-        // );
-    }
-
-    function execViaRoute3(TaskReceipt memory _taskReceipt) public {
+    function execViaRoute3Compound(TaskReceipt memory _taskReceipt) public {
         // uint256 gasLeft = gasleft();
         IGelatoCore(gelatoCore).exec(_taskReceipt);
         // console.log("Gas Cost execViaRoute3: %s", gasLeft - gasleft());
-    }
-
-    function execViaRoute3AndOpenVault(TaskReceipt memory _taskReceipt) public {
-        // uint256 gasLeft = gasleft();
-        IGelatoCore(gelatoCore).exec(_taskReceipt);
-        // console.log(
-        //     "Gas Cost execViaRoute3AndOpenVAult: %s",
-        //     gasLeft - gasleft()
-        // );
     }
 }

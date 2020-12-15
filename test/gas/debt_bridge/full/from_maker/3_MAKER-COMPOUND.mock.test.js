@@ -4,7 +4,7 @@ const { deployments } = hre;
 const GelatoCoreLib = require("@gelatonetwork/core");
 
 const setupMAKERCOMPOUND = require("./helpers/setupMAKER-COMPOUND.mock");
-const mockExecMAKERCOMPOUND = require("./helpers/services/exec-From-MAKER.mock");
+const mockExecMAKERCOMPOUND = require("./helpers/services/exec-MAKER-COMPOUND.mock");
 
 describe("Gas Measurements: Full Debt Bridge From Maker to Compound", function () {
   this.timeout(0);

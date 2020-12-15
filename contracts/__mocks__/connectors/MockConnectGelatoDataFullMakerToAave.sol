@@ -141,7 +141,9 @@ contract MockConnectGelatoDataFullMakerToAave is ConnectorInterface {
         uint256 wDaiToBorrow = _getRealisedDebt(_getMakerVaultDebt(_vaultId));
         uint256 wColToWithdrawFromMaker =
             _getMakerVaultCollateralBalance(_vaultId);
-        uint256 gasCost = _getGasCostMakerToAave(_mockRoute);
+        uint256 route = _getFlashLoanRoute(DAI, wDaiToBorrow);
+        route = _mockRoute;
+        uint256 gasCost = _getGasCostMakerToAave(route);
         uint256 gasFeesPaidFromCol = _getGelatoExecutorFees(gasCost);
 
         (_targets, _datas) = _spellMakerToAave(
@@ -157,7 +159,7 @@ contract MockConnectGelatoDataFullMakerToAave is ConnectorInterface {
             IConnectInstaPoolV2.flashBorrowAndCast.selector,
             DAI,
             wDaiToBorrow,
-            _mockRoute,
+            route,
             abi.encode(_targets, _datas)
         );
     }

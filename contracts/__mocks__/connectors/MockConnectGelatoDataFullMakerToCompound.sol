@@ -142,7 +142,9 @@ contract MockConnectGelatoDataFullMakerToCompound is ConnectorInterface {
         uint256 wDaiToBorrow = _getRealisedDebt(_getMakerVaultDebt(_vaultId));
         uint256 wColToWithdrawFromMaker =
             _getMakerVaultCollateralBalance(_vaultId);
-        uint256 gasCost = _getGasCostMakerToCompound(_mockRoute);
+        uint256 route = _getFlashLoanRoute(DAI, wDaiToBorrow);
+        route = _mockRoute;
+        uint256 gasCost = _getGasCostMakerToCompound(route);
         uint256 gasFeesPaidFromCol = _getGelatoExecutorFees(gasCost);
 
         address[] memory _targets = new address[](6);
@@ -171,7 +173,7 @@ contract MockConnectGelatoDataFullMakerToCompound is ConnectorInterface {
             IConnectInstaPoolV2.flashBorrowAndCast.selector,
             DAI,
             wDaiToBorrow,
-            _mockRoute,
+            route,
             abi.encode(_targets, _datas)
         );
     }

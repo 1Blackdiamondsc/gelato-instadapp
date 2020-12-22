@@ -182,7 +182,7 @@ describe("ConditionDebtCeilingIsReached Unit Test", function () {
     // 2 - Borrow.
     // 3 - Test if vault ETH-B will not be able to borrow due to debt ceiling.
 
-    amountToBorrow = ethers.utils.parseUnits("1000000", 18);
+    amountToBorrow = ethers.utils.parseUnits("10000000", 18);
     const amountToDeposit = ethers.utils.parseUnits("200000", 18);
 
     //#region Deposit
@@ -296,7 +296,7 @@ describe("ConditionDebtCeilingIsReached Unit Test", function () {
     // 2 - Borrow.
     // 3 - Test if vault ETH-B will not be able to borrow due to debt ceiling.
 
-    amountToBorrow = ethers.utils.parseUnits("1000000", 18);
+    amountToBorrow = ethers.utils.parseUnits("10000000", 18);
     const amountToDeposit = ethers.utils.parseUnits("200000", 18);
 
     //#region Deposit
@@ -452,7 +452,7 @@ describe("ConditionDebtCeilingIsReached Unit Test", function () {
     // 2 - Borrow.
     // 3 - Test if vault ETH-B will not be able to borrow due to debt ceiling.
 
-    amountToBorrow = ethers.utils.parseUnits("1000000", 18);
+    amountToBorrow = ethers.utils.parseUnits("10000000", 18);
     const amountToDeposit = ethers.utils.parseUnits("200000", 18);
 
     const amountToBorrowForVaultB = ethers.utils.parseUnits("500", 18);

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.7.4;
+pragma solidity 0.8.0;
 
 // InstaDapp
 address constant INSTA_MEMORY = 0x8a5419CfC711B2343c17a6ABf4B2bAFaBb06957F;
@@ -10,6 +10,8 @@ address constant CONNECT_COMPOUND = 0x15FdD1e902cAC70786fe7D31013B1a806764B5a2;
 address constant INSTA_POOL_V2 = 0xeB4bf86589f808f90EEC8e964dBF16Bd4D284905;
 address constant CONNECT_AAVE_V2 = 0xBF6E4331ffd02F7043e62788FD272aeFc712f5ee;
 address constant CONNECT_DYDX = 0x6AF6C791c869DfA65f8A2fa042fA47D1535Bef25;
+address constant CONNECT_BASIC = 0xe5398f279175962E56fE4c5E0b62dc7208EF36c6;
+address constant CONNECT_FEE = 0xB99152F8073033B318C1Bfbfaaa582029e982CE9;
 
 // Tokens
 address constant ETH = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.7.4;
+pragma solidity 0.8.0;
 
 import {MemoryInterface} from "../../interfaces/InstaDapp/IInstaDapp.sol";
 import {INSTA_MEMORY} from "../../constants/CInstaDapp.sol";

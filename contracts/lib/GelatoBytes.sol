@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.7.4;
+pragma solidity 0.8.0;
 
 library GelatoBytes {
     function calldataSliceSelector(bytes calldata _bytes)

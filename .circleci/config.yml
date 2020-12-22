@@ -37,13 +37,13 @@ jobs: # a collection of steps
           command: yarn lint
       - restore_cache: # restore the Hardhat Network Fork Cache
           name: Restore Hardhat Network Fork Cache
-          key: v8-hardhat-network-fork-cache
+          key: v9-hardhat-network-fork-cache
       - run: # Tests
           name: Tests using hardhat mainnet fork and gas reporter
           command: yarn test:gas
       - save_cache: # special step to save the Hardhat Network Fork cache
           name: Save Hardhat Network Fork Cache
-          key: v8-hardhat-network-fork-cache
+          key: v9-hardhat-network-fork-cache
           paths:
             - ./cache/hardhat-network-fork
       - run: # Codechecks

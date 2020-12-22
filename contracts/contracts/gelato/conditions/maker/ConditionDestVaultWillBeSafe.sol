@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.7.4;
-pragma experimental ABIEncoderV2;
+pragma solidity 0.8.0;
 
 import {
     GelatoConditionsStandard
@@ -15,12 +14,9 @@ import {
 import {DAI} from "../../../../constants/CInstaDapp.sol";
 import {
     _getFlashLoanRoute,
-    _getGasCostMakerToMaker,
     _getRealisedDebt
 } from "../../../../functions/gelato/FGelatoDebtBridge.sol";
-import {_getGelatoExecutorFees} from "../../../../functions/gelato/FGelato.sol";
 import {GelatoBytes} from "../../../../lib/GelatoBytes.sol";
-import {sub} from "../../../../vendor/DSMath.sol";
 
 contract ConditionDestVaultWillBeSafe is GelatoConditionsStandard {
     using GelatoBytes for bytes;
@@ -66,16 +62,7 @@ contract ConditionDestVaultWillBeSafe is GelatoConditionsStandard {
         _destVaultId = _isVaultOwner(_destVaultId, _dsa) ? _destVaultId : 0;
         uint256 wDaiToBorrow =
             _getRealisedDebt(_getMakerVaultDebt(_fromVaultId));
-        uint256 wColToDeposit =
-            sub(
-                _getMakerVaultCollateralBalance(_fromVaultId),
-                _getGelatoExecutorFees(
-                    _getGasCostMakerToMaker(
-                        _destVaultId == 0,
-                        _getFlashLoanRoute(DAI, wDaiToBorrow)
-                    )
-                )
-            );
+        uint256 wColToDeposit = _getMakerVaultCollateralBalance(_fromVaultId);
 
         return
             destVaultWillBeSafeExplicit(

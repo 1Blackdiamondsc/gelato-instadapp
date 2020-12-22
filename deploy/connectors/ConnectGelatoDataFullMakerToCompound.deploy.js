@@ -16,7 +16,7 @@ module.exports = async (hre) => {
 
   const { deployments } = hre;
   const { deploy } = deployments;
-  const { deployer } = await hre.getNamedAccounts();
+  const { deployer, instaFeeCollector } = await hre.getNamedAccounts();
 
   if (hre.network.name === "hardhat") {
     const deployerWallet = await ethers.provider.getSigner(deployer);
@@ -45,7 +45,9 @@ module.exports = async (hre) => {
       from: deployer,
       args: [
         connectorId,
-        (await deployments.get("ConnectGelatoExecutorPayment")).address,
+        ethers.utils.parseUnits("3", 15),
+        instaFeeCollector,
+        ethers.utils.parseUnits("10", 18),
       ],
     });
 
@@ -69,7 +71,9 @@ module.exports = async (hre) => {
       from: deployer,
       args: [
         parseInt(process.env.CONNECTOR_ID),
-        (await deployments.get("ConnectGelatoExecutorPayment")).address,
+        ethers.utils.parseUnits("3", 15),
+        instaFeeCollector,
+        ethers.utils.parseUnits("10", 18),
       ],
       gasPrice: hre.network.config.gasPrice,
       log: true,
@@ -83,5 +87,4 @@ module.exports.skip = async (hre) => {
     return process.env.CONNECTOR_ID === undefined;
   return false;
 };
-module.exports.dependencies = ["ConnectGelatoExecutorPayment"];
 module.exports.tags = ["ConnectGelatoDataFullMakerToCompound"];

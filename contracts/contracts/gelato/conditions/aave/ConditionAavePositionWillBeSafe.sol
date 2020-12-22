@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.7.4;
-pragma experimental ABIEncoderV2;
+pragma solidity 0.8.0;
 
 import {
     GelatoConditionsStandard
@@ -13,10 +12,8 @@ import {
 import {DAI} from "../../../../constants/CInstaDapp.sol";
 import {
     _getFlashLoanRoute,
-    _getGasCostMakerToAave,
     _getRealisedDebt
 } from "../../../../functions/gelato/FGelatoDebtBridge.sol";
-import {_getGelatoExecutorFees} from "../../../../functions/gelato/FGelato.sol";
 import {
     _getPosition,
     _percentDiv,
@@ -75,15 +72,7 @@ contract ConditionAavePositionWillBeSafe is GelatoConditionsStandard {
     ) public view returns (string memory) {
         uint256 wDaiToBorrow =
             _getRealisedDebt(_getMakerVaultDebt(_fromVaultId));
-        uint256 wColToDeposit =
-            sub(
-                _getMakerVaultCollateralBalance(_fromVaultId),
-                _getGelatoExecutorFees(
-                    _getGasCostMakerToAave(
-                        _getFlashLoanRoute(DAI, wDaiToBorrow)
-                    )
-                )
-            );
+        uint256 wColToDeposit = _getMakerVaultCollateralBalance(_fromVaultId);
 
         (bool success, bytes memory returndata) =
             _priceOracle.staticcall(_oraclePayload);

@@ -158,7 +158,7 @@ describe("ConditionAaveHasLiquidity Unit Test", function () {
     );
   });
 
-  it("#1: ok should return AaveHasNotEnoughLiquidity if Aave hasn't enough liquidity for the futur borrow", async function () {
+  it("#2: ok should return AaveHasNotEnoughLiquidity if Aave hasn't enough liquidity for the futur borrow", async function () {
     // Steps :
     // 1 - Deposit.
     // 2 - Borrow.

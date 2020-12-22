@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.7.4;
-pragma experimental ABIEncoderV2;
+pragma solidity 0.8.0;
 
 struct Price {
     uint256 value;

@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-pragma solidity 0.7.4;
+pragma solidity 0.8.0;
 
 function add(uint256 x, uint256 y) pure returns (uint256 z) {
     require((z = x + y) >= x, "ds-math-add-overflow");

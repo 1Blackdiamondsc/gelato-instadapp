@@ -21,8 +21,10 @@ require("dotenv").config();
 const ALCHEMY_ID = process.env.ALCHEMY_ID;
 assert.ok(ALCHEMY_ID, "no Alchemy ID in process.env");
 
-const DEPLOYER = "0x5B753BF02a42bC73B5846dfd16a8F2e082b99a6a"; // Gelato-Dev-Luis
+const MAINNET_DEPLOYER = "0x5B753BF02a42bC73B5846dfd16a8F2e082b99a6a"; // Gelato-Dev-Luis
 const DEPLOYER_PK_MAINNET = process.env.DEPLOYER_PK_MAINNET;
+
+const INSTA_FEE_COLLECTOR = "0xb1DC62EC38E6E3857a887210C38418E4A17Da5B2";
 
 // ================================= CONFIG =========================================
 module.exports = {
@@ -36,13 +38,16 @@ module.exports = {
   namedAccounts: {
     deployer: {
       default: 0,
-      mainnet: DEPLOYER,
+      mainnet: MAINNET_DEPLOYER,
     },
     user: {
       default: 0,
     },
     executor: {
       default: 1,
+    },
+    instaFeeCollector: {
+      default: INSTA_FEE_COLLECTOR,
     },
   },
   networks: {
@@ -51,7 +56,7 @@ module.exports = {
       // timeout: 150000,
       forking: {
         url: `https://eth-mainnet.alchemyapi.io/v2/${ALCHEMY_ID}`,
-        blockNumber: 11423903,
+        blockNumber: 11501599,
       },
       // Accounts
       accounts: {
@@ -91,7 +96,7 @@ module.exports = {
         },
       },
       {
-        version: "0.7.4",
+        version: "0.8.0",
         settings: {
           optimizer: { enabled: process.env.DEBUG ? false : true },
         },

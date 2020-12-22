@@ -92,17 +92,11 @@ module.exports = async function () {
   const connectGelatoDataFullMakerToAave = await ethers.getContract(
     "ConnectGelatoDataFullMakerToAave"
   );
-  const connectGelatoExecutorPayment = await ethers.getContract(
-    "ConnectGelatoExecutorPayment"
-  );
 
   const providerModuleDSA = await ethers.getContract("ProviderModuleDSA");
 
   const conditionMakerVaultUnsafe = await ethers.getContract(
     "ConditionMakerVaultUnsafe"
-  );
-  const conditionDebtBridgeIsAffordable = await ethers.getContract(
-    "ConditionDebtBridgeIsAffordable"
   );
   const conditionDestVaultWillBeSafe = await ethers.getContract(
     "ConditionDestVaultWillBeSafe"
@@ -112,6 +106,10 @@ module.exports = async function () {
     "ConditionAavePositionWillBeSafe"
   );
 
+  const conditionCollateralBalanceCheck = await ethers.getContract(
+    "ConditionCollateralBalanceCheck"
+  );
+
   const conditionAaveHasLiquidity = await ethers.getContract(
     "ConditionAaveHasLiquidity"
   );
@@ -119,27 +117,6 @@ module.exports = async function () {
   const priceOracleResolver = await ethers.getContract("PriceOracleResolver");
   const makerResolver = await ethers.getContract("MakerResolver");
   const aaveResolver = await ethers.getContract("AaveResolver");
-
-  const mockDebtBridgeExecutorETHB = await ethers.getContract(
-    "MockDebtBridgeExecutorETHB"
-  );
-  const mockDebtBridgeExecutorCompound = await ethers.getContract(
-    "MockDebtBridgeExecutorCompound"
-  );
-  const mockDebtBridgeExecutorAave = await ethers.getContract(
-    "MockDebtBridgeExecutorAave"
-  );
-  const mockConnectGelatoDataFullMakerToMaker = await ethers.getContract(
-    "MockConnectGelatoDataFullMakerToMaker"
-  );
-
-  const mockConnectGelatoDataFullMakerToAave = await ethers.getContract(
-    "MockConnectGelatoDataFullMakerToAave"
-  );
-
-  const mockConnectGelatoDataFullMakerToCompound = await ethers.getContract(
-    "MockConnectGelatoDataFullMakerToCompound"
-  );
 
   return {
     connectGelato,
@@ -162,22 +139,15 @@ module.exports = async function () {
     instaConnectors,
     compoundResolver,
     conditionMakerVaultUnsafe,
-    connectGelatoExecutorPayment,
     priceOracleResolver,
     dsa: ethers.constants.AddressZero,
     makerResolver,
     aaveResolver,
     instaPoolResolver,
     providerModuleDSA,
-    conditionDebtBridgeIsAffordable,
-    mockDebtBridgeExecutorETHB,
-    mockDebtBridgeExecutorCompound,
-    mockDebtBridgeExecutorAave,
-    mockConnectGelatoDataFullMakerToMaker,
-    mockConnectGelatoDataFullMakerToAave,
-    mockConnectGelatoDataFullMakerToCompound,
     conditionDestVaultWillBeSafe,
     conditionAavePositionWillBeSafe,
     conditionAaveHasLiquidity,
+    conditionCollateralBalanceCheck,
   };
 };

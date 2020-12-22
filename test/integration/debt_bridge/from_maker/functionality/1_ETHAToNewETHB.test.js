@@ -105,21 +105,9 @@ describe("Full Debt Bridge refinancing loan from ETH-A => new ETH-B", function (
       ),
     });
 
-    const conditionCollateralBalanceCheckObj = new GelatoCoreLib.Condition({
-      inst: contracts.conditionCollateralBalanceCheck.address,
-      data: await contracts.conditionCollateralBalanceCheck.getConditionData(
-        contracts.dsa.address,
-        vaultAId
-      ),
-    });
-
     // ======= GELATO TASK SETUP ======
     const refinanceFromEthAToBIfVaultUnsafe = new GelatoCoreLib.Task({
-      conditions: [
-        conditionMakerVaultUnsafeObj,
-        conditionDestVaultWillBeSafe,
-        conditionCollateralBalanceCheckObj,
-      ],
+      conditions: [conditionMakerVaultUnsafeObj, conditionDestVaultWillBeSafe],
       actions: gelatoDebtBridgeSpells,
     });
 

@@ -93,20 +93,9 @@ describe("Full Debt Bridge ETHA => Compound", function () {
       ),
     });
 
-    const conditionCollateralBalanceCheckObj = new GelatoCoreLib.Condition({
-      inst: contracts.conditionCollateralBalanceCheck.address,
-      data: await contracts.conditionCollateralBalanceCheck.getConditionData(
-        contracts.dsa.address,
-        vaultId
-      ),
-    });
-
     // ======= GELATO TASK SETUP ======
     const refinanceIfVaultUnsafe = new GelatoCoreLib.Task({
-      conditions: [
-        conditionMakerVaultUnsafeObj,
-        conditionCollateralBalanceCheckObj,
-      ],
+      conditions: [conditionMakerVaultUnsafeObj],
       actions: gelatoDebtBridgeSpells,
     });
 

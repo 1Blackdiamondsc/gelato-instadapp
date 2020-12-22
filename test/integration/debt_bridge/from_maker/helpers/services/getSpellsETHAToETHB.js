@@ -41,7 +41,6 @@ module.exports = async function (
       conditions: [
         contracts.conditionMakerVaultUnsafe.address,
         contracts.conditionDestVaultWillBeSafe.address,
-        contracts.conditionCollateralBalanceCheck.address,
       ],
       actions: spells,
       gasPriceCeil,

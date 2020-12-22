@@ -90,20 +90,9 @@ describe("Security: _cast function by example of ETHA-ETHB with disabled Connect
       ),
     });
 
-    const conditionCollateralBalanceCheckObj = new GelatoCoreLib.Condition({
-      inst: contracts.conditionCollateralBalanceCheck.address,
-      data: await contracts.conditionCollateralBalanceCheck.getConditionData(
-        contracts.dsa.address,
-        vaultId
-      ),
-    });
-
     // ======= GELATO TASK SETUP ======
     const refinanceIfVaultUnsafe = new GelatoCoreLib.Task({
-      conditions: [
-        conditionMakerVaultUnsafeObj,
-        conditionCollateralBalanceCheckObj,
-      ],
+      conditions: [conditionMakerVaultUnsafeObj],
       actions: gelatoDebtBridgeSpells,
     });
 

@@ -105,11 +105,6 @@ module.exports = async function () {
   const conditionAavePositionWillBeSafe = await ethers.getContract(
     "ConditionAavePositionWillBeSafe"
   );
-
-  const conditionCollateralBalanceCheck = await ethers.getContract(
-    "ConditionCollateralBalanceCheck"
-  );
-
   const conditionAaveHasLiquidity = await ethers.getContract(
     "ConditionAaveHasLiquidity"
   );
@@ -148,6 +143,5 @@ module.exports = async function () {
     conditionDestVaultWillBeSafe,
     conditionAavePositionWillBeSafe,
     conditionAaveHasLiquidity,
-    conditionCollateralBalanceCheck,
   };
 };

@@ -33,10 +33,7 @@ module.exports = async function (wallets, contracts, constants, vaultId) {
 
   const connectGelatoFullDebtBridgeFromMakerTaskSpec = new GelatoCoreLib.TaskSpec(
     {
-      conditions: [
-        contracts.conditionMakerVaultUnsafe.address,
-        contracts.conditionCollateralBalanceCheck.address,
-      ],
+      conditions: [contracts.conditionMakerVaultUnsafe.address],
       actions: spells,
       gasPriceCeil,
     }

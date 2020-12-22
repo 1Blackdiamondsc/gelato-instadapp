@@ -115,21 +115,12 @@ describe("Full Debt Bridge refinancing ETHA => Aave", function () {
       ),
     });
 
-    const conditionCollateralBalanceCheckObj = new GelatoCoreLib.Condition({
-      inst: contracts.conditionCollateralBalanceCheck.address,
-      data: await contracts.conditionCollateralBalanceCheck.getConditionData(
-        contracts.dsa.address,
-        vaultId
-      ),
-    });
-
     // ======= GELATO TASK SETUP ======
     const refinanceIfVaultUnsafe = new GelatoCoreLib.Task({
       conditions: [
         conditionMakerVaultUnsafeObj,
         conditionDestPositionWillBeSafeObj,
         conditionHasLiquidityObj,
-        conditionCollateralBalanceCheckObj,
       ],
       actions: gelatoDebtBridgeSpells,
     });

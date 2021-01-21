@@ -6,6 +6,7 @@ const GelatoCoreLib = require("@gelatonetwork/core");
 
 const setupETHAToCompound = require("../helpers/setupETHAToCompound");
 const getInstaPoolV2Route = require("../../../../helpers/services/InstaDapp/getInstaPoolV2Route");
+const getGasCost = require("../helpers/constants/getGasCostETHAToCompound");
 const feeRatio = require("../../../../helpers/services/InstaDapp/constants/feeRatio");
 const feeCollector = require("../../../../helpers/services/InstaDapp/constants/feeCollector");
 
@@ -195,11 +196,25 @@ describe("Full Debt Bridge ETHA => Compound", function () {
       contracts.instaPoolResolver
     );
 
+    const gasCost = await getGasCost(route);
+    const feeCollectorBalanceBefore = await contracts.DAI.balanceOf(
+      feeCollector
+    );
+
+    const daiETHPrice = await contracts.chainlinkResolver.getPrice(
+      constants.DAI_ETH_PRICEFEEDER
+    );
+
+    const gasFeesPaidFromDebt = ethers.BigNumber.from(gasCost)
+      .mul(gelatoGasPrice)
+      .mul(ethers.utils.parseUnits("1", 18))
+      .add(daiETHPrice.div(ethers.utils.parseUnits("2", 0)))
+      .div(daiETHPrice);
+
     const vaultACollateral = await contracts.makerResolver.getMakerVaultCollateralBalance(
       vaultId
     );
 
-    const feeCollectorBalanceB = await contracts.DAI.balanceOf(feeCollector);
     const feesCost = debtOnMakerBefore
       .mul(feeRatio)
       .div(ethers.utils.parseUnits("1", 18))
@@ -233,6 +248,10 @@ describe("Full Debt Bridge ETHA => Compound", function () {
     // await GelatoCoreLib.sleep(10000);
 
     expect(
+      await contracts.DAI.balanceOf(wallets.gelatoExecutorAddress)
+    ).to.be.equal(gasFeesPaidFromDebt);
+
+    expect(
       await contracts.gelatoCore.executorStake(wallets.gelatoExecutorAddress)
     ).to.be.gt(executorBalanceBeforeExecution);
 
@@ -253,15 +272,17 @@ describe("Full Debt Bridge ETHA => Compound", function () {
     // Estimated amount to borrowed token should be equal to the actual one read on compound contracts
     const expectedDebtOnCompound = debtOnMakerBefore
       .mul(feeRatio)
-      .div(ethers.utils.parseUnits("1", 18));
+      .div(ethers.utils.parseUnits("1", 18))
+      .add(gasFeesPaidFromDebt);
+
     if (route === 1) {
       expect(expectedDebtOnCompound).to.be.lte(
         compoundPosition[0].borrowBalanceStoredUser
       );
     } else {
-      expect(
-        expectedDebtOnCompound.sub(compoundPosition[0].borrowBalanceStoredUser)
-      ).to.be.lt(ethers.utils.parseUnits("2", 0));
+      expect(expectedDebtOnCompound).to.be.equal(
+        compoundPosition[0].borrowBalanceStoredUser
+      );
     }
 
     // Estimated amount of collateral should be equal to the actual one read on compound contracts
@@ -289,7 +310,7 @@ describe("Full Debt Bridge ETHA => Compound", function () {
 
     //Fee collector balance check
     expect(await contracts.DAI.balanceOf(feeCollector)).to.be.equal(
-      feeCollectorBalanceB.add(feesCost)
+      feeCollectorBalanceBefore.add(feesCost)
     );
 
     //#endregion

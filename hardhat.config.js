@@ -5,6 +5,7 @@ require("@nomiclabs/hardhat-waffle");
 require("hardhat-deploy");
 require("hardhat-deploy-ethers");
 require("hardhat-gas-reporter");
+require("solidity-coverage");
 
 // Libraries
 const assert = require("assert");
@@ -12,7 +13,7 @@ const { utils } = require("ethers");
 
 const GelatoCoreLib = require("@gelatonetwork/core");
 
-const mainnetDeployments = require("./_hardhat/config/mainnet-deployments");
+const mainnetDeployments = require("./hardhat/config/mainnet-deployments");
 
 // Process Env Variables
 require("dotenv").config();
@@ -60,7 +61,7 @@ module.exports = {
       },
       // Accounts
       accounts: {
-        accountsBalance: "1000000000000000000000000",
+        accountsBalance: "10000000000000000000000000",
       },
       // Custom
       ...mainnetDeployments,
@@ -69,7 +70,7 @@ module.exports = {
       accounts: DEPLOYER_PK_MAINNET ? [DEPLOYER_PK_MAINNET] : [],
       chainId: 1,
       url: `https://eth-mainnet.alchemyapi.io/v2/${ALCHEMY_ID}`,
-      gasPrice: parseInt(utils.parseUnits("80", "gwei")),
+      gasPrice: parseInt(utils.parseUnits("60", "gwei")),
       timeout: 150000,
       // Custom
       ...mainnetDeployments,

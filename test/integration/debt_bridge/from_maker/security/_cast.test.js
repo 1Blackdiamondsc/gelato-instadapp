@@ -225,7 +225,7 @@ describe("Security: _cast function by example of ETHA-ETHB with disabled Connect
       logs.some(
         (log) =>
           contracts.gelatoCore.interface.parseLog(log).args.reason ===
-          "GelatoCore._exec:ConnectGelatoDataFullMakerToCompound._cast:not-connector"
+          "GelatoCore._exec:ConnectGelatoDataMakerToCompound._cast:not-connector"
       )
     ).to.be.true;
   });

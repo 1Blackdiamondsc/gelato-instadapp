@@ -6,6 +6,7 @@ const GelatoCoreLib = require("@gelatonetwork/core");
 
 const setupETHAToAave = require("../helpers/setupETHAToAave");
 const getInstaPoolV2Route = require("../../../../helpers/services/InstaDapp/getInstaPoolV2Route");
+const getGasCost = require("../helpers/constants/getGasCostETHAToAave");
 const feeRatio = require("../../../../helpers/services/InstaDapp/constants/feeRatio");
 const feeCollector = require("../../../../helpers/services/InstaDapp/constants/feeCollector");
 
@@ -94,23 +95,18 @@ describe("Full Debt Bridge refinancing ETHA => Aave", function () {
     });
 
     const conditionDestPositionWillBeSafeObj = new GelatoCoreLib.Condition({
-      inst: contracts.conditionAavePositionWillBeSafe.address,
-      data: await contracts.conditionAavePositionWillBeSafe.getConditionData(
+      inst: contracts.conditionMakerToAaveSafe.address,
+      data: await contracts.conditionMakerToAaveSafe.getConditionData(
         contracts.dsa.address,
         vaultId,
-        contracts.priceOracleResolver.address,
-        await hre.run("abi-encode-withselector", {
-          abi: (await deployments.getArtifact("PriceOracleResolver")).abi,
-          functionname: "getMockPrice",
-          inputs: [wallets.userAddress],
-        })
+        constants.ETH,
+        constants.ETH_ETH_PRICEFEEDER
       ),
     });
 
     const conditionHasLiquidityObj = new GelatoCoreLib.Condition({
-      inst: contracts.conditionAaveHasLiquidity.address,
-      data: await contracts.conditionAaveHasLiquidity.getConditionData(
-        contracts.DAI.address,
+      inst: contracts.conditionMakerToAaveLiquid.address,
+      data: await contracts.conditionMakerToAaveLiquid.getConditionData(
         vaultId
       ),
     });
@@ -221,8 +217,20 @@ describe("Full Debt Bridge refinancing ETHA => Aave", function () {
       contracts.instaPoolResolver
     );
 
-    const feeCollectorBalanceB = await contracts.DAI.balanceOf(feeCollector);
+    const gasCost = await getGasCost(route);
+    const feeCollectorBalanceBefore = await contracts.DAI.balanceOf(
+      feeCollector
+    );
 
+    const daiETHPrice = await contracts.chainlinkResolver.getPrice(
+      constants.DAI_ETH_PRICEFEEDER
+    );
+
+    const gasFeesPaidFromDebt = ethers.BigNumber.from(gasCost)
+      .mul(gelatoGasPrice)
+      .mul(ethers.utils.parseUnits("1", 18))
+      .add(daiETHPrice.div(ethers.utils.parseUnits("2", 0)))
+      .div(daiETHPrice);
     const vaultACollateral = await contracts.makerResolver.getMakerVaultCollateralBalance(
       vaultId
     );
@@ -254,6 +262,10 @@ describe("Full Debt Bridge refinancing ETHA => Aave", function () {
     // await GelatoCoreLib.sleep(10000);
 
     expect(
+      await contracts.DAI.balanceOf(wallets.gelatoExecutorAddress)
+    ).to.be.equal(gasFeesPaidFromDebt);
+
+    expect(
       await contracts.gelatoCore.executorStake(wallets.gelatoExecutorAddress)
     ).to.be.gt(executorBalanceBeforeExecution);
 
@@ -264,7 +276,9 @@ describe("Full Debt Bridge refinancing ETHA => Aave", function () {
     // Estimated amount to borrowed token should be equal to the actual one read on aave contracts
     const expectedDebtOnAave = debtOnMakerBefore
       .mul(feeRatio)
-      .div(ethers.utils.parseUnits("1", 18));
+      .div(ethers.utils.parseUnits("1", 18))
+      .add(gasFeesPaidFromDebt);
+
     if (route === 1) {
       expect(expectedDebtOnAave).to.be.lte(
         dsaAavePosition.totalBorrowsETH
@@ -304,7 +318,7 @@ describe("Full Debt Bridge refinancing ETHA => Aave", function () {
 
     //Fee collector balance check
     expect(await contracts.DAI.balanceOf(feeCollector)).to.be.equal(
-      feeCollectorBalanceB.add(
+      feeCollectorBalanceBefore.add(
         debtOnMakerBefore
           .mul(feeRatio)
           .div(ethers.utils.parseUnits("1", 18))

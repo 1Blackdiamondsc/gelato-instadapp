@@ -1,4 +1,6 @@
 version: 2.1 # use CircleCI 2.1
+orbs:
+  coveralls: coveralls/coveralls@1.0.6
 jobs: # a collection of steps
   build: # runs not using Workflows must have a `build` job as entry point
     working_directory: ~/gelato-instadapp-ci # directory where steps will run
@@ -37,18 +39,22 @@ jobs: # a collection of steps
           command: yarn lint
       - restore_cache: # restore the Hardhat Network Fork Cache
           name: Restore Hardhat Network Fork Cache
-          key: v9-hardhat-network-fork-cache
-      - run: # Tests
+          key: v11-hardhat-network-fork-cache
+      - run: # Tests with Gas reporter
           name: Tests using hardhat mainnet fork and gas reporter
           command: yarn test:gas
       - save_cache: # special step to save the Hardhat Network Fork cache
           name: Save Hardhat Network Fork Cache
-          key: v9-hardhat-network-fork-cache
+          key: v11-hardhat-network-fork-cache
           paths:
             - ./cache/hardhat-network-fork
       - run: # Codechecks
           name: Codechecks gas reporting
           command: npx codechecks
+      - run: # Coverage
+          name: solidity-coverage
+          command: yarn hardhat coverage
+      - coveralls/upload # upload lcov.info to coveralls.io
     #   - store_artifacts: # for display in Artifacts: https://circleci.com/docs/2.0/artifacts/
     #       path: coverage
     #       prefix: coverage

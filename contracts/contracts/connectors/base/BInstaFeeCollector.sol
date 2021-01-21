@@ -12,16 +12,20 @@ abstract contract BInstaFeeCollector is IBInstaFeeCollector, Ownable {
     uint256 public immutable override fee;
 
     address payable public override feeCollector;
-    uint256 public override minCol;
+    uint256 public override minDebt;
+
+    address internal immutable _connectGelatoDebtBridgeFee;
 
     constructor(
         uint256 _fee,
         address payable _feeCollector,
-        uint256 _minCol
+        uint256 _minDebt,
+        address __connectGelatoDebtBridgeFee
     ) {
         fee = _fee;
         feeCollector = _feeCollector;
-        minCol = _minCol;
+        minDebt = _minDebt;
+        _connectGelatoDebtBridgeFee = __connectGelatoDebtBridgeFee;
     }
 
     function setFeeCollector(address payable _feeCollector)
@@ -32,7 +36,7 @@ abstract contract BInstaFeeCollector is IBInstaFeeCollector, Ownable {
         feeCollector = _feeCollector;
     }
 
-    function setMinCol(uint256 _minCol) external override onlyOwner {
-        minCol = _minCol;
+    function setMinDebt(uint256 _minDebt) external override onlyOwner {
+        minDebt = _minDebt;
     }
 }

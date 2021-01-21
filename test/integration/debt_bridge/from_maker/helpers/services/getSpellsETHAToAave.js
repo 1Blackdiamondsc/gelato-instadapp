@@ -15,10 +15,9 @@ module.exports = async function (wallets, contracts, constants, vaultId) {
   const spells = [];
 
   const debtBridgeCalculationForFullRefinance = new GelatoCoreLib.Action({
-    addr: contracts.connectGelatoDataFullMakerToAave.address,
+    addr: contracts.connectGelatoDataMakerToAave.address,
     data: await hre.run("abi-encode-withselector", {
-      abi: (await deployments.getArtifact("ConnectGelatoDataFullMakerToAave"))
-        .abi,
+      abi: (await deployments.getArtifact("ConnectGelatoDataMakerToAave")).abi,
       functionname: "getDataAndCastMakerToAave",
       inputs: [vaultId, constants.ETH],
     }),
@@ -34,8 +33,8 @@ module.exports = async function (wallets, contracts, constants, vaultId) {
     {
       conditions: [
         contracts.conditionMakerVaultUnsafe.address,
-        contracts.conditionAavePositionWillBeSafe.address,
-        contracts.conditionAaveHasLiquidity.address,
+        contracts.conditionMakerToAaveSafe.address,
+        contracts.conditionMakerToAaveLiquid.address,
       ],
       actions: spells,
       gasPriceCeil,

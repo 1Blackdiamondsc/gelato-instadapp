@@ -1,24 +1,71 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.0;
 
-import {_getPosition, _percentDiv} from "../../functions/dapps/FAave.sol";
 import {ILendingPool} from "../../interfaces/dapps/Aave/ILendingPool.sol";
-import {AaveUserData, TokenPrice} from "../../structs/SAave.sol";
+import {AaveUserData} from "../../structs/SAave.sol";
+import {IERC20} from "../../interfaces/dapps/IERC20.sol";
+import {
+    ILendingPoolAddressesProvider
+} from "../../interfaces/dapps/Aave/ILendingPoolAddressesProvider.sol";
+import {ILendingPool} from "../../interfaces/dapps/Aave/ILendingPool.sol";
+import {LENDING_POOL_ADDRESSES_PROVIDER} from "../../constants/CAave.sol";
+import {_getUserData} from "../../functions/dapps/FAave.sol";
+import {
+    _isAaveLiquid
+} from "../../functions/gelato/conditions/aave/FAaveHasLiquidity.sol";
+import {
+    _aavePositionWillBeSafe
+} from "../../functions/gelato/conditions/aave/FAavePositionWillBeSafe.sol";
 
 contract AaveResolver {
-    function getPosition(address user)
+    function getATokenUnderlyingBalance(address _underlying)
+        public
+        view
+        returns (uint256)
+    {
+        return
+            IERC20(_underlying).balanceOf(
+                ILendingPool(
+                    ILendingPoolAddressesProvider(
+                        LENDING_POOL_ADDRESSES_PROVIDER
+                    )
+                        .getLendingPool()
+                )
+                    .getReserveData(_underlying)
+                    .aTokenAddress
+            );
+    }
+
+    function getPosition(address _dsa)
         public
         view
         returns (AaveUserData memory)
     {
-        return _getPosition(user);
+        return _getUserData(_dsa);
     }
 
-    function percentDiv(uint256 value, uint256 percentage)
+    function hasLiquidity(address _debtToken, uint256 _debtAmt)
         public
-        pure
-        returns (uint256)
+        view
+        returns (bool)
     {
-        return _percentDiv(value, percentage);
+        return _isAaveLiquid(_debtToken, _debtAmt);
+    }
+
+    function aavePositionWouldBeSafe(
+        address _dsa,
+        uint256 _colAmt,
+        address _colToken,
+        uint256 _debtAmt,
+        address _priceChainlinkOracle
+    ) public view returns (bool) {
+        return
+            _aavePositionWillBeSafe(
+                _dsa,
+                _colAmt,
+                _colToken,
+                _debtAmt,
+                _priceChainlinkOracle
+            );
     }
 }

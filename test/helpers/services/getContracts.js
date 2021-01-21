@@ -83,14 +83,42 @@ module.exports = async function () {
 
   // ===== Get deployed contracts ==================
   const connectGelato = await ethers.getContract("ConnectGelato");
-  const connectGelatoDataFullMakerToMaker = await ethers.getContract(
-    "ConnectGelatoDataFullMakerToMaker"
+  const connectGelatoDataMakerToMaker = await ethers.getContract(
+    "ConnectGelatoDataMakerToMaker"
   );
-  const connectGelatoDataFullMakerToCompound = await ethers.getContract(
-    "ConnectGelatoDataFullMakerToCompound"
+  const connectGelatoDataMakerToCompound = await ethers.getContract(
+    "ConnectGelatoDataMakerToCompound"
   );
-  const connectGelatoDataFullMakerToAave = await ethers.getContract(
-    "ConnectGelatoDataFullMakerToAave"
+  const connectGelatoDataMakerToAave = await ethers.getContract(
+    "ConnectGelatoDataMakerToAave"
+  );
+
+  const connectGelatoDataMakerToX = await ethers.getContract(
+    "ConnectGelatoDataMakerToX"
+  );
+
+  const mockConnectGelatoDataMakerToAave = await ethers.getContract(
+    "MockConnectGelatoDataMakerToAave"
+  );
+
+  const mockConnectGelatoDataMakerToCompound = await ethers.getContract(
+    "MockConnectGelatoDataMakerToCompound"
+  );
+
+  const mockConnectGelatoDataMakerToMaker = await ethers.getContract(
+    "MockConnectGelatoDataMakerToMaker"
+  );
+
+  const mockDebtBridgeExecutorAave = await ethers.getContract(
+    "MockDebtBridgeExecutorAave"
+  );
+
+  const mockDebtBridgeExecutorCompound = await ethers.getContract(
+    "MockDebtBridgeExecutorCompound"
+  );
+
+  const mockDebtBridgeExecutorETHB = await ethers.getContract(
+    "MockDebtBridgeExecutorETHB"
   );
 
   const providerModuleDSA = await ethers.getContract("ProviderModuleDSA");
@@ -98,29 +126,45 @@ module.exports = async function () {
   const conditionMakerVaultUnsafe = await ethers.getContract(
     "ConditionMakerVaultUnsafe"
   );
-  const conditionDestVaultWillBeSafe = await ethers.getContract(
-    "ConditionDestVaultWillBeSafe"
+  const conditionMakerToMakerSafe = await ethers.getContract(
+    "ConditionMakerToMakerSafe"
   );
 
-  const conditionAavePositionWillBeSafe = await ethers.getContract(
-    "ConditionAavePositionWillBeSafe"
-  );
-  const conditionAaveHasLiquidity = await ethers.getContract(
-    "ConditionAaveHasLiquidity"
+  const conditionMakerVaultUnsafeOSM = await ethers.getContract(
+    "ConditionMakerVaultUnsafeOSM"
   );
 
-  const priceOracleResolver = await ethers.getContract("PriceOracleResolver");
+  const conditionMakerToAaveSafe = await ethers.getContract(
+    "ConditionMakerToAaveSafe"
+  );
+  const conditionMakerToAaveLiquid = await ethers.getContract(
+    "ConditionMakerToAaveLiquid"
+  );
+
+  const conditionCanDoRefinance = await ethers.getContract(
+    "ConditionCanDoRefinance"
+  );
+
+  const priceOracleResolver = await ethers.getContract("PriceOracleResolver"); // TODO is it useful.
   const makerResolver = await ethers.getContract("MakerResolver");
   const aaveResolver = await ethers.getContract("AaveResolver");
+  const chainlinkResolver = await ethers.getContract("ChainlinkResolver");
 
   return {
     connectGelato,
     connectMaker,
     connectInstaPool,
     connectCompound,
-    connectGelatoDataFullMakerToMaker,
-    connectGelatoDataFullMakerToCompound,
-    connectGelatoDataFullMakerToAave,
+    connectGelatoDataMakerToMaker,
+    connectGelatoDataMakerToCompound,
+    connectGelatoDataMakerToAave,
+    connectGelatoDataMakerToX,
+    mockConnectGelatoDataMakerToAave,
+    mockConnectGelatoDataMakerToCompound,
+    mockConnectGelatoDataMakerToMaker,
+    mockDebtBridgeExecutorAave,
+    mockDebtBridgeExecutorCompound,
+    mockDebtBridgeExecutorETHB,
     instaIndex,
     instaList,
     instaMapping,
@@ -134,14 +178,17 @@ module.exports = async function () {
     instaConnectors,
     compoundResolver,
     conditionMakerVaultUnsafe,
+    conditionMakerVaultUnsafeOSM,
     priceOracleResolver,
     dsa: ethers.constants.AddressZero,
     makerResolver,
     aaveResolver,
+    chainlinkResolver,
     instaPoolResolver,
     providerModuleDSA,
-    conditionDestVaultWillBeSafe,
-    conditionAavePositionWillBeSafe,
-    conditionAaveHasLiquidity,
+    conditionMakerToMakerSafe,
+    conditionMakerToAaveSafe,
+    conditionMakerToAaveLiquid,
+    conditionCanDoRefinance,
   };
 };

@@ -20,4 +20,6 @@ interface ILendingPool {
             uint256 ltv,
             uint256 healthFactor
         );
+
+    function getReservesList() external view returns (address[] memory);
 }

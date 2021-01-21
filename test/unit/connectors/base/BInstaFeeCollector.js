@@ -21,7 +21,7 @@ describe("BInstaFeeCollector Unit Test", function () {
     [, noOwnerWallet] = await ethers.getSigners();
 
     bInstaFeeCollector = await ethers.getContract(
-      "ConnectGelatoDataFullMakerToAave"
+      "ConnectGelatoDataMakerToAave"
     );
   });
 
@@ -39,13 +39,13 @@ describe("BInstaFeeCollector Unit Test", function () {
     );
   });
 
-  it("#2: setMinCol should modify minCol when we call it as the owner", async function () {
-    const minCol = await bInstaFeeCollector.minCol();
-    expect(minCol, "min col was not set during deployment").to.not.be.eq(0);
+  it("#2: setMinDebt should modify minDebt when we call it as the owner", async function () {
+    const minDebt = await bInstaFeeCollector.minDebt();
+    expect(minDebt, "min col was not set during deployment").to.not.be.eq(0);
 
-    await bInstaFeeCollector.setMinCol(ethers.constants.Zero);
+    await bInstaFeeCollector.setMinDebt(ethers.constants.Zero);
 
-    expect(await bInstaFeeCollector.minCol()).to.be.eq(ethers.constants.Zero);
+    expect(await bInstaFeeCollector.minDebt()).to.be.eq(ethers.constants.Zero);
   });
 
   it("#3: setFeeCollector should revert when a no Owner address call it", async function () {
@@ -56,11 +56,11 @@ describe("BInstaFeeCollector Unit Test", function () {
     ).to.be.revertedWith("Ownable: caller is not the owner");
   });
 
-  it("4: setMinCol should revert when a no Owner address call it", async function () {
+  it("4: setMinDebt should revert when a no Owner address call it", async function () {
     await expect(
       bInstaFeeCollector
         .connect(noOwnerWallet)
-        .setMinCol(ethers.utils.parseUnits("10", 18))
+        .setMinDebt(ethers.utils.parseUnits("5000", 18))
     ).to.be.revertedWith("Ownable: caller is not the owner");
   });
 });

@@ -12,7 +12,6 @@ module.exports = async (hre) => {
   const { deploy } = deployments;
   const { deployer } = await hre.getNamedAccounts();
 
-  // the following will only deploy "ConditionMakerVaultUnsafe"
   // if the contract was never deployed or if the code changed since last deployment
   await deploy("ProviderModuleDSA", {
     from: deployer,

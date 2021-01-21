@@ -4,11 +4,10 @@ pragma solidity 0.8.0;
 import {
     GelatoConditionsStandard
 } from "@gelatonetwork/core/contracts/gelato_conditions/GelatoConditionsStandard.sol";
-import {wmul, wdiv} from "../../../../vendor/DSMath.sol";
 import {GelatoBytes} from "../../../../lib/GelatoBytes.sol";
 import {
-    IInstaMakerResolver
-} from "../../../../interfaces/InstaDapp/resolvers/IInstaMakerResolver.sol";
+    _isVaultUnsafe
+} from "../../../../functions/gelato/conditions/maker/FMakerVaultUnsafe.sol";
 
 /// @title ConditionMakerVaultUnsafe
 /// @notice Condition tracking Maker vault collateralization safety requirements.
@@ -57,7 +56,7 @@ contract ConditionMakerVaultUnsafe is GelatoConditionsStandard {
 
     /// @notice Specific implementation of this Condition's ok function
     /// @dev The price oracle must return a uint256 WAD (10**18) value.
-    /// @param _vaultId The id of the Maker vault
+    /// @param _vaultID The id of the Maker vault
     /// @param _priceOracle The price oracle contract to supply the collateral price
     ///  e.g. Maker's ETH/USD oracle for ETH collateral pricing.
     /// @param _oraclePayload The data for making the staticcall to the oracle's read
@@ -66,29 +65,14 @@ contract ConditionMakerVaultUnsafe is GelatoConditionsStandard {
     /// of the collateral as specified by the _priceOracle.
     /// @return OK if the Maker Vault is unsafe, otherwise some error message.
     function isVaultUnsafe(
-        uint256 _vaultId,
+        uint256 _vaultID,
         address _priceOracle,
         bytes memory _oraclePayload,
         uint256 _minColRatio
     ) public view virtual returns (string memory) {
-        (bool success, bytes memory returndata) =
-            _priceOracle.staticcall(_oraclePayload);
-
-        if (!success) {
-            returndata.revertWithError(
-                "ConditionMakerVaultUnsafe.isVaultUnsafe:oracle:"
-            );
-        }
-
-        uint256 colPriceInWad = abi.decode(returndata, (uint256));
-
-        IInstaMakerResolver.VaultData memory vault =
-            IInstaMakerResolver(0x0A7008B38E7015F8C36A49eEbc32513ECA8801E5)
-                .getVaultById(_vaultId);
-
-        uint256 colRatio =
-            wdiv(wmul(vault.collateral, colPriceInWad), vault.debt);
-
-        return colRatio < _minColRatio ? OK : "MakerVaultNotUnsafe";
+        return
+            _isVaultUnsafe(_vaultID, _priceOracle, _oraclePayload, _minColRatio)
+                ? OK
+                : "MakerVaultNotUnsafe";
     }
 }

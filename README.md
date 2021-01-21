@@ -1,6 +1,8 @@
 # gelato-instadapp
 
 [![gelatodigital](https://circleci.com/gh/gelatodigital/gelato-instadapp.svg?style=shield)](https://circleci.com/gh/gelatodigital/gelato-instadapp)
+[![Coverage Status](https://coveralls.io/repos/github/gelatodigital/gelato-instadapp/badge.svg?branch=master)](https://coveralls.io/github/gelatodigital/gelato-instadapp?branch=master)
+[![Codechecks](https://raw.githubusercontent.com/codechecks/docs/master/images/badges/badge-default.svg?sanitize=true)](https://codechecks.io)
 
 <p  align="center">
 <img  src="assets/instadapp_filled.svg"  width="150px"/>

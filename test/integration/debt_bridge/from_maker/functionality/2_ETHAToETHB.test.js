@@ -5,6 +5,7 @@ const GelatoCoreLib = require("@gelatonetwork/core");
 
 const setupETHAToETHB = require("../helpers/setupETHAToETHB");
 const getInstaPoolV2Route = require("../../../../helpers/services/InstaDapp/getInstaPoolV2Route");
+const getGasCost = require("../helpers/constants/getGasCostETHAToETHB");
 const feeRatio = require("../../../../helpers/services/InstaDapp/constants/feeRatio");
 const feeCollector = require("../../../../helpers/services/InstaDapp/constants/feeCollector");
 
@@ -97,9 +98,9 @@ describe("Full Debt Bridge refinancing loan ETH-A => ETH-B", function () {
       ),
     });
 
-    const conditionDestVaultWillBeSafe = new GelatoCoreLib.Condition({
-      inst: contracts.conditionDestVaultWillBeSafe.address,
-      data: await contracts.conditionDestVaultWillBeSafe.getConditionData(
+    const conditionMakerToMakerSafe = new GelatoCoreLib.Condition({
+      inst: contracts.conditionMakerToMakerSafe.address,
+      data: await contracts.conditionMakerToMakerSafe.getConditionData(
         contracts.dsa.address,
         vaultAId,
         vaultBId,
@@ -109,7 +110,7 @@ describe("Full Debt Bridge refinancing loan ETH-A => ETH-B", function () {
 
     // ======= GELATO TASK SETUP ======
     const refinanceFromEthAToBIfVaultUnsafe = new GelatoCoreLib.Task({
-      conditions: [conditionMakerVaultUnsafeObj, conditionDestVaultWillBeSafe],
+      conditions: [conditionMakerVaultUnsafeObj, conditionMakerToMakerSafe],
       actions: gelatoDebtBridgeSpells,
     });
 
@@ -215,7 +216,20 @@ describe("Full Debt Bridge refinancing loan ETH-A => ETH-B", function () {
       );
     }
 
-    const feeCollectorBalanceB = await contracts.DAI.balanceOf(feeCollector);
+    const gasCost = await getGasCost(route, false);
+    const feeCollectorBalanceBefore = await contracts.DAI.balanceOf(
+      feeCollector
+    );
+
+    const daiETHPrice = await contracts.chainlinkResolver.getPrice(
+      constants.DAI_ETH_PRICEFEEDER
+    );
+
+    const gasFeesPaidFromDebt = ethers.BigNumber.from(gasCost)
+      .mul(gelatoGasPrice)
+      .mul(ethers.utils.parseUnits("1", 18))
+      .add(daiETHPrice.div(ethers.utils.parseUnits("2", 0)))
+      .div(daiETHPrice);
 
     const vaultACollateral = await contracts.makerResolver.getMakerVaultCollateralBalance(
       vaultAId
@@ -248,6 +262,10 @@ describe("Full Debt Bridge refinancing loan ETH-A => ETH-B", function () {
     // }
     // await GelatoCoreLib.sleep(10000);
 
+    expect(
+      await contracts.DAI.balanceOf(wallets.gelatoExecutorAddress)
+    ).to.be.equal(gasFeesPaidFromDebt);
+
     const cdps = await contracts.getCdps.getCdpsAsc(
       contracts.dssCdpManager.address,
       contracts.dsa.address
@@ -277,7 +295,8 @@ describe("Full Debt Bridge refinancing loan ETH-A => ETH-B", function () {
     // Estimated amount to borrowed token should be equal to the actual one read on compound contracts
     const expectedDebtOnMakerVaultB = debtOnMakerBefore
       .mul(feeRatio)
-      .div(ethers.utils.parseUnits("1", 18));
+      .div(ethers.utils.parseUnits("1", 18))
+      .add(gasFeesPaidFromDebt);
     if (route === 1) {
       expect(expectedDebtOnMakerVaultB).to.be.lte(debtOnMakerVaultB);
     } else {
@@ -305,7 +324,7 @@ describe("Full Debt Bridge refinancing loan ETH-A => ETH-B", function () {
 
     //Fee collector balance check
     expect(await contracts.DAI.balanceOf(feeCollector)).to.be.equal(
-      feeCollectorBalanceB.add(
+      feeCollectorBalanceBefore.add(
         debtOnMakerBefore
           .mul(feeRatio)
           .div(ethers.utils.parseUnits("1", 18))

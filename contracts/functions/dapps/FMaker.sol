@@ -56,8 +56,8 @@ function _getMakerVaultCollateralBalance(uint256 _vaultId)
 
 function _vaultWillBeSafe(
     uint256 _vaultId,
-    uint256 _amtToBorrow,
-    uint256 _colToDeposit
+    uint256 _colAmt,
+    uint256 _daiDebtAmt
 ) view returns (bool) {
     require(_vaultId != 0, "_vaultWillBeSafe: invalid vault id.");
 
@@ -73,8 +73,8 @@ function _vaultWillBeSafe(
     (uint256 ink, uint256 art) = vat.urns(ilk, urn);
     uint256 dai = vat.dai(urn);
 
-    uint256 dink = _convertTo18(tokenJoinContract.dec(), _colToDeposit);
-    uint256 dart = _getBorrowAmt(_amtToBorrow, dai, rate);
+    uint256 dink = _convertTo18(tokenJoinContract.dec(), _colAmt);
+    uint256 dart = _getDebtAmt(_daiDebtAmt, dai, rate);
 
     ink = add(ink, dink);
     art = add(art, dart);
@@ -86,8 +86,8 @@ function _vaultWillBeSafe(
 
 function _newVaultWillBeSafe(
     string memory _colType,
-    uint256 _amtToBorrow,
-    uint256 _colToDeposit
+    uint256 _colAmt,
+    uint256 _daiDebtAmt
 ) view returns (bool) {
     IMcdManager manager = IMcdManager(MCD_MANAGER);
     IVat vat = IVat(manager.vat());
@@ -99,8 +99,8 @@ function _newVaultWillBeSafe(
     ITokenJoinInterface tokenJoinContract =
         ITokenJoinInterface(InstaMapping(INSTA_MAPPING).gemJoinMapping(ilk));
 
-    uint256 ink = _convertTo18(tokenJoinContract.dec(), _colToDeposit);
-    uint256 art = _getBorrowAmt(_amtToBorrow, 0, rate);
+    uint256 ink = _convertTo18(tokenJoinContract.dec(), _colAmt);
+    uint256 art = _getDebtAmt(_daiDebtAmt, 0, rate);
 
     uint256 tab = mul(rate, art);
 
@@ -109,7 +109,7 @@ function _newVaultWillBeSafe(
 
 function _debtCeilingIsReachedNewVault(
     string memory _colType,
-    uint256 _amtToBorrow
+    uint256 _daiDebtAmt
 ) view returns (bool) {
     IMcdManager manager = IMcdManager(MCD_MANAGER);
     IVat vat = IVat(manager.vat());
@@ -120,7 +120,7 @@ function _debtCeilingIsReachedNewVault(
     uint256 Line = vat.Line();
     uint256 debt = vat.debt();
 
-    uint256 dart = _getBorrowAmt(_amtToBorrow, 0, rate);
+    uint256 dart = _getDebtAmt(_daiDebtAmt, 0, rate);
     uint256 dtab = mul(rate, dart);
 
     debt = add(debt, dtab);
@@ -129,7 +129,7 @@ function _debtCeilingIsReachedNewVault(
     return mul(Art, rate) > line || debt > Line;
 }
 
-function _debtCeilingIsReached(uint256 _vaultId, uint256 _amtToBorrow)
+function _debtCeilingIsReached(uint256 _vaultId, uint256 _daiDebtAmt)
     view
     returns (bool)
 {
@@ -143,7 +143,7 @@ function _debtCeilingIsReached(uint256 _vaultId, uint256 _amtToBorrow)
     uint256 Line = vat.Line();
     uint256 debt = vat.debt();
 
-    uint256 dart = _getBorrowAmt(_amtToBorrow, dai, rate);
+    uint256 dart = _getDebtAmt(_daiDebtAmt, dai, rate);
     uint256 dtab = mul(rate, dart);
 
     debt = add(debt, dtab);
@@ -152,7 +152,7 @@ function _debtCeilingIsReached(uint256 _vaultId, uint256 _amtToBorrow)
     return mul(Art, rate) > line || debt > Line;
 }
 
-function _debtIsDustNewVault(string memory _colType, uint256 _amtToBorrow)
+function _debtIsDustNewVault(string memory _colType, uint256 _daiDebtAmt)
     view
     returns (bool)
 {
@@ -162,14 +162,14 @@ function _debtIsDustNewVault(string memory _colType, uint256 _amtToBorrow)
     bytes32 ilk = _stringToBytes32(_colType);
 
     (, uint256 rate, , , uint256 dust) = vat.ilks(ilk);
-    uint256 art = _getBorrowAmt(_amtToBorrow, 0, rate);
+    uint256 art = _getDebtAmt(_daiDebtAmt, 0, rate);
 
     uint256 tab = mul(rate, art);
 
     return tab < dust;
 }
 
-function _debtIsDust(uint256 _vaultId, uint256 _amtToBorrow)
+function _debtIsDust(uint256 _vaultId, uint256 _daiDebtAmt)
     view
     returns (bool)
 {
@@ -181,22 +181,22 @@ function _debtIsDust(uint256 _vaultId, uint256 _amtToBorrow)
     (, uint256 rate, , , uint256 dust) = vat.ilks(ilk);
 
     uint256 dai = vat.dai(urn);
-    uint256 dart = _getBorrowAmt(_amtToBorrow, dai, rate);
+    uint256 dart = _getDebtAmt(_daiDebtAmt, dai, rate);
     art = add(art, dart);
     uint256 tab = mul(rate, art);
 
     return tab < dust;
 }
 
-function _getVaultData(IMcdManager manager, uint256 vault)
+function _getVaultData(IMcdManager _manager, uint256 _vault)
     view
     returns (bytes32 ilk, address urn)
 {
-    ilk = manager.ilks(vault);
-    urn = manager.urns(vault);
+    ilk = _manager.ilks(_vault);
+    urn = _manager.urns(_vault);
 }
 
-function _getBorrowAmt(
+function _getDebtAmt(
     uint256 _amt,
     uint256 _dai,
     uint256 _rate

@@ -13,3 +13,10 @@ function _stringToBytes32(string memory str) pure returns (bytes32 result) {
 function _convertTo18(uint256 _dec, uint256 _amt) pure returns (uint256 amt) {
     amt = _mul(_amt, 10**(18 - _dec));
 }
+
+function _convertIntToUint(int256 a) pure returns (uint256) {
+    if (a >= 0) {
+        return uint256(a);
+    }
+    return uint256(a * -1);
+}

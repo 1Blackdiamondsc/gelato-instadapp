@@ -12,21 +12,6 @@ struct AaveUserData {
     uint256 ethPriceInUsd;
 }
 
-struct TokenPrice {
-    uint256 priceInEth;
-    uint256 priceInUsd;
-}
-struct AaveTokenData {
-    uint256 ltv;
-    uint256 threshold;
-    uint256 reserveFactor;
-    bool usageAsCollEnabled;
-    bool borrowEnabled;
-    bool stableBorrowEnabled;
-    bool isActive;
-    bool isFrozen;
-}
-
 struct ReserveConfigurationMap {
     uint256 data;
 }

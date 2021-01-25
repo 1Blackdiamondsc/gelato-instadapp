@@ -148,7 +148,10 @@ module.exports = async function () {
   const priceOracleResolver = await ethers.getContract("PriceOracleResolver"); // TODO is it useful.
   const makerResolver = await ethers.getContract("MakerResolver");
   const aaveResolver = await ethers.getContract("AaveResolver");
-  const chainlinkResolver = await ethers.getContract("ChainlinkResolver");
+  const oracleAggregator = await ethers.getContractAt(
+    "IOracleAggregator",
+    hre.network.config.OracleAggregator
+  );
 
   return {
     connectGelato,
@@ -183,7 +186,7 @@ module.exports = async function () {
     dsa: ethers.constants.AddressZero,
     makerResolver,
     aaveResolver,
-    chainlinkResolver,
+    oracleAggregator,
     instaPoolResolver,
     providerModuleDSA,
     conditionMakerToMakerSafe,

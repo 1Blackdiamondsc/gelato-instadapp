@@ -1,3 +1,4 @@
+const { ethers } = require("hardhat");
 const { sleep } = require("@gelatonetwork/core");
 
 module.exports = async (hre) => {
@@ -18,7 +19,10 @@ module.exports = async (hre) => {
     from: deployer,
     gasPrice: hre.network.config.gasPrice,
     log: hre.network.name === "mainnet" ? true : false,
-    args: [hre.ethers.utils.parseUnits("3", 15)],
+    args: [
+      (await ethers.getContract("ConnectGelatoDataMakerToAave")).address,
+      hre.network.config.OracleAggregator,
+    ],
   });
 };
 
@@ -26,3 +30,4 @@ module.exports.skip = async (hre) => {
   return hre.network.name === "mainnet" ? true : false;
 };
 module.exports.tags = ["ConditionCanDoRefinance"];
+module.exports.dependencies = ["ConnectGelatoDataMakerToAave"];

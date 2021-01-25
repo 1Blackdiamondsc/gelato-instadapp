@@ -19,7 +19,10 @@ module.exports = async (hre) => {
     from: deployer,
     gasPrice: hre.network.config.gasPrice,
     log: hre.network.name === "mainnet" ? true : false,
-    args: [ethers.utils.parseUnits("3", 15)],
+    args: [
+      (await ethers.getContract("ConnectGelatoDataMakerToAave")).address,
+      hre.network.config.OracleAggregator,
+    ],
   });
 };
 
@@ -27,3 +30,4 @@ module.exports.skip = async (hre) => {
   return hre.network.name === "mainnet" ? true : false;
 };
 module.exports.tags = ["ConditionMakerToAaveLiquid"];
+module.exports.dependencies = ["ConnectGelatoDataMakerToAave"];

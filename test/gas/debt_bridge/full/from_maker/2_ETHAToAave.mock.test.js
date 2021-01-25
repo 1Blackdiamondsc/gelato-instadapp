@@ -77,8 +77,7 @@ describe("Gas Measurements ETHA => Aave: MockDebtBridgeExecutorAave", function (
       data: await contracts.conditionMakerToAaveSafe.getConditionData(
         contracts.dsa.address,
         vaultAId,
-        constants.ETH,
-        constants.ETH_ETH_PRICEFEEDER
+        constants.ETH
       ),
     });
 

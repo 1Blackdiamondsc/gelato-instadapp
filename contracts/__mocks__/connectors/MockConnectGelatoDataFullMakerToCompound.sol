@@ -1,19 +1,13 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.0;
 
-import {GelatoBytes} from "../../lib/GelatoBytes.sol";
-import {wdiv} from "../../vendor/DSMath.sol";
-import {
-    AccountInterface,
-    ConnectorInterface
-} from "../../interfaces/InstaDapp/IInstaDapp.sol";
 import {
     IConnectInstaPoolV2
 } from "../../interfaces/InstaDapp/connectors/IConnectInstaPoolV2.sol";
 import {
     IBInstaFeeCollector
 } from "../../interfaces/InstaDapp/connectors/base/IBInstaFeeCollector.sol";
-import {DAI} from "../../constants/CTokens.sol";
+import {DAI, ETH} from "../../constants/CTokens.sol";
 import {
     CONNECT_MAKER,
     CONNECT_COMPOUND,
@@ -22,8 +16,7 @@ import {
 } from "../../constants/CInstaDapp.sol";
 import {
     _getMakerVaultDebt,
-    _getMakerVaultCollateralBalance,
-    _isVaultOwner
+    _getMakerVaultCollateralBalance
 } from "../../functions/dapps/FMaker.sol";
 import {
     _encodeFlashPayback
@@ -39,6 +32,9 @@ import {
 import {
     _encodeCalculateFee
 } from "../../functions/InstaDapp/connectors/FConnectDebtBridgeFee.sol";
+import {
+    _encodeBasicWithdraw
+} from "../../functions/InstaDapp/connectors/FConnectBasic.sol";
 import {_getGelatoExecutorFees} from "../../functions/gelato/FGelato.sol";
 import {
     _getFlashLoanRoute,
@@ -46,122 +42,55 @@ import {
     _getRealisedDebt
 } from "../../functions/gelato/FGelatoDebtBridge.sol";
 import {
-    DataFlow
-} from "@gelatonetwork/core/contracts/gelato_core/interfaces/IGelatoCore.sol";
-import {
-    BInstaFeeCollector
-} from "../../contracts/connectors/base/BInstaFeeCollector.sol";
-import {
-    _encodeBasicWithdraw
-} from "../../functions/InstaDapp/connectors/FConnectBasic.sol";
-import {DAI_ETH_PRICEFEEDER} from "../../constants/CChainlink.sol";
-import {_getPrice} from "../../functions/dapps/FChainlink.sol";
+    BDebtBridgeFromMaker
+} from "../../contracts/connectors/base/BDebtBridgeFromMaker.sol";
+import {IOracleAggregator} from "../../interfaces/gelato/IOracleAggregator.sol";
+import {_convertTo18} from "../../vendor/Convert.sol";
+import {GELATO_EXECUTOR_MODULE} from "../../constants/CGelato.sol";
 
-contract MockConnectGelatoDataMakerToCompound is
-    ConnectorInterface,
-    BInstaFeeCollector
-{
-    using GelatoBytes for bytes;
-
-    string public constant OK = "OK";
-
+contract MockConnectGelatoDataMakerToCompound is BDebtBridgeFromMaker {
     // solhint-disable-next-line const-name-snakecase
     string public constant override name =
-        "ConnectGelatoDataMakerToCompound-v1.0";
-    uint256 internal immutable _id;
-    address public immutable connectGelatoDataMakerToCompoundAddr;
+        "MockConnectGelatoDataMakerToCompound-v1.0";
 
+    // solhint-disable no-empty-blocks
     constructor(
         uint256 __id,
         uint256 _fee,
         address payable _feeCollector,
-        uint256 _minDebt,
+        address _oracleAggregator,
         address __connectGelatoDebtBridgeFee
     )
-        BInstaFeeCollector(
+        BDebtBridgeFromMaker(
+            __id,
             _fee,
             _feeCollector,
-            _minDebt,
+            _oracleAggregator,
             __connectGelatoDebtBridgeFee
         )
-    {
-        _id = __id;
-        connectGelatoDataMakerToCompoundAddr = address(this);
-    }
-
-    /// @dev Connector Details
-    function connectorID()
-        external
-        view
-        override
-        returns (uint256 _type, uint256 id)
-    {
-        (_type, id) = (1, _id); // Should put specific value.
-    }
-
-    // ====== ACTION TERMS CHECK ==========
-    /// @notice GelatoCore protocol standard function
-    /// @dev GelatoCore calls this to verify that a Task is executable
-    function termsOk(
-        uint256, // taskReceipId
-        address _dsa,
-        bytes calldata _actionData,
-        DataFlow, // DataFlow
-        uint256, // value
-        uint256 // cycleId
-    ) public view returns (string memory) {
-        (, uint256 vaultId, ) =
-            abi.decode(_actionData[4:], (uint256, uint256, address));
-
-        if (vaultId == 0)
-            return "ConnectGelatoDataMakerToCompound: Vault Id is not valid";
-        if (!_isVaultOwner(vaultId, _dsa))
-            return "ConnectGelatoDataMakerToCompound: Vault not owned by dsa";
-        if (_getMakerVaultCollateralBalance(vaultId) < minDebt)
-            return "ConnectGelatoDataMakerToCompound: !minDebt";
-        return OK;
-    }
+    {}
 
     /// @notice Entry Point for DSA.cast DebtBridge from Maker to Compound
     /// @dev payable to be compatible in conjunction with DSA.cast payable target
     /// @param _vaultId Id of the unsafe vault of the client.
     /// @param _colToken  vault's col token address .
     function getDataAndCastMakerToCompound(
-        uint256 _mockRoute,
         uint256 _vaultId,
-        address _colToken
+        address _colToken,
+        uint256 _mockRoute
     ) external payable {
         (address[] memory targets, bytes[] memory datas) =
-            _dataMakerToCompound(_mockRoute, _vaultId, _colToken);
+            _dataMakerToCompound(_vaultId, _colToken, _mockRoute);
 
         _cast(targets, datas);
-    }
-
-    function _cast(address[] memory targets, bytes[] memory datas) internal {
-        // Instapool V2 / FlashLoan call
-        bytes memory castData =
-            abi.encodeWithSelector(
-                AccountInterface.cast.selector,
-                targets,
-                datas,
-                msg.sender // msg.sender == GelatoCore
-            );
-
-        (bool success, bytes memory returndata) =
-            address(this).delegatecall(castData);
-        if (!success) {
-            returndata.revertWithError(
-                "ConnectGelatoDataMakerToCompound._cast:"
-            );
-        }
     }
 
     /* solhint-disable function-max-lines */
 
     function _dataMakerToCompound(
-        uint256 _mockRoute,
         uint256 _vaultId,
-        address _colToken
+        address _colToken,
+        uint256 _mockRoute
     ) internal view returns (address[] memory targets, bytes[] memory datas) {
         targets = new address[](1);
         targets[0] = INSTA_POOL_V2;
@@ -171,16 +100,22 @@ contract MockConnectGelatoDataMakerToCompound is
         uint256 route = _getFlashLoanRoute(DAI, daiToBorrow);
         route = _mockRoute;
 
+        (uint256 gasFeesPaidFromDebt, uint256 decimals) =
+            IOracleAggregator(oracleAggregator).getExpectedReturnAmount(
+                _getGelatoExecutorFees(_getGasCostMakerToCompound(route)),
+                ETH,
+                DAI
+            );
+
+        gasFeesPaidFromDebt = _convertTo18(decimals, gasFeesPaidFromDebt);
+
         (address[] memory _targets, bytes[] memory _datas) =
             _spellsMakerToCompound(
                 _vaultId,
                 _colToken,
                 daiToBorrow,
                 _getMakerVaultCollateralBalance(_vaultId),
-                wdiv(
-                    _getGelatoExecutorFees(_getGasCostMakerToCompound(route)),
-                    _getPrice(DAI_ETH_PRICEFEEDER)
-                )
+                gasFeesPaidFromDebt
             );
 
         datas = new bytes[](1);
@@ -226,7 +161,7 @@ contract MockConnectGelatoDataMakerToCompound is
         datas[2] = _encodeCalculateFee(
             0,
             _gasFeesPaidFromDebt,
-            IBInstaFeeCollector(connectGelatoDataMakerToCompoundAddr).fee(),
+            IBInstaFeeCollector(connectGelatoDataFromMakerAddr).fee(),
             600,
             600,
             601
@@ -241,15 +176,14 @@ contract MockConnectGelatoDataMakerToCompound is
         datas[5] = _encodeBasicWithdraw(
             DAI,
             0,
-            IBInstaFeeCollector(connectGelatoDataMakerToCompoundAddr)
-                .feeCollector(),
+            IBInstaFeeCollector(connectGelatoDataFromMakerAddr).feeCollector(),
             601,
             0
         );
         datas[6] = _encodeBasicWithdraw(
             DAI,
             _gasFeesPaidFromDebt,
-            payable(tx.origin),
+            payable(GELATO_EXECUTOR_MODULE),
             0,
             0
         );

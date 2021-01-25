@@ -8,6 +8,9 @@ const getInstaPoolV2Route = require("../../../../helpers/services/InstaDapp/getI
 const getGasCost = require("../helpers/constants/getGasCostETHAToETHB");
 const feeRatio = require("../../../../helpers/services/InstaDapp/constants/feeRatio");
 const feeCollector = require("../../../../helpers/services/InstaDapp/constants/feeCollector");
+const {
+  executorModule,
+} = require("../../../../helpers/constants/gelatoConstants");
 
 // This test showcases how to submit a task refinancing a Users debt position from
 // Maker to Compound using Gelato
@@ -240,22 +243,25 @@ describe("Full Debt Bridge refinancing ETH-A => new ETH-B due to the closing of 
       feeCollector
     );
 
-    const daiETHPrice = await contracts.chainlinkResolver.getPrice(
-      constants.DAI_ETH_PRICEFEEDER
-    );
-
-    const gasFeesPaidFromDebt = ethers.BigNumber.from(gasCost)
-      .mul(gelatoGasPrice)
-      .mul(ethers.utils.parseUnits("1", 18))
-      .add(daiETHPrice.div(ethers.utils.parseUnits("2", 0)))
-      .div(daiETHPrice);
+    const gasFeesPaidFromDebt = (
+      await contracts.oracleAggregator.getExpectedReturnAmount(
+        ethers.BigNumber.from(gasCost).mul(gelatoGasPrice),
+        constants.ETH,
+        contracts.DAI.address
+      )
+    )[0];
 
     const vaultACollateral = await contracts.makerResolver.getMakerVaultCollateralBalance(
       vaultAId
     );
 
     //#endregion
-    const executorBalanceBeforeExecution = await contracts.gelatoCore.executorStake(
+
+    const executorModuleDaiBalanceBeforeExecution = await contracts.DAI.balanceOf(
+      executorModule
+    );
+
+    const executorStakeBeforeExecution = await contracts.gelatoCore.executorStake(
       wallets.gelatoExecutorAddress
     );
 
@@ -281,9 +287,9 @@ describe("Full Debt Bridge refinancing ETH-A => new ETH-B due to the closing of 
     // }
     // await GelatoCoreLib.sleep(10000);
 
-    expect(
-      await contracts.DAI.balanceOf(wallets.gelatoExecutorAddress)
-    ).to.be.equal(gasFeesPaidFromDebt);
+    expect(await contracts.DAI.balanceOf(executorModule)).to.be.equal(
+      gasFeesPaidFromDebt.add(executorModuleDaiBalanceBeforeExecution)
+    );
 
     const cdps = await contracts.getCdps.getCdpsAsc(
       contracts.dssCdpManager.address,
@@ -312,7 +318,7 @@ describe("Full Debt Bridge refinancing ETH-A => new ETH-B due to the closing of 
 
     expect(
       await contracts.gelatoCore.executorStake(wallets.gelatoExecutorAddress)
-    ).to.be.gt(executorBalanceBeforeExecution);
+    ).to.be.gt(executorStakeBeforeExecution);
 
     // Estimated amount to borrowed token should be equal to the actual one read on compound contracts
     const expectedDebtOnMakerVaultB = debtOnMakerBefore

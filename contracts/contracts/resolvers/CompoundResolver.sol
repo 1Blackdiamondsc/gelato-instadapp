@@ -7,6 +7,8 @@ import {
 import {
     _compoundPositionWillBeSafe
 } from "../../functions/gelato/conditions/compound/FCompoundPositionWillBeSafe.sol";
+import {ICToken} from "../../interfaces/dapps/Compound/ICToken.sol";
+import {_getCToken} from "../../functions/dapps/FCompound.sol";
 
 contract CompoundResolver {
     function compoundHasLiquidity(uint256 _amountToBorrow, address _debtToken)
@@ -15,6 +17,10 @@ contract CompoundResolver {
         returns (bool)
     {
         return _cTokenHasLiquidity(_debtToken, _amountToBorrow);
+    }
+
+    function cTokenBalance(address _token) public view returns (uint256) {
+        return ICToken(_getCToken(_token)).getCash();
     }
 
     function compoundPositionWouldBeSafe(

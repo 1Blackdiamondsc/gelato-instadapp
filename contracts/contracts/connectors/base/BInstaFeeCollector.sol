@@ -7,24 +7,22 @@ import {
 import {
     Ownable
 } from "../../../vendor/openzeppelin/contracts/access/Ownable.sol";
+import {MAX_INSTA_FEE} from "../../../constants/CDebtBridge.sol";
 
 abstract contract BInstaFeeCollector is IBInstaFeeCollector, Ownable {
-    uint256 public immutable override fee;
+    uint256 public override fee;
 
     address payable public override feeCollector;
-    uint256 public override minDebt;
 
     address internal immutable _connectGelatoDebtBridgeFee;
 
     constructor(
         uint256 _fee,
         address payable _feeCollector,
-        uint256 _minDebt,
         address __connectGelatoDebtBridgeFee
     ) {
         fee = _fee;
         feeCollector = _feeCollector;
-        minDebt = _minDebt;
         _connectGelatoDebtBridgeFee = __connectGelatoDebtBridgeFee;
     }
 
@@ -36,7 +34,11 @@ abstract contract BInstaFeeCollector is IBInstaFeeCollector, Ownable {
         feeCollector = _feeCollector;
     }
 
-    function setMinDebt(uint256 _minDebt) external override onlyOwner {
-        minDebt = _minDebt;
+    function setFee(uint256 _fee) external override onlyOwner {
+        require(
+            _fee <= MAX_INSTA_FEE,
+            "BInstaFeeCollector.setFee: New fee value is too high."
+        );
+        fee = _fee;
     }
 }

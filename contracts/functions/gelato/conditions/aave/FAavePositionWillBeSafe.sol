@@ -9,24 +9,41 @@ import {AaveUserData} from "../../../../structs/SAave.sol";
 import {GelatoBytes} from "../../../../lib/GelatoBytes.sol";
 import {wdiv, wmul, mul} from "../../../../vendor/DSMath.sol";
 import {
-    DAI_ETH_PRICEFEEDER,
-    ETH_ETH_PRICEFEEDER
-} from "../../../../constants/CChainlink.sol";
-import {_getPrice} from "../../../dapps/FChainlink.sol";
+    IOracleAggregator
+} from "../../../../interfaces/gelato/IOracleAggregator.sol";
+import {ETH, DAI} from "../../../../constants/CTokens.sol";
+import {_convertTo18} from "../../../../vendor/Convert.sol";
 
 function _aavePositionWillBeSafe(
     address _dsa,
     uint256 _colAmt,
     address _colToken,
     uint256 _debtAmt,
-    address _priceChainlinkOracle
+    address _oracleAggregator
 ) view returns (bool) {
     uint256 _colAmtInETH;
+    uint256 _decimals;
+    IOracleAggregator oracleAggregator = IOracleAggregator(_oracleAggregator);
 
     AaveUserData memory userData = _getUserData(_dsa);
 
-    if (_priceChainlinkOracle == ETH_ETH_PRICEFEEDER) _colAmtInETH = _colAmt;
-    else _colAmtInETH = wmul(_colAmt, _getPrice(_priceChainlinkOracle));
+    if (_colToken == ETH) _colAmtInETH = _colAmt;
+    else {
+        (_colAmtInETH, _decimals) = oracleAggregator.getExpectedReturnAmount(
+            _colAmt,
+            _colToken,
+            ETH
+        );
+
+        _colAmtInETH = _convertTo18(_decimals, _colAmtInETH);
+    }
+
+    (_debtAmt, _decimals) = oracleAggregator.getExpectedReturnAmount(
+        _debtAmt,
+        DAI,
+        ETH
+    );
+    _debtAmt = _convertTo18(_decimals, _debtAmt);
 
     //
     //                  __
@@ -45,7 +62,6 @@ function _aavePositionWillBeSafe(
                     userData.totalCollateralETH
                 ) + mul(_colAmtInETH, _getAssetLiquidationThreshold(_colToken)))
             ) / 1e4,
-            userData.totalBorrowsETH +
-                wmul(_debtAmt, _getPrice(DAI_ETH_PRICEFEEDER))
+            userData.totalBorrowsETH + _debtAmt
         ) > 1e18;
 }

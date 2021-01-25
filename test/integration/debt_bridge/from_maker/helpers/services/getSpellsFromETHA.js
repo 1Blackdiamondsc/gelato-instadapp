@@ -22,7 +22,6 @@ module.exports = async function (wallets, contracts, constants, vaultId) {
       inputs: [
         vaultId, // _vaultAId
         constants.ETH, // _colToken
-        constants.ETH_ETH_PRICEFEEDER, // _priceOracle
         0, // _vaultBId
         "ETH-B", // _destColType
       ],

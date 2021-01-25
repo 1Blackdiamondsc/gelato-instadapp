@@ -4,6 +4,7 @@ pragma solidity 0.8.0;
 import {ConnectorInterface} from "../../../interfaces/InstaDapp/IInstaDapp.sol";
 import {IInstaMemory} from "../../../interfaces/InstaDapp/IInstaMemory.sol";
 import {INSTA_MEMORY} from "../../../constants/CInstaDapp.sol";
+import {_getUint, _setUint} from "../../../functions/InstaDapp/FInstaDapp.sol";
 import {wmul} from "../../../vendor/DSMath.sol";
 
 contract ConnectGelatoDebtBridgeFee is ConnectorInterface {
@@ -47,20 +48,5 @@ contract ConnectGelatoDebtBridgeFee is ConnectorInterface {
         returns (uint256 _type, uint256 id)
     {
         (_type, id) = (1, _id);
-    }
-
-    /// @dev Get Uint value from InstaMemory Contract.
-    function _getUint(uint256 _getId, uint256 _val)
-        internal
-        returns (uint256 returnVal)
-    {
-        returnVal = _getId == 0
-            ? _val
-            : IInstaMemory(INSTA_MEMORY).getUint(_getId);
-    }
-
-    /// @dev Set Uint value in InstaMemory Contract.
-    function _setUint(uint256 _setId, uint256 _val) internal {
-        if (_setId != 0) IInstaMemory(INSTA_MEMORY).setUint(_setId, _val);
     }
 }

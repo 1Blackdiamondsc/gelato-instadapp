@@ -12,14 +12,19 @@ import {DAI} from "../../../../constants/CTokens.sol";
 import {
     _getMaxAmtToBorrowMakerToAave
 } from "../../../../functions/gelato/FGelatoDebtBridge.sol";
+import {
+    IBInstaFeeCollector
+} from "../../../../interfaces/InstaDapp/connectors/base/IBInstaFeeCollector.sol";
 
 contract ConditionMakerToAaveLiquid is GelatoConditionsStandard {
     using GelatoBytes for bytes;
 
-    uint256 public immutable fees;
+    address public immutable bInstaFeeCollector;
+    address public immutable oracleAggregator;
 
-    constructor(uint256 _fees) {
-        fees = _fees;
+    constructor(address _bInstaFeeCollector, address _oracleAggregator) {
+        bInstaFeeCollector = _bInstaFeeCollector;
+        oracleAggregator = _oracleAggregator;
     }
 
     function getConditionData(uint256 _fromVaultId)
@@ -49,7 +54,11 @@ contract ConditionMakerToAaveLiquid is GelatoConditionsStandard {
         return
             _isAaveLiquid(
                 DAI,
-                _getMaxAmtToBorrowMakerToAave(_fromVaultId, fees)
+                _getMaxAmtToBorrowMakerToAave(
+                    _fromVaultId,
+                    IBInstaFeeCollector(bInstaFeeCollector).fee(),
+                    oracleAggregator
+                )
             )
                 ? OK
                 : "AaveIlliquid";

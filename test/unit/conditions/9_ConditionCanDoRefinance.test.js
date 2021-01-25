@@ -13,7 +13,6 @@ const InstaAccount = require("../../../pre-compiles/InstaAccount.json");
 const InstaIndex = require("../../../pre-compiles/InstaIndex.json");
 const IERC20 = require("../../../pre-compiles/IERC20.json");
 
-const ETH_ETH_PRICEFEEDER = ethers.constants.AddressZero;
 const ETH = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE";
 
 // #endregion
@@ -51,6 +50,8 @@ describe("ConditionCanDoRefinance Unit Test", function () {
 
   let aaveResolver;
   let makerResolver;
+  let compoundResolver;
+  let oracleAggregator;
 
   beforeEach(async function () {
     // Deploy contract dependencies
@@ -91,6 +92,11 @@ describe("ConditionCanDoRefinance Unit Test", function () {
 
     aaveResolver = await ethers.getContract("AaveResolver");
     makerResolver = await ethers.getContract("MakerResolver");
+    compoundResolver = await ethers.getContract("CompoundResolver");
+    oracleAggregator = await ethers.getContractAt(
+      "IOracleAggregator",
+      hre.network.config.OracleAggregator
+    );
 
     // Create DeFi Smart Account For Second User
 
@@ -161,9 +167,9 @@ describe("ConditionCanDoRefinance Unit Test", function () {
     // aToken Balance
 
     aTokenBalance = await aaveResolver.getATokenUnderlyingBalance(DAI.address);
-    availableBorowAmt = (await makerResolver.getMaxDebtAmt("ETH-B"))
-      //.div(ethers.utils.parseUnits("1", 27))
-      .sub(ethers.utils.parseUnits("100000", 18));
+    availableBorowAmt = (await makerResolver.getMaxDebtAmt("ETH-B")).sub(
+      ethers.utils.parseUnits("10", 18)
+    );
 
     // cToken Balance
 
@@ -211,7 +217,6 @@ describe("ConditionCanDoRefinance Unit Test", function () {
       dsa.address,
       cdpAId,
       ETH,
-      ETH_ETH_PRICEFEEDER,
       0,
       "ETH-B"
     );
@@ -301,7 +306,6 @@ describe("ConditionCanDoRefinance Unit Test", function () {
       dsa.address,
       cdpAId,
       ETH,
-      ETH_ETH_PRICEFEEDER,
       0,
       "ETH-B"
     );
@@ -412,7 +416,6 @@ describe("ConditionCanDoRefinance Unit Test", function () {
       dsa.address,
       cdpAId,
       ETH,
-      ETH_ETH_PRICEFEEDER,
       0,
       "ETH-B"
     );
@@ -426,8 +429,16 @@ describe("ConditionCanDoRefinance Unit Test", function () {
     // 2 - Borrow.
     // 3 - Test if Aave has enough liquidity for the futur borrow.
     // 4 - Get All debt of Aave.
-    let amountToBorrow = ethers.utils.parseUnits("500000", 18);
-    const amountToDeposit = ethers.utils.parseUnits("2000", 18);
+    // let amountToBorrow = ethers.utils.parseUnits("500000", 18);
+    const amountToDeposit = ethers.utils.parseUnits("1", 18);
+
+    const amountToBorrow = (
+      await oracleAggregator.getExpectedReturnAmount(
+        ethers.utils.parseUnits("65", 16),
+        ETH,
+        hre.network.config.DAI
+      )
+    )[0];
     // //#region Deposit
     await dsa.cast(
       [hre.network.config.ConnectMaker],
@@ -541,7 +552,9 @@ describe("ConditionCanDoRefinance Unit Test", function () {
           functionname: "borrow",
           inputs: [
             hre.network.config.DAI,
-            ethers.utils.parseUnits("245000000", 18),
+            (await compoundResolver.cTokenBalance(hre.network.config.DAI)).sub(
+              ethers.utils.parseUnits("100", 18)
+            ),
             0,
             0,
           ],
@@ -556,7 +569,6 @@ describe("ConditionCanDoRefinance Unit Test", function () {
       dsa.address,
       cdpAId,
       ETH,
-      ETH_ETH_PRICEFEEDER,
       0,
       "ETH-B"
     );

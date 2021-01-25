@@ -57,7 +57,7 @@ contract AaveResolver {
         uint256 _colAmt,
         address _colToken,
         uint256 _debtAmt,
-        address _priceChainlinkOracle
+        address _oracleAggregator
     ) public view returns (bool) {
         return
             _aavePositionWillBeSafe(
@@ -65,7 +65,7 @@ contract AaveResolver {
                 _colAmt,
                 _colToken,
                 _debtAmt,
-                _priceChainlinkOracle
+                _oracleAggregator
             );
     }
 }

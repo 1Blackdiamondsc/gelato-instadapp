@@ -27,7 +27,7 @@ module.exports = async function (
         await deployments.getArtifact("MockConnectGelatoDataMakerToCompound")
       ).abi,
       functionname: "getDataAndCastMakerToCompound",
-      inputs: [mockRoute, vaultId, constants.ETH],
+      inputs: [vaultId, constants.ETH, mockRoute],
     }),
     operation: GelatoCoreLib.Operation.Delegatecall,
     termsOkCheck: true,

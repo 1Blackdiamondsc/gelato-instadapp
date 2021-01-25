@@ -12,4 +12,8 @@ interface IAggregatorV3Interface {
             uint256 timeStamp,
             uint80 answeredInRound
         );
+
+    function latestAnswer() external view returns (int256);
+
+    function decimals() external view returns (uint8);
 }

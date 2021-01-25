@@ -12,6 +12,8 @@ const InstaAccount = require("../../../pre-compiles/InstaAccount.json");
 const InstaIndex = require("../../../pre-compiles/InstaIndex.json");
 const IERC20 = require("../../../pre-compiles/IERC20.json");
 
+const ETH = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE";
+
 // #endregion
 
 describe("ConditionMakerVaultUnsafeOSM Unit Test", function () {
@@ -31,6 +33,7 @@ describe("ConditionMakerVaultUnsafeOSM Unit Test", function () {
   let DAI;
 
   let conditionMakerVaultUnsafeOSM;
+  let oracleAggregator;
 
   let cdpId;
   let dsa;
@@ -69,6 +72,11 @@ describe("ConditionMakerVaultUnsafeOSM Unit Test", function () {
     // ========== Test Setup ============
     conditionMakerVaultUnsafeOSM = await ethers.getContract(
       "ConditionMakerVaultUnsafeOSM"
+    );
+
+    oracleAggregator = await ethers.getContractAt(
+      "IOracleAggregator",
+      hre.network.config.OracleAggregator
     );
 
     // Create DeFi Smart Account
@@ -151,6 +159,17 @@ describe("ConditionMakerVaultUnsafeOSM Unit Test", function () {
   });
 
   it("#2: ok should return OK when the collateralization is lower than the defined limit", async function () {
+    const amountToWithdraw = await oracleAggregator.getExpectedReturnAmount(
+      (
+        await oracleAggregator.getExpectedReturnAmount(
+          ethers.utils.parseEther("10"),
+          ETH,
+          hre.network.config.DAI
+        )
+      )[0].sub(ethers.utils.parseUnits("1650", 18)),
+      hre.network.config.DAI,
+      ETH
+    );
     const conditionData = await conditionMakerVaultUnsafeOSM.getConditionData(
       cdpId,
       hre.network.config.ETH_OSM,
@@ -171,7 +190,7 @@ describe("ConditionMakerVaultUnsafeOSM Unit Test", function () {
             "function withdraw(uint vault, uint amt, uint getId, uint setId) payable",
           ],
           functionname: "withdraw",
-          inputs: [cdpId, ethers.utils.parseEther("6"), 0, 0],
+          inputs: [cdpId, amountToWithdraw[0], 0, 0],
         }),
       ],
       userAddress

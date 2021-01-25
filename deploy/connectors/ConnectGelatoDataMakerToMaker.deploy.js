@@ -46,7 +46,7 @@ module.exports = async (hre) => {
         connectorId,
         ethers.utils.parseUnits("3", 15),
         instaFeeCollector,
-        ethers.utils.parseUnits("10", 18),
+        hre.network.config.OracleAggregator,
         (await ethers.getContract("ConnectGelatoDebtBridgeFee")).address,
       ],
     });
@@ -72,7 +72,7 @@ module.exports = async (hre) => {
         parseInt(process.env.CONNECTOR_ID),
         ethers.utils.parseUnits("3", 15),
         instaFeeCollector,
-        ethers.utils.parseUnits("10", 18),
+        hre.network.config.OracleAggregator,
         (await ethers.getContract("ConnectGelatoDebtBridgeFee")).address,
       ],
       gasPrice: hre.network.config.gasPrice,

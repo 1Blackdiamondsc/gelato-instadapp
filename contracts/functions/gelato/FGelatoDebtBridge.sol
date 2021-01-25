@@ -25,9 +25,9 @@ import {
 } from "../../interfaces/InstaDapp/resolvers/IInstaPoolResolver.sol";
 import {_getMakerVaultDebt} from "../dapps/FMaker.sol";
 import {_getGelatoExecutorFees} from "./FGelato.sol";
-import {_getPrice} from "../dapps/FChainlink.sol";
-import {DAI_ETH_PRICEFEEDER} from "../../constants/CChainlink.sol";
-import {DAI} from "../../constants/CTokens.sol";
+import {DAI, ETH} from "../../constants/CTokens.sol";
+import {IOracleAggregator} from "../../interfaces/gelato/IOracleAggregator.sol";
+import {_convertTo18} from "../../vendor/Convert.sol";
 
 function _getFlashLoanRoute(address _debtToken, uint256 _debtAmt)
     view
@@ -104,38 +104,43 @@ function _checkRouteIndex(uint256 _route, string memory _revertMsg) pure {
     require(_route <= 4, _revertMsg);
 }
 
-function _getMaxAmtToBorrowMakerToAave(uint256 _fromVaultId, uint256 _fees)
-    view
-    returns (uint256)
-{
+function _getMaxAmtToBorrowMakerToAave(
+    uint256 _fromVaultId,
+    uint256 _fees,
+    address _oracleAggregator
+) view returns (uint256) {
     uint256 wDaiToBorrow = _getRealisedDebt(_getMakerVaultDebt(_fromVaultId));
 
     return
         _getMaxAmtToBorrow(
             wDaiToBorrow,
             _getGasCostMakerToAave(_getFlashLoanRoute(DAI, wDaiToBorrow)),
-            _fees
+            _fees,
+            _oracleAggregator
         );
 }
 
-function _getMaxAmtToBorrowMakerToCompound(uint256 _fromVaultId, uint256 _fees)
-    view
-    returns (uint256)
-{
+function _getMaxAmtToBorrowMakerToCompound(
+    uint256 _fromVaultId,
+    uint256 _fees,
+    address _oracleAggregator
+) view returns (uint256) {
     uint256 wDaiToBorrow = _getRealisedDebt(_getMakerVaultDebt(_fromVaultId));
 
     return
         _getMaxAmtToBorrow(
             wDaiToBorrow,
             _getGasCostMakerToCompound(_getFlashLoanRoute(DAI, wDaiToBorrow)),
-            _fees
+            _fees,
+            _oracleAggregator
         );
 }
 
 function _getMaxAmtToBorrowMakerToMaker(
     uint256 _fromVaultId,
     bool _newVault,
-    uint256 _fees
+    uint256 _fees,
+    address _oracleAggregator
 ) view returns (uint256) {
     uint256 wDaiToBorrow = _getRealisedDebt(_getMakerVaultDebt(_fromVaultId));
 
@@ -146,17 +151,25 @@ function _getMaxAmtToBorrowMakerToMaker(
                 _newVault,
                 _getFlashLoanRoute(DAI, wDaiToBorrow)
             ),
-            _fees
+            _fees,
+            _oracleAggregator
         );
 }
 
 function _getMaxAmtToBorrow(
     uint256 _wDaiToBorrow,
     uint256 _gasCost,
-    uint256 _fees
+    uint256 _fees,
+    address _oracleAggregator
 ) view returns (uint256) {
-    return
-        _wDaiToBorrow +
-        wdiv(_getGelatoExecutorFees(_gasCost), _getPrice(DAI_ETH_PRICEFEEDER)) +
-        wmul(_wDaiToBorrow, _fees);
+    (uint256 gasCostInDAI, uint256 decimals) =
+        IOracleAggregator(_oracleAggregator).getExpectedReturnAmount(
+            _getGelatoExecutorFees(_gasCost),
+            ETH,
+            DAI
+        );
+
+    gasCostInDAI = _convertTo18(decimals, gasCostInDAI);
+
+    return _wDaiToBorrow + gasCostInDAI + wmul(_wDaiToBorrow, _fees);
 }

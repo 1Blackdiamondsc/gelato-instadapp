@@ -14,14 +14,19 @@ import {
 import {
     _getMaxAmtToBorrowMakerToMaker
 } from "../../../../functions/gelato/FGelatoDebtBridge.sol";
+import {
+    IBInstaFeeCollector
+} from "../../../../interfaces/InstaDapp/connectors/base/IBInstaFeeCollector.sol";
 
 contract ConditionMakerToMakerSafe is GelatoConditionsStandard {
     using GelatoBytes for bytes;
 
-    uint256 public immutable fees;
+    address public immutable bInstaFeeCollector;
+    address public immutable oracleAggregator;
 
-    constructor(uint256 _fees) {
-        fees = _fees;
+    constructor(address _bInstaFeeCollector, address _oracleAggregator) {
+        bInstaFeeCollector = _bInstaFeeCollector;
+        oracleAggregator = _oracleAggregator;
     }
 
     function getConditionData(
@@ -71,7 +76,8 @@ contract ConditionMakerToMakerSafe is GelatoConditionsStandard {
                 _getMaxAmtToBorrowMakerToMaker(
                     _fromVaultId,
                     _destVaultId == 0,
-                    fees
+                    IBInstaFeeCollector(bInstaFeeCollector).fee(),
+                    oracleAggregator
                 )
             )
                 ? OK

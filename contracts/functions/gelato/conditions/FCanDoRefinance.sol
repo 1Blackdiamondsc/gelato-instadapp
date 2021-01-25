@@ -26,7 +26,8 @@ function _canDoMakerToAaveDebtBridge(DebtBridgeInputData memory _data)
     _data.debtAmt = _getMaxAmtToBorrow(
         _data.debtAmt,
         _getGasCostMakerToAave(_data.flashRoute),
-        _data.fees
+        _data.fees,
+        _data.oracleAggregator
     );
     return
         _isAaveLiquid(DAI, _data.debtAmt) &&
@@ -35,7 +36,7 @@ function _canDoMakerToAaveDebtBridge(DebtBridgeInputData memory _data)
             _data.colAmt,
             _data.colToken,
             _data.debtAmt,
-            _data.priceOracle
+            _data.oracleAggregator
         );
 }
 
@@ -46,7 +47,8 @@ function _canDoMakerToMakerDebtBridge(DebtBridgeInputData memory _data)
     _data.debtAmt = _getMaxAmtToBorrow(
         _data.debtAmt,
         _getGasCostMakerToMaker(_data.makerDestVaultId == 0, _data.flashRoute),
-        _data.fees
+        _data.fees,
+        _data.oracleAggregator
     );
     return
         !_isDebtAmtDust(
@@ -77,7 +79,8 @@ function _canDoMakerToCompoundDebtBridge(DebtBridgeInputData memory _data)
     _data.debtAmt = _getMaxAmtToBorrow(
         _data.debtAmt,
         _getGasCostMakerToCompound(_data.flashRoute),
-        _data.fees
+        _data.fees,
+        _data.oracleAggregator
     );
     return
         _cTokenHasLiquidity(DAI, _data.debtAmt) &&

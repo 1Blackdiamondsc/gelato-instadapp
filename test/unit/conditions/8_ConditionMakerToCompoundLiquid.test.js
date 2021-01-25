@@ -34,6 +34,8 @@ describe("ConditionMakerToCompoundLiquid Unit Test", function () {
   let DAI;
 
   let conditionMakerToCompoundLiquid;
+  let compoundResolver;
+  let oracleAggregator;
 
   let dsa;
   let cdpAId;
@@ -72,6 +74,13 @@ describe("ConditionMakerToCompoundLiquid Unit Test", function () {
     // ========== Test Setup ============
     conditionMakerToCompoundLiquid = await ethers.getContract(
       "ConditionMakerToCompoundLiquid"
+    );
+
+    compoundResolver = await ethers.getContract("CompoundResolver");
+
+    oracleAggregator = await ethers.getContractAt(
+      "IOracleAggregator",
+      hre.network.config.OracleAggregator
     );
 
     // Create DeFi Smart Account
@@ -166,8 +175,16 @@ describe("ConditionMakerToCompoundLiquid Unit Test", function () {
     // 2 - Borrow.
     // 3 - Test if Compound has enough liquidity for the futur borrow.
 
-    const amountToBorrow = ethers.utils.parseUnits("10000000", 18); // for Block 11423903 the amount of DAI in Compound is ~1.5 millions dollars
-    const amountToDeposit = ethers.utils.parseUnits("900000", 18);
+    // const amountToBorrow = ethers.utils.parseUnits("10000000", 18); // for Block 11423903 the amount of DAI in Compound is ~1.5 millions dollars
+    const amountToDeposit = ethers.utils.parseUnits("1", 18);
+
+    const amountToBorrow = (
+      await oracleAggregator.getExpectedReturnAmount(
+        ethers.utils.parseUnits("65", 16),
+        ETH,
+        hre.network.config.DAI
+      )
+    )[0];
 
     await dsa.cast(
       [hre.network.config.ConnectCompound],
@@ -184,18 +201,17 @@ describe("ConditionMakerToCompoundLiquid Unit Test", function () {
       }
     );
 
+    const compoundBorrowBefore = (
+      await compoundResolver.cTokenBalance(hre.network.config.DAI)
+    ).sub(ethers.utils.parseUnits("100", 18));
+
     await dsa.cast(
       [hre.network.config.ConnectCompound],
       [
         await hre.run("abi-encode-withselector", {
           abi: ConnectCompound.abi,
           functionname: "borrow",
-          inputs: [
-            hre.network.config.DAI,
-            ethers.utils.parseUnits("240000000", 18),
-            0,
-            0,
-          ],
+          inputs: [hre.network.config.DAI, compoundBorrowBefore, 0, 0],
         }),
       ],
       userAddress
@@ -235,9 +251,7 @@ describe("ConditionMakerToCompoundLiquid Unit Test", function () {
     );
 
     expect(
-      (await DAI.balanceOf(dsa.address)).sub(
-        ethers.utils.parseUnits("240000000", 18)
-      )
+      (await DAI.balanceOf(dsa.address)).sub(compoundBorrowBefore)
     ).to.be.equal(amountToBorrow);
 
     //#endregion Borrow

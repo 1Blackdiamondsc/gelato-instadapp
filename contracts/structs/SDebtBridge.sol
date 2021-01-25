@@ -6,7 +6,7 @@ struct DebtBridgeInputData {
     uint256 colAmt;
     address colToken;
     uint256 debtAmt;
-    address priceOracle;
+    address oracleAggregator;
     uint256 makerDestVaultId;
     string makerDestColType;
     uint256 fees;

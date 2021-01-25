@@ -45,8 +45,8 @@ module.exports = async (hre) => {
       from: deployer,
       args: [
         connectorId,
-        ethers.utils.parseUnits("10", 18),
         ethers.utils.parseUnits("3", 15),
+        hre.network.config.OracleAggregator,
         (await ethers.getContract("ConnectGelatoDataMakerToAave")).address,
         (await ethers.getContract("ConnectGelatoDataMakerToMaker")).address,
         (await ethers.getContract("ConnectGelatoDataMakerToCompound")).address,
@@ -70,8 +70,8 @@ module.exports = async (hre) => {
       from: deployer,
       args: [
         parseInt(process.env.CONNECTOR_ID),
-        ethers.utils.parseUnits("10", 18),
         ethers.utils.parseUnits("3", 15),
+        hre.network.config.OracleAggregator,
         (await ethers.getContract("ConnectGelatoDataMakerToAave")).address,
         (await ethers.getContract("ConnectGelatoDataMakerToMaker")).address,
         (await ethers.getContract("ConnectGelatoDataMakerToCompound")).address,

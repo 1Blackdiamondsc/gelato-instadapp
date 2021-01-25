@@ -26,3 +26,4 @@ function GAS_COSTS_FOR_FULL_REFINANCE_MAKER_TO_AAVE()
 
 uint256 constant FAST_TX_FEE = 30;
 uint256 constant VAULT_CREATION_COST = 200000;
+uint256 constant MAX_INSTA_FEE = 3e15;

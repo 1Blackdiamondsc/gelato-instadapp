@@ -12,7 +12,6 @@ const InstaAccount = require("../../../pre-compiles/InstaAccount.json");
 const InstaIndex = require("../../../pre-compiles/InstaIndex.json");
 const IERC20 = require("../../../pre-compiles/IERC20.json");
 
-const ETH_ETH_PRICEFEEDER = ethers.constants.AddressZero;
 const ETH = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE";
 const UNI = "0x1f9840a85d5af5bf1d1762f925bdaddc4201f984";
 
@@ -36,6 +35,7 @@ describe("ConditionMakerToAaveSafe Unit Test", function () {
 
   let conditionMakerToAaveSafe;
   let aaveResolver;
+  let oracleAggregator;
 
   let dsa;
   let cdpAId;
@@ -76,6 +76,11 @@ describe("ConditionMakerToAaveSafe Unit Test", function () {
       "ConditionMakerToAaveSafe"
     );
     aaveResolver = await ethers.getContract("AaveResolver");
+
+    oracleAggregator = await ethers.getContractAt(
+      "IOracleAggregator",
+      hre.network.config.OracleAggregator
+    );
 
     // Create DeFi Smart Account
 
@@ -158,8 +163,7 @@ describe("ConditionMakerToAaveSafe Unit Test", function () {
     const conditionData = await conditionMakerToAaveSafe.getConditionData(
       dsa.address,
       cdpAId,
-      ETH,
-      ETH_ETH_PRICEFEEDER
+      ETH
     );
     expect(await conditionMakerToAaveSafe.ok(0, conditionData, 0)).to.be.equal(
       "OK"
@@ -167,13 +171,19 @@ describe("ConditionMakerToAaveSafe Unit Test", function () {
   });
 
   it("#2: isOverCollateralized should return false, if the position is undercollateralized", async function () {
+    const amountToBorrow = await oracleAggregator.getExpectedReturnAmount(
+      ethers.utils.parseUnits("87", 16),
+      ETH,
+      hre.network.config.DAI
+    );
+
     expect(
       await aaveResolver.aavePositionWouldBeSafe(
         dsa.address,
         ethers.utils.parseEther("1"),
         ETH,
-        ethers.utils.parseUnits("580", 18),
-        ETH_ETH_PRICEFEEDER
+        amountToBorrow[0],
+        oracleAggregator.address
       )
     ).to.be.false;
   });
@@ -185,7 +195,7 @@ describe("ConditionMakerToAaveSafe Unit Test", function () {
         ethers.utils.parseEther("1"),
         ETH,
         ethers.utils.parseUnits("400", 18),
-        ETH_ETH_PRICEFEEDER
+        oracleAggregator.address
       )
     ).to.be.true;
   });
@@ -228,7 +238,7 @@ describe("ConditionMakerToAaveSafe Unit Test", function () {
         ethers.utils.parseEther("1"),
         ETH,
         ethers.utils.parseUnits("580", 18),
-        ETH_ETH_PRICEFEEDER
+        oracleAggregator.address
       )
     ).to.be.true;
   });
@@ -251,6 +261,12 @@ describe("ConditionMakerToAaveSafe Unit Test", function () {
       }
     );
 
+    let amountToBorrow = await oracleAggregator.getExpectedReturnAmount(
+      ethers.utils.parseUnits("80", 16),
+      ETH,
+      UNI
+    );
+
     await dsa.cast(
       [hre.network.config.ConnectAaveV2],
       [
@@ -259,10 +275,16 @@ describe("ConditionMakerToAaveSafe Unit Test", function () {
             "function borrow(address token, uint amt, uint rateMode, uint getId, uint setId) external payable",
           ],
           functionname: "borrow",
-          inputs: [UNI, ethers.utils.parseUnits("140", 18), 2, 0, 0],
+          inputs: [UNI, amountToBorrow[0], 2, 0, 0],
         }),
       ],
       userAddress
+    );
+
+    amountToBorrow = await oracleAggregator.getExpectedReturnAmount(
+      ethers.utils.parseUnits("87", 16),
+      ETH,
+      hre.network.config.DAI
     );
 
     expect(
@@ -270,8 +292,8 @@ describe("ConditionMakerToAaveSafe Unit Test", function () {
         dsa.address,
         ethers.utils.parseEther("1"),
         ETH,
-        ethers.utils.parseUnits("580", 18),
-        ETH_ETH_PRICEFEEDER
+        amountToBorrow[0],
+        oracleAggregator.address
       )
     ).to.be.false;
   });

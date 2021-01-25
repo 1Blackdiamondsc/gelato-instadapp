@@ -19,19 +19,23 @@ import {
     _getRealisedDebt
 } from "../../../functions/gelato/FGelatoDebtBridge.sol";
 import {DAI} from "../../../constants/CTokens.sol";
+import {
+    IBInstaFeeCollector
+} from "../../../interfaces/InstaDapp/connectors/base/IBInstaFeeCollector.sol";
 
 contract ConditionCanDoRefinance is GelatoConditionsStandard {
-    uint256 public immutable fees;
+    address public immutable bInstaFeeCollector;
+    address public immutable oracleAggregator;
 
-    constructor(uint256 _fees) {
-        fees = _fees;
+    constructor(address _bInstaFeeCollector, address _oracleAggregator) {
+        bInstaFeeCollector = _bInstaFeeCollector;
+        oracleAggregator = _oracleAggregator;
     }
 
     function getConditionData(
         address _dsa,
         uint256 _fromVaultId,
         address _colToken,
-        address _priceOracle,
         uint256 _makerDestVaultId,
         string calldata _makerDestColType
     ) public pure virtual returns (bytes memory) {
@@ -41,7 +45,6 @@ contract ConditionCanDoRefinance is GelatoConditionsStandard {
                 _dsa,
                 _fromVaultId,
                 _colToken,
-                _priceOracle,
                 _makerDestVaultId,
                 _makerDestColType
             );
@@ -56,13 +59,12 @@ contract ConditionCanDoRefinance is GelatoConditionsStandard {
             address _dsa,
             uint256 _fromVaultId,
             address _colToken,
-            address _priceOracle,
             uint256 _makerDestVaultId,
             string memory _makerDestColType
         ) =
             abi.decode(
                 _conditionData[4:],
-                (address, uint256, address, address, uint256, string)
+                (address, uint256, address, uint256, string)
             );
 
         return
@@ -70,7 +72,6 @@ contract ConditionCanDoRefinance is GelatoConditionsStandard {
                 _dsa,
                 _fromVaultId,
                 _colToken,
-                _priceOracle,
                 _makerDestVaultId,
                 _makerDestColType
             );
@@ -80,7 +81,6 @@ contract ConditionCanDoRefinance is GelatoConditionsStandard {
         address _dsa,
         uint256 _fromVaultId,
         address _colToken,
-        address _priceOracle,
         uint256 _makerDestVaultId,
         string memory _makerDestColType
     ) public view returns (string memory) {
@@ -92,10 +92,10 @@ contract ConditionCanDoRefinance is GelatoConditionsStandard {
                     colAmt: _getMakerVaultCollateralBalance(_fromVaultId),
                     colToken: _colToken,
                     debtAmt: debtAmt,
-                    priceOracle: _priceOracle,
+                    oracleAggregator: oracleAggregator,
                     makerDestVaultId: _makerDestVaultId,
                     makerDestColType: _makerDestColType,
-                    fees: fees,
+                    fees: IBInstaFeeCollector(bInstaFeeCollector).fee(),
                     flashRoute: _getFlashLoanRoute(DAI, debtAmt)
                 })
             ) != PROTOCOL.NONE

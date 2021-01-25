@@ -9,6 +9,9 @@ const getInstaPoolV2Route = require("../../../../helpers/services/InstaDapp/getI
 const getGasCost = require("../helpers/constants/getGasCostETHAToCompound");
 const feeRatio = require("../../../../helpers/services/InstaDapp/constants/feeRatio");
 const feeCollector = require("../../../../helpers/services/InstaDapp/constants/feeCollector");
+const {
+  executorModule,
+} = require("../../../../helpers/constants/gelatoConstants");
 
 // This test showcases how to submit a task refinancing a Users debt position from
 // Maker to Compound using Gelato
@@ -201,15 +204,13 @@ describe("Full Debt Bridge ETHA => Compound", function () {
       feeCollector
     );
 
-    const daiETHPrice = await contracts.chainlinkResolver.getPrice(
-      constants.DAI_ETH_PRICEFEEDER
-    );
-
-    const gasFeesPaidFromDebt = ethers.BigNumber.from(gasCost)
-      .mul(gelatoGasPrice)
-      .mul(ethers.utils.parseUnits("1", 18))
-      .add(daiETHPrice.div(ethers.utils.parseUnits("2", 0)))
-      .div(daiETHPrice);
+    const gasFeesPaidFromDebt = (
+      await contracts.oracleAggregator.getExpectedReturnAmount(
+        ethers.BigNumber.from(gasCost).mul(gelatoGasPrice),
+        constants.ETH,
+        contracts.DAI.address
+      )
+    )[0];
 
     const vaultACollateral = await contracts.makerResolver.getMakerVaultCollateralBalance(
       vaultId
@@ -221,7 +222,12 @@ describe("Full Debt Bridge ETHA => Compound", function () {
       .sub(debtOnMakerBefore);
 
     //#endregion
-    const executorBalanceBeforeExecution = await contracts.gelatoCore.executorStake(
+
+    const executorModuleDaiBalanceBeforeExecution = await contracts.DAI.balanceOf(
+      executorModule
+    );
+
+    const executorStakeBeforeExecution = await contracts.gelatoCore.executorStake(
       wallets.gelatoExecutorAddress
     );
 
@@ -247,13 +253,13 @@ describe("Full Debt Bridge ETHA => Compound", function () {
     // }
     // await GelatoCoreLib.sleep(10000);
 
-    expect(
-      await contracts.DAI.balanceOf(wallets.gelatoExecutorAddress)
-    ).to.be.equal(gasFeesPaidFromDebt);
+    expect(await contracts.DAI.balanceOf(executorModule)).to.be.equal(
+      gasFeesPaidFromDebt.add(executorModuleDaiBalanceBeforeExecution)
+    );
 
     expect(
       await contracts.gelatoCore.executorStake(wallets.gelatoExecutorAddress)
-    ).to.be.gt(executorBalanceBeforeExecution);
+    ).to.be.gt(executorStakeBeforeExecution);
 
     // compound position of DSA on cDai and cEth
     const compoundPosition = await contracts.compoundResolver.getCompoundData(

@@ -42,23 +42,23 @@ contract ConnectGelatoDataMakerToX is ConnectorInterface {
     // solhint-disable const-name-snakecase
     string public constant override name = "ConnectGelatoDataMakerToX-v1.0";
     uint256 internal immutable _id;
-    uint256 internal immutable _minDebt;
     uint256 internal immutable _fees;
+    address public immutable oracleAggregator;
     address internal immutable _connectGelatoDataMakerToAave;
     address internal immutable _connectGelatoDataMakerToMaker;
     address internal immutable _connectGelatoDataMakerToCompound;
 
     constructor(
         uint256 __id,
-        uint256 __minDebt,
         uint256 __fees,
+        address __oracleAggregator,
         address __connectGelatoDataMakerToAave,
         address __connectGelatoDataMakerToMaker,
         address __connectGelatoDataMakerToCompound
     ) {
         _id = __id;
-        _minDebt = __minDebt;
         _fees = __fees;
+        oracleAggregator = __oracleAggregator;
         _connectGelatoDataMakerToAave = __connectGelatoDataMakerToAave;
         _connectGelatoDataMakerToMaker = __connectGelatoDataMakerToMaker;
         _connectGelatoDataMakerToCompound = __connectGelatoDataMakerToCompound;
@@ -90,8 +90,6 @@ contract ConnectGelatoDataMakerToX is ConnectorInterface {
             return "ConnectGelatoDataMakerToMaker: Vault A Id is not valid";
         if (!_isVaultOwner(vaultAId, _dsa))
             return "ConnectGelatoDataMakerToMaker: Vault A not owned by dsa";
-        if (_getMakerVaultDebt(vaultAId) < _minDebt)
-            return "ConnectGelatoDataMakerToMaker: !minDebt";
         return OK;
     }
 
@@ -99,13 +97,11 @@ contract ConnectGelatoDataMakerToX is ConnectorInterface {
     /// @dev payable to be compatible in conjunction with DSA.cast payable target
     /// @param _vaultAId Id of the unsafe vault of the client of Vault A Collateral.
     /// @param _colToken The ETH-A collateral token.
-    /// @param _priceOracle The oracle used to track collateral price e.g. OSM or Chainlink.
     /// @param _makerDestVaultId Only for Maker: e.g. ETH-B vault of the client.
     /// @param _makerDestColType Only for Maker: colType of the new vault: e.g.ETH-B
     function getDataAndCastFromMaker(
         uint256 _vaultAId,
         address _colToken,
-        address _priceOracle,
         uint256 _makerDestVaultId,
         string memory _makerDestColType
     ) external payable {
@@ -119,7 +115,7 @@ contract ConnectGelatoDataMakerToX is ConnectorInterface {
                     colAmt: _getMakerVaultCollateralBalance(_vaultAId),
                     colToken: _colToken,
                     debtAmt: debtAmt,
-                    priceOracle: _priceOracle,
+                    oracleAggregator: oracleAggregator,
                     makerDestVaultId: _makerDestVaultId,
                     makerDestColType: _makerDestColType,
                     fees: _fees,

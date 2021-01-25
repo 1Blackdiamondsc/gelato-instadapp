@@ -11,12 +11,17 @@ import {
 import {
     _getMaxAmtToBorrowMakerToCompound
 } from "../../../../functions/gelato/FGelatoDebtBridge.sol";
+import {
+    IBInstaFeeCollector
+} from "../../../../interfaces/InstaDapp/connectors/base/IBInstaFeeCollector.sol";
 
 contract ConditionMakerToCompoundLiquid is GelatoConditionsStandard {
-    uint256 public immutable fees;
+    address public immutable bInstaFeeCollector;
+    address public immutable oracleAggregator;
 
-    constructor(uint256 _fees) {
-        fees = _fees;
+    constructor(address _bInstaFeeCollector, address _oracleAggregator) {
+        bInstaFeeCollector = _bInstaFeeCollector;
+        oracleAggregator = _oracleAggregator;
     }
 
     function getConditionData(uint256 _fromVaultId)
@@ -50,7 +55,11 @@ contract ConditionMakerToCompoundLiquid is GelatoConditionsStandard {
         return
             _cTokenHasLiquidity(
                 DAI,
-                _getMaxAmtToBorrowMakerToCompound(_fromVaultId, fees)
+                _getMaxAmtToBorrowMakerToCompound(
+                    _fromVaultId,
+                    IBInstaFeeCollector(bInstaFeeCollector).fee(),
+                    oracleAggregator
+                )
             )
                 ? OK
                 : "CompoundHasNotEnoughLiquidity";

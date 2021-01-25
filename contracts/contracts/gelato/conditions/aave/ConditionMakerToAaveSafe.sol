@@ -13,27 +13,30 @@ import {
 import {
     _getMaxAmtToBorrowMakerToAave
 } from "../../../../functions/gelato/FGelatoDebtBridge.sol";
+import {
+    IBInstaFeeCollector
+} from "../../../../interfaces/InstaDapp/connectors/base/IBInstaFeeCollector.sol";
 
 contract ConditionMakerToAaveSafe is GelatoConditionsStandard {
-    uint256 public immutable fees;
+    address public immutable bInstaFeeCollector;
+    address public immutable oracleAggregator;
 
-    constructor(uint256 _fees) {
-        fees = _fees;
+    constructor(address _bInstaFeeCollector, address _oracleAggregator) {
+        bInstaFeeCollector = _bInstaFeeCollector;
+        oracleAggregator = _oracleAggregator;
     }
 
     function getConditionData(
         address _dsa,
         uint256 _fromVaultId,
-        address _colToken,
-        address _priceOracle
+        address _colToken
     ) public pure virtual returns (bytes memory) {
         return
             abi.encodeWithSelector(
                 this.aavePositionWillBeSafe.selector,
                 _dsa,
                 _fromVaultId,
-                _colToken,
-                _priceOracle
+                _colToken
             );
     }
 
@@ -42,34 +45,28 @@ contract ConditionMakerToAaveSafe is GelatoConditionsStandard {
         bytes calldata _conditionData,
         uint256
     ) public view virtual override returns (string memory) {
-        (
-            address _dsa,
-            uint256 _fromVaultId,
-            address _colToken,
-            address _priceOracle
-        ) =
-            abi.decode(
-                _conditionData[4:],
-                (address, uint256, address, address)
-            );
+        (address _dsa, uint256 _fromVaultId, address _colToken) =
+            abi.decode(_conditionData[4:], (address, uint256, address));
 
-        return
-            aavePositionWillBeSafe(_dsa, _fromVaultId, _colToken, _priceOracle);
+        return aavePositionWillBeSafe(_dsa, _fromVaultId, _colToken);
     }
 
     function aavePositionWillBeSafe(
         address _dsa,
         uint256 _fromVaultId,
-        address _colToken,
-        address _priceOracle
+        address _colToken
     ) public view returns (string memory) {
         return
             _aavePositionWillBeSafe(
                 _dsa,
                 _getMakerVaultCollateralBalance(_fromVaultId),
                 _colToken,
-                _getMaxAmtToBorrowMakerToAave(_fromVaultId, fees),
-                _priceOracle
+                _getMaxAmtToBorrowMakerToAave(
+                    _fromVaultId,
+                    IBInstaFeeCollector(bInstaFeeCollector).fee(),
+                    oracleAggregator
+                ),
+                oracleAggregator
             )
                 ? OK
                 : "AavePositionWillNotBeSafe";

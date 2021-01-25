@@ -1,7 +1,6 @@
 const hre = require("hardhat");
 const { ethers } = hre;
 const { sleep } = require("@gelatonetwork/core");
-const InstaConnector = require("../../pre-compiles/InstaConnectors.json");
 const assert = require("assert");
 
 module.exports = async (hre) => {
@@ -16,7 +15,7 @@ module.exports = async (hre) => {
 
   const { deployments } = hre;
   const { deploy } = deployments;
-  const { deployer, instaFeeCollector } = await hre.getNamedAccounts();
+  const { deployer } = await hre.getNamedAccounts();
 
   if (hre.network.name === "hardhat") {
     const deployerWallet = await ethers.provider.getSigner(deployer);
@@ -35,7 +34,7 @@ module.exports = async (hre) => {
     });
 
     const instaConnectors = await hre.ethers.getContractAt(
-      InstaConnector.abi,
+      "InstaConnectors",
       hre.network.config.InstaConnectors
     );
     const connectorLength = await instaConnectors.connectorLength();
@@ -45,9 +44,8 @@ module.exports = async (hre) => {
       from: deployer,
       args: [
         connectorId,
-        ethers.utils.parseUnits("3", 15),
-        instaFeeCollector,
         hre.network.config.OracleAggregator,
+        (await ethers.getContract("InstaFeeCollector")).address,
         (await ethers.getContract("ConnectGelatoDebtBridgeFee")).address,
       ],
     });
@@ -71,9 +69,8 @@ module.exports = async (hre) => {
       from: deployer,
       args: [
         parseInt(process.env.CONNECTOR_ID),
-        ethers.utils.parseUnits("3", 15),
-        instaFeeCollector,
         hre.network.config.OracleAggregator,
+        (await ethers.getContract("InstaFeeCollector")).address,
         (await ethers.getContract("ConnectGelatoDebtBridgeFee")).address,
       ],
       gasPrice: hre.network.config.gasPrice,
@@ -89,4 +86,7 @@ module.exports.skip = async (hre) => {
   return false;
 };
 module.exports.tags = ["ConnectGelatoDataMakerToCompound"];
-module.exports.dependencies = ["ConnectGelatoDebtBridgeFee"];
+module.exports.dependencies = [
+  "ConnectGelatoDebtBridgeFee",
+  "InstaFeeCollector",
+];

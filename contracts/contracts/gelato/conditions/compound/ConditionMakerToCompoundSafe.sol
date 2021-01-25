@@ -15,15 +15,15 @@ import {
     _getMaxAmtToBorrowMakerToCompound
 } from "../../../../functions/gelato/FGelatoDebtBridge.sol";
 import {
-    IBInstaFeeCollector
-} from "../../../../interfaces/InstaDapp/connectors/base/IBInstaFeeCollector.sol";
+    IInstaFeeCollector
+} from "../../../../interfaces/InstaDapp/IInstaFeeCollector.sol";
 
 contract ConditionMakerToCompoundSafe is GelatoConditionsStandard {
-    address public immutable bInstaFeeCollector;
+    address public immutable instaFeeCollector;
     address public immutable oracleAggregator;
 
-    constructor(address _bInstaFeeCollector, address _oracleAggregator) {
-        bInstaFeeCollector = _bInstaFeeCollector;
+    constructor(address _instaFeeCollector, address _oracleAggregator) {
+        instaFeeCollector = _instaFeeCollector;
         oracleAggregator = _oracleAggregator;
     }
 
@@ -64,7 +64,7 @@ contract ConditionMakerToCompoundSafe is GelatoConditionsStandard {
                 DAI,
                 _getMaxAmtToBorrowMakerToCompound(
                     _fromVaultId,
-                    IBInstaFeeCollector(bInstaFeeCollector).fee(),
+                    IInstaFeeCollector(instaFeeCollector).fee(),
                     oracleAggregator
                 )
             )

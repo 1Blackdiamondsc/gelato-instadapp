@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.0;
 
-interface IBInstaFeeCollector {
+interface IInstaFeeCollector {
     function setFeeCollector(address payable _feeCollector) external;
 
     function setFee(uint256 _fee) external;

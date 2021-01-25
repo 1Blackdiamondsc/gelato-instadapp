@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.0;
 
-import {GelatoBytes} from "../../../../lib/GelatoBytes.sol";
+import {GelatoBytes} from "../../../../../lib/GelatoBytes.sol";
 import {
     AccountInterface,
     ConnectorInterface
-} from "../../../../interfaces/InstaDapp/IInstaDapp.sol";
+} from "../../../../../interfaces/InstaDapp/IInstaDapp.sol";
 import {
     DataFlow
 } from "@gelatonetwork/core/contracts/gelato_core/interfaces/IGelatoCore.sol";
@@ -13,26 +13,29 @@ import {
     _getMakerVaultDebt,
     _getMakerVaultCollateralBalance,
     _isVaultOwner
-} from "../../../../functions/dapps/FMaker.sol";
-import {DebtBridgeInputData} from "../../../../structs/SDebtBridge.sol";
-import {DAI} from "../../../../constants/CTokens.sol";
+} from "../../../../../functions/dapps/FMaker.sol";
+import {DebtBridgeInputData} from "../../../../../structs/SDebtBridge.sol";
+import {DAI} from "../../../../../constants/CTokens.sol";
 import {
     _getRealisedDebt,
     _getFlashLoanRoute
-} from "../../../../functions/gelato/FGelatoDebtBridge.sol";
-import {PROTOCOL} from "../../../../constants/CDebtBridge.sol";
+} from "../../../../../functions/gelato/FGelatoDebtBridge.sol";
+import {PROTOCOL} from "../../../../../constants/CDebtBridge.sol";
 import {
     _getDebtBridgeRoute
-} from "../../../../functions/gelato/FGelatoDebtBridge.sol";
+} from "../../../../../functions/gelato/FGelatoDebtBridge.sol";
 import {
     _encodeGetDataAndCastMakerToAave
-} from "../../../../functions/InstaDapp/connectors/FConnectGelatoDataMakerToAave.sol";
+} from "../../../../../functions/InstaDapp/connectors/FConnectGelatoDataMakerToAave.sol";
 import {
     _encodeGetDataAndCastMakerToMaker
-} from "../../../../functions/InstaDapp/connectors/FConnectGelatoDataMakerToMaker.sol";
+} from "../../../../../functions/InstaDapp/connectors/FConnectGelatoDataMakerToMaker.sol";
 import {
     _encodeGetDataAndCastMakerToCompound
-} from "../../../../functions/InstaDapp/connectors/FConnectGelatoDataMakerToCompound.sol";
+} from "../../../../../functions/InstaDapp/connectors/FConnectGelatoDataMakerToCompound.sol";
+import {
+    IInstaFeeCollector
+} from "../../../../../interfaces/InstaDapp/IInstaFeeCollector.sol";
 
 contract ConnectGelatoDataMakerToX is ConnectorInterface {
     using GelatoBytes for bytes;
@@ -42,23 +45,23 @@ contract ConnectGelatoDataMakerToX is ConnectorInterface {
     // solhint-disable const-name-snakecase
     string public constant override name = "ConnectGelatoDataMakerToX-v1.0";
     uint256 internal immutable _id;
-    uint256 internal immutable _fees;
     address public immutable oracleAggregator;
+    address internal immutable _instaFeeCollector;
     address internal immutable _connectGelatoDataMakerToAave;
     address internal immutable _connectGelatoDataMakerToMaker;
     address internal immutable _connectGelatoDataMakerToCompound;
 
     constructor(
         uint256 __id,
-        uint256 __fees,
         address __oracleAggregator,
+        address __instaFeeCollector,
         address __connectGelatoDataMakerToAave,
         address __connectGelatoDataMakerToMaker,
         address __connectGelatoDataMakerToCompound
     ) {
         _id = __id;
-        _fees = __fees;
         oracleAggregator = __oracleAggregator;
+        _instaFeeCollector = __instaFeeCollector;
         _connectGelatoDataMakerToAave = __connectGelatoDataMakerToAave;
         _connectGelatoDataMakerToMaker = __connectGelatoDataMakerToMaker;
         _connectGelatoDataMakerToCompound = __connectGelatoDataMakerToCompound;
@@ -118,7 +121,7 @@ contract ConnectGelatoDataMakerToX is ConnectorInterface {
                     oracleAggregator: oracleAggregator,
                     makerDestVaultId: _makerDestVaultId,
                     makerDestColType: _makerDestColType,
-                    fees: _fees,
+                    fees: IInstaFeeCollector(_instaFeeCollector).fee(),
                     flashRoute: _getFlashLoanRoute(DAI, debtAmt)
                 })
             );

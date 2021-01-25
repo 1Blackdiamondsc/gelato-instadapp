@@ -1,7 +1,6 @@
 const hre = require("hardhat");
 const { ethers } = hre;
 const { sleep } = require("@gelatonetwork/core");
-const InstaConnector = require("../../pre-compiles/InstaConnectors.json");
 const assert = require("assert");
 
 module.exports = async (hre) => {
@@ -35,7 +34,7 @@ module.exports = async (hre) => {
     });
 
     const instaConnectors = await hre.ethers.getContractAt(
-      InstaConnector.abi,
+      "InstaConnectors",
       hre.network.config.InstaConnectors
     );
     const connectorLength = await instaConnectors.connectorLength();
@@ -45,8 +44,8 @@ module.exports = async (hre) => {
       from: deployer,
       args: [
         connectorId,
-        ethers.utils.parseUnits("3", 15),
         hre.network.config.OracleAggregator,
+        (await ethers.getContract("InstaFeeCollector")).address,
         (await ethers.getContract("ConnectGelatoDataMakerToAave")).address,
         (await ethers.getContract("ConnectGelatoDataMakerToMaker")).address,
         (await ethers.getContract("ConnectGelatoDataMakerToCompound")).address,
@@ -70,8 +69,8 @@ module.exports = async (hre) => {
       from: deployer,
       args: [
         parseInt(process.env.CONNECTOR_ID),
-        ethers.utils.parseUnits("3", 15),
         hre.network.config.OracleAggregator,
+        (await ethers.getContract("InstaFeeCollector")).address,
         (await ethers.getContract("ConnectGelatoDataMakerToAave")).address,
         (await ethers.getContract("ConnectGelatoDataMakerToMaker")).address,
         (await ethers.getContract("ConnectGelatoDataMakerToCompound")).address,
@@ -93,4 +92,5 @@ module.exports.dependencies = [
   "ConnectGelatoDataMakerToMaker",
   "ConnectGelatoDataMakerToAave",
   "ConnectGelatoDataMakerToCompound",
+  "InstaFeeCollector",
 ];

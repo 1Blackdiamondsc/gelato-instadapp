@@ -3,53 +3,53 @@ pragma solidity 0.8.0;
 
 import {
     IConnectInstaPoolV2
-} from "../../../../interfaces/InstaDapp/connectors/IConnectInstaPoolV2.sol";
-import {DAI, ETH} from "../../../../constants/CTokens.sol";
+} from "../../../../../interfaces/InstaDapp/connectors/IConnectInstaPoolV2.sol";
+import {DAI, ETH} from "../../../../../constants/CTokens.sol";
 import {
     CONNECT_MAKER,
     CONNECT_COMPOUND,
     INSTA_POOL_V2,
     CONNECT_BASIC,
     CONNECT_FEE
-} from "../../../../constants/CInstaDapp.sol";
+} from "../../../../../constants/CInstaDapp.sol";
 import {
     _getMakerVaultDebt,
     _getMakerVaultCollateralBalance
-} from "../../../../functions/dapps/FMaker.sol";
+} from "../../../../../functions/dapps/FMaker.sol";
 import {
     _encodeFlashPayback
-} from "../../../../functions/InstaDapp/connectors/FInstaPoolV2.sol";
+} from "../../../../../functions/InstaDapp/connectors/FInstaPoolV2.sol";
 import {
     _encodePaybackMakerVault,
     _encodedWithdrawMakerVault
-} from "../../../../functions/InstaDapp/connectors/FConnectMaker.sol";
+} from "../../../../../functions/InstaDapp/connectors/FConnectMaker.sol";
 import {
     _encodeDepositCompound,
     _encodeBorrowCompound
-} from "../../../../functions/InstaDapp/connectors/FConnectCompound.sol";
+} from "../../../../../functions/InstaDapp/connectors/FConnectCompound.sol";
 import {
     _encodeBasicWithdraw
-} from "../../../../functions/InstaDapp/connectors/FConnectBasic.sol";
+} from "../../../../../functions/InstaDapp/connectors/FConnectBasic.sol";
 import {
     _encodeCalculateFee
-} from "../../../../functions/InstaDapp/connectors/FConnectDebtBridgeFee.sol";
-import {_getGelatoExecutorFees} from "../../../../functions/gelato/FGelato.sol";
+} from "../../../../../functions/InstaDapp/connectors/FConnectDebtBridgeFee.sol";
+import {
+    _getGelatoExecutorFees
+} from "../../../../../functions/gelato/FGelato.sol";
 import {
     _getFlashLoanRoute,
     _getGasCostMakerToCompound,
     _getRealisedDebt
-} from "../../../../functions/gelato/FGelatoDebtBridge.sol";
+} from "../../../../../functions/gelato/FGelatoDebtBridge.sol";
 import {
-    IBInstaFeeCollector
-} from "../../../../interfaces/InstaDapp/connectors/base/IBInstaFeeCollector.sol";
-import {
-    BDebtBridgeFromMaker
-} from "../../../../contracts/connectors/base/BDebtBridgeFromMaker.sol";
+    IInstaFeeCollector
+} from "../../../../../interfaces/InstaDapp/IInstaFeeCollector.sol";
+import {BDebtBridgeFromMaker} from "../../base/BDebtBridgeFromMaker.sol";
 import {
     IOracleAggregator
-} from "../../../../interfaces/gelato/IOracleAggregator.sol";
-import {_convertTo18} from "../../../../vendor/Convert.sol";
-import {GELATO_EXECUTOR_MODULE} from "../../../../constants/CGelato.sol";
+} from "../../../../../interfaces/gelato/IOracleAggregator.sol";
+import {_convertTo18} from "../../../../../vendor/Convert.sol";
+import {GELATO_EXECUTOR_MODULE} from "../../../../../constants/CGelato.sol";
 
 contract ConnectGelatoDataMakerToCompound is BDebtBridgeFromMaker {
     // solhint-disable const-name-snakecase
@@ -59,16 +59,14 @@ contract ConnectGelatoDataMakerToCompound is BDebtBridgeFromMaker {
     // solhint-disable no-empty-blocks
     constructor(
         uint256 __id,
-        uint256 _fee,
-        address payable _feeCollector,
         address _oracleAggregator,
+        address __instaFeeCollector,
         address __connectGelatoDebtBridgeFee
     )
         BDebtBridgeFromMaker(
             __id,
-            _fee,
-            _feeCollector,
             _oracleAggregator,
+            __instaFeeCollector,
             __connectGelatoDebtBridgeFee
         )
     {}
@@ -162,7 +160,7 @@ contract ConnectGelatoDataMakerToCompound is BDebtBridgeFromMaker {
         datas[2] = _encodeCalculateFee(
             0,
             _gasFeesPaidFromDebt,
-            IBInstaFeeCollector(connectGelatoDataFromMakerAddr).fee(),
+            IInstaFeeCollector(instaFeeCollector).fee(),
             600,
             600,
             601
@@ -177,7 +175,7 @@ contract ConnectGelatoDataMakerToCompound is BDebtBridgeFromMaker {
         datas[5] = _encodeBasicWithdraw(
             DAI,
             0,
-            IBInstaFeeCollector(connectGelatoDataFromMakerAddr).feeCollector(),
+            IInstaFeeCollector(instaFeeCollector).feeCollector(),
             601,
             0
         );

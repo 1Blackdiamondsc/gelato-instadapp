@@ -1,11 +1,16 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.0;
 
-import {ConnectorInterface} from "../../../interfaces/InstaDapp/IInstaDapp.sol";
-import {IInstaMemory} from "../../../interfaces/InstaDapp/IInstaMemory.sol";
-import {INSTA_MEMORY} from "../../../constants/CInstaDapp.sol";
-import {_getUint, _setUint} from "../../../functions/InstaDapp/FInstaDapp.sol";
-import {wmul} from "../../../vendor/DSMath.sol";
+import {
+    ConnectorInterface
+} from "../../../../interfaces/InstaDapp/IInstaDapp.sol";
+import {IInstaMemory} from "../../../../interfaces/InstaDapp/IInstaMemory.sol";
+import {INSTA_MEMORY} from "../../../../constants/CInstaDapp.sol";
+import {
+    _getUint,
+    _setUint
+} from "../../../../functions/InstaDapp/FInstaDapp.sol";
+import {wmul} from "../../../../vendor/DSMath.sol";
 
 contract ConnectGelatoDebtBridgeFee is ConnectorInterface {
     // solhint-disable const-name-snakecase

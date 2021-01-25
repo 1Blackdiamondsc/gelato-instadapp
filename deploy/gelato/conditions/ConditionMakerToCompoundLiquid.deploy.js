@@ -20,7 +20,7 @@ module.exports = async (hre) => {
     gasPrice: hre.network.config.gasPrice,
     log: hre.network.name === "mainnet" ? true : false,
     args: [
-      (await ethers.getContract("ConnectGelatoDataMakerToCompound")).address,
+      (await ethers.getContract("InstaFeeCollector")).address,
       hre.network.config.OracleAggregator,
     ],
   });
@@ -30,4 +30,4 @@ module.exports.skip = async (hre) => {
   return hre.network.name === "mainnet" ? true : false;
 };
 module.exports.tags = ["ConditionMakerToCompoundLiquid"];
-module.exports.dependencies = ["ConnectGelatoDataMakerToCompound"];
+module.exports.dependencies = ["InstaFeeCollector"];

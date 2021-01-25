@@ -5,8 +5,8 @@ import {
     IConnectInstaPoolV2
 } from "../../interfaces/InstaDapp/connectors/IConnectInstaPoolV2.sol";
 import {
-    IBInstaFeeCollector
-} from "../../interfaces/InstaDapp/connectors/base/IBInstaFeeCollector.sol";
+    IInstaFeeCollector
+} from "../../interfaces/InstaDapp/IInstaFeeCollector.sol";
 import {DAI, ETH} from "../../constants/CTokens.sol";
 import {
     CONNECT_MAKER,
@@ -39,7 +39,7 @@ import {
 } from "../../functions/gelato/FGelatoDebtBridge.sol";
 import {
     BDebtBridgeFromMaker
-} from "../../contracts/connectors/base/BDebtBridgeFromMaker.sol";
+} from "../../contracts/Instadapp/connectors/base/BDebtBridgeFromMaker.sol";
 import {
     _encodeBasicWithdraw
 } from "../../functions/InstaDapp/connectors/FConnectBasic.sol";
@@ -54,16 +54,14 @@ contract MockConnectGelatoDataMakerToMaker is BDebtBridgeFromMaker {
     // solhint-disable no-empty-blocks
     constructor(
         uint256 __id,
-        uint256 _fee,
-        address payable _feeCollector,
         address _oracleAggregator,
+        address __instaFeeCollector,
         address __connectGelatoDebtBridgeFee
     )
         BDebtBridgeFromMaker(
             __id,
-            _fee,
-            _feeCollector,
             _oracleAggregator,
+            __instaFeeCollector,
             __connectGelatoDebtBridgeFee
         )
     {}
@@ -177,7 +175,7 @@ contract MockConnectGelatoDataMakerToMaker is BDebtBridgeFromMaker {
         datas[2] = _encodeCalculateFee(
             0,
             _gasFeesPaidFromDebt,
-            IBInstaFeeCollector(connectGelatoDataFromMakerAddr).fee(),
+            IInstaFeeCollector(instaFeeCollector).fee(),
             600,
             600,
             601
@@ -188,7 +186,7 @@ contract MockConnectGelatoDataMakerToMaker is BDebtBridgeFromMaker {
         datas[6] = _encodeBasicWithdraw(
             DAI,
             0,
-            IBInstaFeeCollector(connectGelatoDataFromMakerAddr).feeCollector(),
+            IInstaFeeCollector(instaFeeCollector).feeCollector(),
             601,
             0
         );
@@ -235,7 +233,7 @@ contract MockConnectGelatoDataMakerToMaker is BDebtBridgeFromMaker {
         datas[2] = _encodeCalculateFee(
             0,
             _gasFeesPaidFromDebt,
-            IBInstaFeeCollector(connectGelatoDataFromMakerAddr).fee(),
+            IInstaFeeCollector(instaFeeCollector).fee(),
             600,
             600,
             601
@@ -250,7 +248,7 @@ contract MockConnectGelatoDataMakerToMaker is BDebtBridgeFromMaker {
         datas[5] = _encodeBasicWithdraw(
             DAI,
             0,
-            IBInstaFeeCollector(connectGelatoDataFromMakerAddr).feeCollector(),
+            IInstaFeeCollector(instaFeeCollector).feeCollector(),
             601,
             0
         );

@@ -1,40 +1,39 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.0;
 
-import {GelatoBytes} from "../../../lib/GelatoBytes.sol";
+import {GelatoBytes} from "../../../../lib/GelatoBytes.sol";
 import {
     DataFlow
 } from "@gelatonetwork/core/contracts/gelato_core/interfaces/IGelatoCore.sol";
 import {
     _isVaultOwner,
     _getMakerVaultDebt
-} from "../../../functions/dapps/FMaker.sol";
-import {BInstaFeeCollector} from "./BInstaFeeCollector.sol";
+} from "../../../../functions/dapps/FMaker.sol";
 import {
     AccountInterface,
     ConnectorInterface
-} from "../../../interfaces/InstaDapp/IInstaDapp.sol";
+} from "../../../../interfaces/InstaDapp/IInstaDapp.sol";
 
-abstract contract BDebtBridgeFromMaker is
-    BInstaFeeCollector,
-    ConnectorInterface
-{
+abstract contract BDebtBridgeFromMaker is ConnectorInterface {
     using GelatoBytes for bytes;
 
     string public constant OK = "OK";
     uint256 internal immutable _id;
     address public immutable oracleAggregator;
+    address public immutable instaFeeCollector;
     address public immutable connectGelatoDataFromMakerAddr;
+    address internal immutable _connectGelatoDebtBridgeFee;
 
     constructor(
         uint256 __id,
-        uint256 _fee,
-        address payable _feeCollector,
         address _oracleAggregator,
+        address __instaFeeCollector,
         address __connectGelatoDebtBridgeFee
-    ) BInstaFeeCollector(_fee, _feeCollector, __connectGelatoDebtBridgeFee) {
+    ) {
         _id = __id;
         oracleAggregator = _oracleAggregator;
+        instaFeeCollector = __instaFeeCollector;
+        _connectGelatoDebtBridgeFee = __connectGelatoDebtBridgeFee;
         connectGelatoDataFromMakerAddr = address(this);
     }
 

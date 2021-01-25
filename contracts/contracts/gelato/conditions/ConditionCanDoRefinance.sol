@@ -20,15 +20,15 @@ import {
 } from "../../../functions/gelato/FGelatoDebtBridge.sol";
 import {DAI} from "../../../constants/CTokens.sol";
 import {
-    IBInstaFeeCollector
-} from "../../../interfaces/InstaDapp/connectors/base/IBInstaFeeCollector.sol";
+    IInstaFeeCollector
+} from "../../../interfaces/InstaDapp/IInstaFeeCollector.sol";
 
 contract ConditionCanDoRefinance is GelatoConditionsStandard {
-    address public immutable bInstaFeeCollector;
+    address public immutable instaFeeCollector;
     address public immutable oracleAggregator;
 
-    constructor(address _bInstaFeeCollector, address _oracleAggregator) {
-        bInstaFeeCollector = _bInstaFeeCollector;
+    constructor(address _instaFeeCollector, address _oracleAggregator) {
+        instaFeeCollector = _instaFeeCollector;
         oracleAggregator = _oracleAggregator;
     }
 
@@ -95,7 +95,7 @@ contract ConditionCanDoRefinance is GelatoConditionsStandard {
                     oracleAggregator: oracleAggregator,
                     makerDestVaultId: _makerDestVaultId,
                     makerDestColType: _makerDestColType,
-                    fees: IBInstaFeeCollector(bInstaFeeCollector).fee(),
+                    fees: IInstaFeeCollector(instaFeeCollector).fee(),
                     flashRoute: _getFlashLoanRoute(DAI, debtAmt)
                 })
             ) != PROTOCOL.NONE

@@ -9,7 +9,10 @@ import {
 } from "../../interfaces/dapps/Aave/ILendingPoolAddressesProvider.sol";
 import {ILendingPool} from "../../interfaces/dapps/Aave/ILendingPool.sol";
 import {LENDING_POOL_ADDRESSES_PROVIDER} from "../../constants/CAave.sol";
-import {_getUserData} from "../../functions/dapps/FAave.sol";
+import {
+    _getUserData,
+    _getTokenLiquidity
+} from "../../functions/dapps/FAave.sol";
 import {
     _isAaveLiquid
 } from "../../functions/gelato/conditions/aave/FAaveHasLiquidity.sol";
@@ -67,5 +70,9 @@ contract AaveResolver {
                 _debtAmt,
                 _oracleAggregator
             );
+    }
+
+    function getLiquidity(address _token) public view returns (uint256) {
+        return _getTokenLiquidity(_token);
     }
 }

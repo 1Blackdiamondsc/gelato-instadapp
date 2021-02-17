@@ -16,7 +16,7 @@ const ETH = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE";
 
 // #endregion
 
-describe("ConditionMakerVaultUnsafeOSM Unit Test", function () {
+describe("ConditionMakerVaultUnSafePosition Unit Test", function () {
   this.timeout(0);
   if (hre.network.name !== "hardhat") {
     console.error("Test Suite is meant to be run on hardhat only");
@@ -32,11 +32,14 @@ describe("ConditionMakerVaultUnsafeOSM Unit Test", function () {
   let instaIndex;
   let DAI;
 
-  let conditionMakerVaultUnsafeOSM;
+  let conditionMakerVaultUnsafePosition;
   let oracleAggregator;
 
   let cdpId;
   let dsa;
+
+  let borrowAmt;
+  let depositAmt;
 
   beforeEach(async function () {
     // Deploy contract dependencies
@@ -70,8 +73,8 @@ describe("ConditionMakerVaultUnsafeOSM Unit Test", function () {
     DAI = await ethers.getContractAt(IERC20.abi, hre.network.config.DAI);
 
     // ========== Test Setup ============
-    conditionMakerVaultUnsafeOSM = await ethers.getContract(
-      "ConditionMakerVaultUnsafeOSM"
+    conditionMakerVaultUnsafePosition = await ethers.getContract(
+      "ConditionMakerVaultUnSafePosition"
     );
 
     oracleAggregator = await ethers.getContractAt(
@@ -109,52 +112,57 @@ describe("ConditionMakerVaultUnsafeOSM Unit Test", function () {
     cdpId = String(cdps.ids[0]);
 
     expect(cdps.ids[0].isZero()).to.be.false;
-
+    depositAmt = ethers.utils.parseEther("10");
     await dsa.cast(
       [hre.network.config.ConnectMaker],
       [
         await hre.run("abi-encode-withselector", {
           abi: ConnectMaker.abi,
           functionname: "deposit",
-          inputs: [cdpId, ethers.utils.parseEther("10"), 0, 0],
+          inputs: [cdpId, depositAmt, 0, 0],
         }),
       ],
       userAddress,
       {
-        value: ethers.utils.parseEther("10"),
+        value: depositAmt,
       }
     );
+
+    borrowAmt = ethers.utils.parseUnits("2000", 18);
     await dsa.cast(
       [hre.network.config.ConnectMaker],
       [
         await hre.run("abi-encode-withselector", {
           abi: ConnectMaker.abi,
           functionname: "borrow",
-          inputs: [cdpId, ethers.utils.parseUnits("2000", 18), 0, 0],
+          inputs: [cdpId, borrowAmt, 0, 0],
         }),
       ],
       userAddress
     );
 
-    expect(await DAI.balanceOf(dsa.address)).to.be.equal(
-      ethers.utils.parseEther("2000")
-    );
+    expect(await DAI.balanceOf(dsa.address)).to.be.equal(borrowAmt);
     // Add ETH/USD Maker Medianizer in the PriceOracleResolver
   });
 
   it("#1: ok should return MakerVaultNotUnsafe when the collateralization is above the defined limit", async function () {
-    const conditionData = await conditionMakerVaultUnsafeOSM.getConditionData(
+    const conditionData = await conditionMakerVaultUnsafePosition.getConditionData(
       cdpId,
       hre.network.config.ETH_OSM,
+      await hre.run("abi-encode-withselector", {
+        abi: ["function peek() view returns (bytes32,bool)"],
+        functionname: "peek",
+      }),
       await hre.run("abi-encode-withselector", {
         abi: ["function peep() view returns (bytes32,bool)"],
         functionname: "peep",
       }),
+      ethers.utils.parseUnits("151", 16),
       ethers.utils.parseUnits("30", 17)
     );
 
     expect(
-      await conditionMakerVaultUnsafeOSM.ok(0, conditionData, 0)
+      await conditionMakerVaultUnsafePosition.ok(0, conditionData, 0)
     ).to.be.equal("MakerVaultNotUnsafe");
   });
 
@@ -162,26 +170,30 @@ describe("ConditionMakerVaultUnsafeOSM Unit Test", function () {
     const amountToWithdraw = await oracleAggregator.getExpectedReturnAmount(
       (
         await oracleAggregator.getExpectedReturnAmount(
-          ethers.utils.parseEther("10"),
+          depositAmt,
           ETH,
           hre.network.config.DAI
         )
       )[0].sub(
-        ethers.utils
-          .parseEther("2000")
-          .mul(ethers.utils.parseUnits("15", 17))
+        borrowAmt
+          .mul(ethers.utils.parseUnits("1505", 15))
           .div(ethers.utils.parseUnits("1", 18))
       ),
       hre.network.config.DAI,
       ETH
     );
-    const conditionData = await conditionMakerVaultUnsafeOSM.getConditionData(
+    const conditionData = await conditionMakerVaultUnsafePosition.getConditionData(
       cdpId,
       hre.network.config.ETH_OSM,
+      await hre.run("abi-encode-withselector", {
+        abi: ["function peek() view returns (bytes32,bool)"],
+        functionname: "peek",
+      }),
       await hre.run("abi-encode-withselector", {
         abi: ["function peep() view returns (bytes32,bool)"],
         functionname: "peep",
       }),
+      ethers.utils.parseUnits("151", 16),
       ethers.utils.parseUnits("30", 17)
     );
 
@@ -204,7 +216,115 @@ describe("ConditionMakerVaultUnsafeOSM Unit Test", function () {
     //#endregion
 
     expect(
-      await conditionMakerVaultUnsafeOSM.ok(0, conditionData, 0)
+      await conditionMakerVaultUnsafePosition.ok(0, conditionData, 0)
+    ).to.be.equal("OK");
+  });
+
+  it("#3: ok should return MakerVaultNotUnsafe when the collateralization is above than the defined limit but above ", async function () {
+    const amountToWithdraw = await oracleAggregator.getExpectedReturnAmount(
+      (
+        await oracleAggregator.getExpectedReturnAmount(
+          depositAmt,
+          ETH,
+          hre.network.config.DAI
+        )
+      )[0].sub(
+        borrowAmt
+          .mul(ethers.utils.parseUnits("152", 16))
+          .div(ethers.utils.parseUnits("1", 18))
+      ),
+      hre.network.config.DAI,
+      ETH
+    );
+    const conditionData = await conditionMakerVaultUnsafePosition.getConditionData(
+      cdpId,
+      hre.network.config.ETH_OSM,
+      await hre.run("abi-encode-withselector", {
+        abi: ["function peek() view returns (bytes32,bool)"],
+        functionname: "peek",
+      }),
+      await hre.run("abi-encode-withselector", {
+        abi: ["function peep() view returns (bytes32,bool)"],
+        functionname: "peep",
+      }),
+      ethers.utils.parseUnits("151", 16),
+      ethers.utils.parseUnits("15", 17)
+    );
+
+    //#region Mock Part
+
+    await dsa.cast(
+      [hre.network.config.ConnectMaker],
+      [
+        await hre.run("abi-encode-withselector", {
+          abi: [
+            "function withdraw(uint vault, uint amt, uint getId, uint setId) payable",
+          ],
+          functionname: "withdraw",
+          inputs: [cdpId, amountToWithdraw[0], 0, 0],
+        }),
+      ],
+      userAddress
+    );
+
+    //#endregion
+
+    expect(
+      await conditionMakerVaultUnsafePosition.ok(0, conditionData, 0)
+    ).to.be.equal("MakerVaultNotUnsafe");
+  });
+
+  it("#4: ok should return OK when the collateralization is lower than the defined limit but above minimum collaterallization limit", async function () {
+    const amountToWithdraw = await oracleAggregator.getExpectedReturnAmount(
+      (
+        await oracleAggregator.getExpectedReturnAmount(
+          depositAmt,
+          ETH,
+          hre.network.config.DAI
+        )
+      )[0].sub(
+        borrowAmt
+          .mul(ethers.utils.parseUnits("152", 16))
+          .div(ethers.utils.parseUnits("1", 18))
+      ),
+      hre.network.config.DAI,
+      ETH
+    );
+    const conditionData = await conditionMakerVaultUnsafePosition.getConditionData(
+      cdpId,
+      hre.network.config.ETH_OSM,
+      await hre.run("abi-encode-withselector", {
+        abi: ["function peek() view returns (bytes32,bool)"],
+        functionname: "peek",
+      }),
+      await hre.run("abi-encode-withselector", {
+        abi: ["function peep() view returns (bytes32,bool)"],
+        functionname: "peep",
+      }),
+      ethers.utils.parseUnits("151", 16),
+      ethers.utils.parseUnits("30", 17)
+    );
+
+    //#region Mock Part
+
+    await dsa.cast(
+      [hre.network.config.ConnectMaker],
+      [
+        await hre.run("abi-encode-withselector", {
+          abi: [
+            "function withdraw(uint vault, uint amt, uint getId, uint setId) payable",
+          ],
+          functionname: "withdraw",
+          inputs: [cdpId, amountToWithdraw[0], 0, 0],
+        }),
+      ],
+      userAddress
+    );
+
+    //#endregion
+
+    expect(
+      await conditionMakerVaultUnsafePosition.ok(0, conditionData, 0)
     ).to.be.equal("OK");
   });
 });

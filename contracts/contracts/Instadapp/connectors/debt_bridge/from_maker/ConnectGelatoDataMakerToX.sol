@@ -122,7 +122,7 @@ contract ConnectGelatoDataMakerToX is ConnectorInterface {
                     makerDestVaultId: _makerDestVaultId,
                     makerDestColType: _makerDestColType,
                     fees: IInstaFeeCollector(_instaFeeCollector).fee(),
-                    flashRoute: _getFlashLoanRoute(DAI, debtAmt)
+                    flashRoute: _getFlashLoanRoute(DAI, _vaultAId, debtAmt)
                 })
             );
 

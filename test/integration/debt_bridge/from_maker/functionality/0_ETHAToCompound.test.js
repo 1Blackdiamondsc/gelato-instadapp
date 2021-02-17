@@ -158,9 +158,7 @@ describe("Full Debt Bridge ETHA => Compound", function () {
     expect(gelatoGasPrice).to.be.lte(constants.GAS_PRICE_CEIL);
 
     // TO DO: base mock price off of real price data
-    await contracts.priceOracleResolver.setMockPrice(
-      ethers.utils.parseUnits("400", 18)
-    );
+    await contracts.priceOracleResolver.setMockPrice(constants.BASE_MOCK_PRICE);
 
     expect(
       await contracts.gelatoCore
@@ -170,7 +168,7 @@ describe("Full Debt Bridge ETHA => Compound", function () {
 
     // TO DO: base mock price off of real price data
     await contracts.priceOracleResolver.setMockPrice(
-      ethers.utils.parseUnits("250", 18)
+      constants.BASE_MOCK_PRICE_OFF
     );
 
     expect(
@@ -281,7 +279,7 @@ describe("Full Debt Bridge ETHA => Compound", function () {
       .div(ethers.utils.parseUnits("1", 18))
       .add(gasFeesPaidFromDebt);
 
-    if (route === 1) {
+    if (route === 2) {
       expect(expectedDebtOnCompound).to.be.lte(
         compoundPosition[0].borrowBalanceStoredUser
       );

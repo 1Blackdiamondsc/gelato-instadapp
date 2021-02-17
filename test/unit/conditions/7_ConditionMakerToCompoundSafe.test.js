@@ -11,6 +11,7 @@ const InstaList = require("../../../pre-compiles/InstaList.json");
 const InstaAccount = require("../../../pre-compiles/InstaAccount.json");
 const InstaIndex = require("../../../pre-compiles/InstaIndex.json");
 const IERC20 = require("../../../pre-compiles/IERC20.json");
+const ETH = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE";
 
 // #endregion
 
@@ -31,6 +32,8 @@ describe("ConditionMakerToCompoundSafe Unit Test", function () {
   let DAI;
 
   let conditionMakerToCompoundSafe;
+  let compoundResolver;
+  let oracleAggregator;
 
   let dsa;
   let cdpAId;
@@ -71,6 +74,15 @@ describe("ConditionMakerToCompoundSafe Unit Test", function () {
       "ConditionMakerToCompoundSafe"
     );
 
+    compoundResolver = await ethers.getContract("CompoundResolver");
+    oracleAggregator = new ethers.Contract(
+      hre.network.config.OracleAggregator,
+      [
+        "function getExpectedReturnAmount(uint256 amountIn, address inToken, address outToken) external view returns (uint256 returnAmount, uint256 outTokenDecimals)",
+      ],
+      userWallet
+    );
+
     // Create DeFi Smart Account
 
     const dsaAccountCount = await instaList.accounts();
@@ -109,8 +121,8 @@ describe("ConditionMakerToCompoundSafe Unit Test", function () {
     // 2 - Borrow.
     // 3 - Test if the anticipated position will be safe in Compound.
 
-    let amountToBorrow = ethers.utils.parseUnits("500", 18);
-    const amountToDeposit = ethers.utils.parseUnits("2", 18);
+    let amountToBorrow = ethers.utils.parseUnits("2000", 18);
+    const amountToDeposit = ethers.utils.parseUnits("4", 18);
 
     //#region Deposit
 
@@ -151,10 +163,105 @@ describe("ConditionMakerToCompoundSafe Unit Test", function () {
 
     const conditionData = await conditionMakerToCompoundSafe.getConditionData(
       dsa.address,
+      ETH,
       cdpAId
     );
     expect(
       await conditionMakerToCompoundSafe.ok(0, conditionData, 0)
     ).to.be.equal("OK");
+  });
+
+  it("#2: _compoundPositionWillBeSafe should return false if the final position is not safe", async function () {
+    expect(
+      await compoundResolver.compoundPositionWouldBeSafe(
+        dsa.address,
+        ETH,
+        ethers.utils.parseEther("10"),
+        hre.network.config.DAI,
+        ethers.utils.parseUnits("10200", 18)
+      )
+    ).to.be.false;
+  });
+
+  it("#3: _compoundPositionWillBeSafe should return true if the final position is safe due to previous deposit", async function () {
+    const preAmountToDepo = ethers.utils.parseEther("1");
+    await dsa.cast(
+      [hre.network.config.ConnectCompound],
+      [
+        await hre.run("abi-encode-withselector", {
+          abi: [
+            "function deposit(address token, uint amt, uint getId, uint setId) payable",
+          ],
+          functionname: "deposit",
+          inputs: [ETH, preAmountToDepo, 0, 0],
+        }),
+      ],
+      userAddress,
+      {
+        value: preAmountToDepo,
+      }
+    );
+
+    expect(
+      await compoundResolver.compoundPositionWouldBeSafe(
+        dsa.address,
+        ETH,
+        ethers.utils.parseEther("10"),
+        hre.network.config.DAI,
+        ethers.utils.parseUnits("10200", 18)
+      )
+    ).to.be.true;
+  });
+
+  it("#4: _compoundPositionWillBeSafe should return false if the final position is unsafe despite previous deposit", async function () {
+    const preAmountToDepo = ethers.utils.parseEther("1");
+    const preAmountToBor = await oracleAggregator.getExpectedReturnAmount(
+      preAmountToDepo
+        .mul(ethers.utils.parseUnits("745", 15))
+        .div(ethers.utils.parseUnits("1", 18)),
+      ETH,
+      DAI.address
+    );
+    console.log(String(preAmountToBor));
+    await dsa.cast(
+      [hre.network.config.ConnectCompound],
+      [
+        await hre.run("abi-encode-withselector", {
+          abi: [
+            "function deposit(address token, uint amt, uint getId, uint setId) payable",
+          ],
+          functionname: "deposit",
+          inputs: [ETH, preAmountToDepo, 0, 0],
+        }),
+      ],
+      userAddress,
+      {
+        value: preAmountToDepo,
+      }
+    );
+
+    await dsa.cast(
+      [hre.network.config.ConnectCompound],
+      [
+        await hre.run("abi-encode-withselector", {
+          abi: [
+            "function borrow(address token, uint amt, uint getId, uint setId) payable",
+          ],
+          functionname: "borrow",
+          inputs: [DAI.address, preAmountToBor[0], 0, 0],
+        }),
+      ],
+      userAddress
+    );
+
+    expect(
+      await compoundResolver.compoundPositionWouldBeSafe(
+        dsa.address,
+        ETH,
+        ethers.utils.parseEther("10"),
+        hre.network.config.DAI,
+        ethers.utils.parseUnits("10200", 18)
+      )
+    ).to.be.false;
   });
 });

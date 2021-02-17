@@ -2,7 +2,6 @@
 pragma solidity 0.8.0;
 
 import {ICToken} from "./ICToken.sol";
-import {Market} from "../../../structs/SCompound.sol";
 
 interface IComptroller {
     function getAssetsIn(address account)
@@ -19,5 +18,14 @@ interface IComptroller {
             bool isListed,
             uint256 collateralFactorMantissa,
             bool isComped
+        );
+
+    function getAccountLiquidity(address account)
+        external
+        view
+        returns (
+            uint256,
+            uint256,
+            uint256
         );
 }

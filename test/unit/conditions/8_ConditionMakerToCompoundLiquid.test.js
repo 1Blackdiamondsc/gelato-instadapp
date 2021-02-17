@@ -121,8 +121,8 @@ describe("ConditionMakerToCompoundLiquid Unit Test", function () {
     // 2 - Borrow.
     // 3 - Test if Compound has enough liquidity for the futur borrow.
 
-    let amountToBorrow = ethers.utils.parseUnits("500", 18);
-    const amountToDeposit = ethers.utils.parseUnits("2", 18);
+    let amountToBorrow = ethers.utils.parseUnits("2000", 18);
+    const amountToDeposit = ethers.utils.parseUnits("4", 18);
 
     //#region Deposit
 
@@ -176,11 +176,13 @@ describe("ConditionMakerToCompoundLiquid Unit Test", function () {
     // 3 - Test if Compound has enough liquidity for the futur borrow.
 
     // const amountToBorrow = ethers.utils.parseUnits("10000000", 18); // for Block 11423903 the amount of DAI in Compound is ~1.5 millions dollars
-    const amountToDeposit = ethers.utils.parseUnits("1", 18);
+    const amountToDeposit = ethers.utils.parseUnits("4", 18);
 
     const amountToBorrow = (
       await oracleAggregator.getExpectedReturnAmount(
-        ethers.utils.parseUnits("65", 16),
+        amountToDeposit
+          .mul(ethers.utils.parseUnits("65", 16))
+          .div(ethers.utils.parseUnits("1", 18)),
         ETH,
         hre.network.config.DAI
       )

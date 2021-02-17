@@ -7,10 +7,10 @@ module.exports = (route) => {
       rawGasCost = 2028307; // gasLeft method
       break;
     case 1:
-      rawGasCost = 2626711; // gasLeft method
+      rawGasCost = 2944065; // gasLeft method
       break;
     case 2:
-      rawGasCost = 2944065; // gasLeft method
+      rawGasCost = 2626711; // gasLeft method
       break;
     case 3:
       rawGasCost = 3698800; // gasLeft method

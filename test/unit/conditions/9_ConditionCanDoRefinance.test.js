@@ -181,8 +181,8 @@ describe("ConditionCanDoRefinance Unit Test", function () {
     // 1 - Deposit.
     // 2 - Borrow.
     // 3 - Test if Aave has enough liquidity for the futur borrow.
-    let amountToBorrow = ethers.utils.parseUnits("500", 18);
-    const amountToDeposit = ethers.utils.parseUnits("2", 18);
+    let amountToBorrow = ethers.utils.parseUnits("2000", 18);
+    const amountToDeposit = ethers.utils.parseUnits("4", 18);
     // //#region Deposit
     await dsa.cast(
       [hre.network.config.ConnectMaker],
@@ -231,8 +231,8 @@ describe("ConditionCanDoRefinance Unit Test", function () {
     // 2 - Borrow.
     // 3 - Test if Aave has enough liquidity for the futur borrow.
     // 4 - Get All debt of Aave.
-    let amountToBorrow = ethers.utils.parseUnits("500", 18);
-    const amountToDeposit = ethers.utils.parseUnits("2", 18);
+    let amountToBorrow = ethers.utils.parseUnits("2000", 18);
+    const amountToDeposit = ethers.utils.parseUnits("4", 18);
     // //#region Deposit
     await dsa.cast(
       [hre.network.config.ConnectMaker],
@@ -430,11 +430,13 @@ describe("ConditionCanDoRefinance Unit Test", function () {
     // 3 - Test if Aave has enough liquidity for the futur borrow.
     // 4 - Get All debt of Aave.
     // let amountToBorrow = ethers.utils.parseUnits("500000", 18);
-    const amountToDeposit = ethers.utils.parseUnits("1", 18);
+    const amountToDeposit = ethers.utils.parseUnits("4", 18);
 
     const amountToBorrow = (
       await oracleAggregator.getExpectedReturnAmount(
-        ethers.utils.parseUnits("65", 16),
+        amountToDeposit
+          .mul(ethers.utils.parseUnits("65", 16))
+          .div(ethers.utils.parseUnits("1", 18)),
         ETH,
         hre.network.config.DAI
       )

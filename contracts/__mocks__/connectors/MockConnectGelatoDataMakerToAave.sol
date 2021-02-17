@@ -10,31 +10,32 @@ import {
 import {DAI, ETH} from "../../constants/CTokens.sol";
 import {
     CONNECT_MAKER,
+    CONNECT_AAVE_V2,
     CONNECT_BASIC,
     INSTA_POOL_V2
 } from "../../constants/CInstaDapp.sol";
 import {
     _getMakerVaultDebt,
-    _getMakerVaultCollateralBalance,
-    _isVaultOwner
+    _getMakerVaultCollateralBalance
 } from "../../functions/dapps/FMaker.sol";
 import {
     _encodeFlashPayback
 } from "../../functions/InstaDapp/connectors/FInstaPoolV2.sol";
 import {
     _encodePaybackMakerVault,
-    _encodedWithdrawMakerVault,
-    _encodedDepositMakerVault,
-    _encodeBorrowMakerVault,
-    _encodeOpenMakerVault
+    _encodedWithdrawMakerVault
 } from "../../functions/InstaDapp/connectors/FConnectMaker.sol";
+import {
+    _encodeDepositAave,
+    _encodeBorrowAave
+} from "../../functions/InstaDapp/connectors/FConnectAave.sol";
 import {
     _encodeCalculateFee
 } from "../../functions/InstaDapp/connectors/FConnectDebtBridgeFee.sol";
 import {_getGelatoExecutorFees} from "../../functions/gelato/FGelato.sol";
 import {
     _getFlashLoanRoute,
-    _getGasCostMakerToMaker,
+    _getGasCostMakerToAave,
     _getRealisedDebt
 } from "../../functions/gelato/FGelatoDebtBridge.sol";
 import {
@@ -47,9 +48,10 @@ import {IOracleAggregator} from "../../interfaces/gelato/IOracleAggregator.sol";
 import {_convertTo18} from "../../vendor/Convert.sol";
 import {GELATO_EXECUTOR_MODULE} from "../../constants/CGelato.sol";
 
-contract MockConnectGelatoDataMakerToMaker is BDebtBridgeFromMaker {
+contract MockConnectGelatoDataMakerToAave is BDebtBridgeFromMaker {
     // solhint-disable const-name-snakecase
-    string public constant override name = "ConnectGelatoDataMakerToMaker-v3.0";
+    string public constant override name =
+        "MockConnectGelatoDataMakerToAave-v1.0";
 
     // solhint-disable no-empty-blocks
     constructor(
@@ -69,45 +71,37 @@ contract MockConnectGelatoDataMakerToMaker is BDebtBridgeFromMaker {
     /// @notice Entry Point for DSA.cast DebtBridge from e.g ETH-A to ETH-B
     /// @dev payable to be compatible in conjunction with DSA.cast payable target
     /// @param _mockRoute mock route Id.
-    /// @param _vaultAId Id of the unsafe vault of the client of Vault A Collateral.
-    /// @param _vaultBId Id of the vault B Collateral of the client.
-    /// @param _colType colType of the new vault. example : ETH-B, ETH-A.
-    function getDataAndCastMakerToMaker(
-        uint256 _vaultAId,
-        uint256 _vaultBId,
-        string calldata _colType,
+    /// @param _vaultId Id of the unsafe vault of the client of Vault A Collateral.
+    /// @param _colToken  vault's col token address .
+    function getDataAndCastMakerToAave(
+        uint256 _vaultId,
+        address _colToken,
         uint256 _mockRoute
     ) external payable {
         (address[] memory targets, bytes[] memory datas) =
-            _dataMakerToMaker(_vaultAId, _vaultBId, _colType, _mockRoute);
+            _dataMakerToAave(_vaultId, _colToken, _mockRoute);
 
         _cast(targets, datas);
     }
 
     /* solhint-disable function-max-lines */
 
-    function _dataMakerToMaker(
-        uint256 _vaultAId,
-        uint256 _vaultBId,
-        string calldata _colType,
+    function _dataMakerToAave(
+        uint256 _vaultId,
+        address _colToken,
         uint256 _mockRoute
     ) internal view returns (address[] memory targets, bytes[] memory datas) {
         targets = new address[](1);
         targets[0] = INSTA_POOL_V2;
 
-        _vaultBId = _isVaultOwner(_vaultBId, address(this)) ? _vaultBId : 0;
+        uint256 daiToBorrow = _getRealisedDebt(_getMakerVaultDebt(_vaultId));
 
-        uint256 daiToBorrow = _getRealisedDebt(_getMakerVaultDebt(_vaultAId));
-        uint256 wColToWithdrawFromMaker =
-            _getMakerVaultCollateralBalance(_vaultAId);
-        uint256 route = _getFlashLoanRoute(DAI, daiToBorrow);
+        uint256 route = _getFlashLoanRoute(DAI, _vaultId, daiToBorrow);
         route = _mockRoute;
 
         (uint256 gasFeesPaidFromDebt, uint256 decimals) =
             IOracleAggregator(oracleAggregator).getExpectedReturnAmount(
-                _getGelatoExecutorFees(
-                    _getGasCostMakerToMaker(_vaultBId == 0, route)
-                ),
+                _getGelatoExecutorFees(_getGasCostMakerToAave(route)),
                 ETH,
                 DAI
             );
@@ -115,21 +109,13 @@ contract MockConnectGelatoDataMakerToMaker is BDebtBridgeFromMaker {
         gasFeesPaidFromDebt = _convertTo18(decimals, gasFeesPaidFromDebt);
 
         (address[] memory _targets, bytes[] memory _datas) =
-            _vaultBId == 0
-                ? _spellsMakerToNewMakerVault(
-                    _vaultAId,
-                    _colType,
-                    daiToBorrow,
-                    wColToWithdrawFromMaker,
-                    gasFeesPaidFromDebt
-                )
-                : _spellsMakerToMaker(
-                    _vaultAId,
-                    _vaultBId,
-                    daiToBorrow,
-                    wColToWithdrawFromMaker,
-                    gasFeesPaidFromDebt
-                );
+            _spellsMakerToAave(
+                _vaultId,
+                _colToken,
+                daiToBorrow,
+                _getMakerVaultCollateralBalance(_vaultId),
+                gasFeesPaidFromDebt
+            );
 
         datas = new bytes[](1);
         datas[0] = abi.encodeWithSelector(
@@ -141,69 +127,10 @@ contract MockConnectGelatoDataMakerToMaker is BDebtBridgeFromMaker {
         );
     }
 
-    function _spellsMakerToNewMakerVault(
-        uint256 _vaultAId,
-        string calldata _colType,
-        uint256 _daiToBorrow,
-        uint256 _colToWithdrawFromMaker,
-        uint256 _gasFeesPaidFromDebt
-    ) internal view returns (address[] memory targets, bytes[] memory datas) {
-        targets = new address[](9);
-        targets[0] = CONNECT_MAKER; // payback
-        targets[1] = CONNECT_MAKER; // withdraw
-        targets[2] = _connectGelatoDebtBridgeFee; // calculate fee
-        targets[3] = CONNECT_MAKER; // open new B vault
-        targets[4] = CONNECT_MAKER; // deposit
-        targets[5] = CONNECT_MAKER; // borrow
-        targets[6] = CONNECT_BASIC; // user pay fee to fee collector
-        targets[7] = CONNECT_BASIC; // user pay fast transaction fee to executor
-        targets[8] = INSTA_POOL_V2; // flashPayback
-
-        datas = new bytes[](9);
-        datas[0] = _encodePaybackMakerVault(
-            _vaultAId,
-            type(uint256).max,
-            0,
-            600
-        );
-        datas[1] = _encodedWithdrawMakerVault(
-            _vaultAId,
-            type(uint256).max,
-            0,
-            0
-        );
-        datas[2] = _encodeCalculateFee(
-            0,
-            _gasFeesPaidFromDebt,
-            IInstaFeeCollector(instaFeeCollector).fee(),
-            600,
-            600,
-            601
-        );
-        datas[3] = _encodeOpenMakerVault(_colType);
-        datas[4] = _encodedDepositMakerVault(0, _colToWithdrawFromMaker, 0, 0);
-        datas[5] = _encodeBorrowMakerVault(0, 0, 600, 0);
-        datas[6] = _encodeBasicWithdraw(
-            DAI,
-            0,
-            IInstaFeeCollector(instaFeeCollector).feeCollector(),
-            601,
-            0
-        );
-        datas[7] = _encodeBasicWithdraw(
-            DAI,
-            _gasFeesPaidFromDebt,
-            payable(GELATO_EXECUTOR_MODULE),
-            0,
-            0
-        );
-        datas[8] = _encodeFlashPayback(DAI, _daiToBorrow, 0, 0);
-    }
-
-    function _spellsMakerToMaker(
-        uint256 _vaultAId,
-        uint256 _vaultBId,
-        uint256 _daiToBorrow,
+    function _spellsMakerToAave(
+        uint256 _vaultId,
+        address _colToken,
+        uint256 _daiDebtAmt,
         uint256 _colToWithdrawFromMaker,
         uint256 _gasFeesPaidFromDebt
     ) internal view returns (address[] memory targets, bytes[] memory datas) {
@@ -211,21 +138,21 @@ contract MockConnectGelatoDataMakerToMaker is BDebtBridgeFromMaker {
         targets[0] = CONNECT_MAKER; // payback
         targets[1] = CONNECT_MAKER; // withdraw
         targets[2] = _connectGelatoDebtBridgeFee; // calculate fee
-        targets[3] = CONNECT_MAKER; // deposit
-        targets[4] = CONNECT_MAKER; // borrow
+        targets[3] = CONNECT_AAVE_V2; // deposit
+        targets[4] = CONNECT_AAVE_V2; // borrow
         targets[5] = CONNECT_BASIC; // pay fee to instadapp fee collector
         targets[6] = CONNECT_BASIC; // pay fast transaction fee to gelato executor
         targets[7] = INSTA_POOL_V2; // flashPayback
 
         datas = new bytes[](8);
         datas[0] = _encodePaybackMakerVault(
-            _vaultAId,
+            _vaultId,
             type(uint256).max,
             0,
             600
         );
         datas[1] = _encodedWithdrawMakerVault(
-            _vaultAId,
+            _vaultId,
             type(uint256).max,
             0,
             0
@@ -238,13 +165,8 @@ contract MockConnectGelatoDataMakerToMaker is BDebtBridgeFromMaker {
             600,
             601
         );
-        datas[3] = _encodedDepositMakerVault(
-            _vaultBId,
-            _colToWithdrawFromMaker,
-            0,
-            0
-        );
-        datas[4] = _encodeBorrowMakerVault(_vaultBId, 0, 600, 0);
+        datas[3] = _encodeDepositAave(_colToken, _colToWithdrawFromMaker, 0, 0);
+        datas[4] = _encodeBorrowAave(DAI, 0, 2, 600, 0); // Variable rate by default.
         datas[5] = _encodeBasicWithdraw(
             DAI,
             0,
@@ -259,7 +181,7 @@ contract MockConnectGelatoDataMakerToMaker is BDebtBridgeFromMaker {
             0,
             0
         );
-        datas[7] = _encodeFlashPayback(DAI, _daiToBorrow, 0, 0);
+        datas[7] = _encodeFlashPayback(DAI, _daiDebtAmt, 0, 0);
     }
 
     /* solhint-enable function-max-lines */

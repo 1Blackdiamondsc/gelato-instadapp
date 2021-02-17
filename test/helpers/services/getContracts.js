@@ -134,6 +134,10 @@ module.exports = async function () {
     "ConditionMakerVaultUnsafeOSM"
   );
 
+  const conditionMakerVaultUnsafePosition = await ethers.getContract(
+    "ConditionMakerVaultUnSafePosition"
+  );
+
   const conditionMakerToAaveSafe = await ethers.getContract(
     "ConditionMakerToAaveSafe"
   );
@@ -182,6 +186,7 @@ module.exports = async function () {
     compoundResolver,
     conditionMakerVaultUnsafe,
     conditionMakerVaultUnsafeOSM,
+    conditionMakerVaultUnsafePosition,
     priceOracleResolver,
     dsa: ethers.constants.AddressZero,
     makerResolver,

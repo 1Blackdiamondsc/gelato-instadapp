@@ -23,23 +23,32 @@ import {
 import {
     IInstaPoolResolver
 } from "../../interfaces/InstaDapp/resolvers/IInstaPoolResolver.sol";
-import {_getMakerVaultDebt} from "../dapps/FMaker.sol";
+import {_getMakerVaultDebt, _debtCeilingIsReached} from "../dapps/FMaker.sol";
+import {_isAaveUnderlyingLiquidV1} from "../dapps/FAave.sol";
+import {_isCompoundUnderlyingLiquidity} from "../dapps/FCompound.sol";
 import {_getGelatoExecutorFees} from "./FGelato.sol";
 import {DAI, ETH} from "../../constants/CTokens.sol";
 import {IOracleAggregator} from "../../interfaces/gelato/IOracleAggregator.sol";
 import {_convertTo18} from "../../vendor/Convert.sol";
 
-function _getFlashLoanRoute(address _debtToken, uint256 _debtAmt)
-    view
-    returns (uint256)
-{
+function _getFlashLoanRoute(
+    address _debtToken,
+    uint256 _vaultId,
+    uint256 _debtAmt
+) view returns (uint256) {
     IInstaPoolResolver.RouteData memory rData =
         IInstaPoolResolver(INSTA_POOL_RESOLVER).getTokenLimit(_debtToken);
 
     if (rData.dydx > _debtAmt) return 0;
-    if (rData.maker > _debtAmt) return 1;
-    if (rData.compound > _debtAmt) return 2;
-    if (rData.aave > _debtAmt) return 3;
+    if (
+        rData.compound > _debtAmt &&
+        _isCompoundUnderlyingLiquidity(_debtToken, _debtAmt)
+    ) return 1;
+    if (rData.maker > _debtAmt && !_debtCeilingIsReached(_vaultId, _debtAmt))
+        return 2;
+    if (
+        rData.aave > _debtAmt && _isAaveUnderlyingLiquidV1(_debtToken, _debtAmt)
+    ) return 3;
     revert("FGelatoDebtBridge._getFlashLoanRoute: illiquid");
 }
 
@@ -114,7 +123,9 @@ function _getMaxAmtToBorrowMakerToAave(
     return
         _getMaxAmtToBorrow(
             wDaiToBorrow,
-            _getGasCostMakerToAave(_getFlashLoanRoute(DAI, wDaiToBorrow)),
+            _getGasCostMakerToAave(
+                _getFlashLoanRoute(DAI, _fromVaultId, wDaiToBorrow)
+            ),
             _fees,
             _oracleAggregator
         );
@@ -130,7 +141,9 @@ function _getMaxAmtToBorrowMakerToCompound(
     return
         _getMaxAmtToBorrow(
             wDaiToBorrow,
-            _getGasCostMakerToCompound(_getFlashLoanRoute(DAI, wDaiToBorrow)),
+            _getGasCostMakerToCompound(
+                _getFlashLoanRoute(DAI, _fromVaultId, wDaiToBorrow)
+            ),
             _fees,
             _oracleAggregator
         );
@@ -149,7 +162,7 @@ function _getMaxAmtToBorrowMakerToMaker(
             wDaiToBorrow,
             _getGasCostMakerToMaker(
                 _newVault,
-                _getFlashLoanRoute(DAI, wDaiToBorrow)
+                _getFlashLoanRoute(DAI, _fromVaultId, wDaiToBorrow)
             ),
             _fees,
             _oracleAggregator

@@ -25,10 +25,18 @@ contract CompoundResolver {
 
     function compoundPositionWouldBeSafe(
         address _dsa,
+        address _colToken,
         uint256 _colAmt,
         address _debtToken,
         uint256 _debtAmt
     ) public view returns (bool) {
-        return _compoundPositionWillBeSafe(_dsa, _colAmt, _debtToken, _debtAmt);
+        return
+            _compoundPositionWillBeSafe(
+                _dsa,
+                _colToken,
+                _colAmt,
+                _debtToken,
+                _debtAmt
+            );
     }
 }

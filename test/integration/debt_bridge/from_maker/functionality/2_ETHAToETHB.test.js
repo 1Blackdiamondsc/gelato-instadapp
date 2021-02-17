@@ -173,9 +173,7 @@ describe("Full Debt Bridge refinancing loan ETH-A => ETH-B", function () {
     expect(gelatoGasPrice).to.be.lte(constants.GAS_PRICE_CEIL);
 
     // TO DO: base mock price off of real price data
-    await contracts.priceOracleResolver.setMockPrice(
-      ethers.utils.parseUnits("400", 18)
-    );
+    await contracts.priceOracleResolver.setMockPrice(constants.BASE_MOCK_PRICE);
 
     expect(
       await contracts.gelatoCore
@@ -185,7 +183,7 @@ describe("Full Debt Bridge refinancing loan ETH-A => ETH-B", function () {
 
     // TO DO: base mock price off of real price data
     await contracts.priceOracleResolver.setMockPrice(
-      ethers.utils.parseUnits("250", 18)
+      constants.BASE_MOCK_PRICE_OFF
     );
 
     expect(
@@ -280,7 +278,7 @@ describe("Full Debt Bridge refinancing loan ETH-A => ETH-B", function () {
     expect(cdps.ids[1].isZero()).to.be.false;
 
     let debtOnMakerVaultB;
-    if (route === 1) {
+    if (route === 2) {
       debtOnMakerVaultB = await contracts.makerResolver.getMakerVaultRawDebt(
         vaultBId
       );
@@ -303,7 +301,7 @@ describe("Full Debt Bridge refinancing loan ETH-A => ETH-B", function () {
       .mul(feeRatio)
       .div(ethers.utils.parseUnits("1", 18))
       .add(gasFeesPaidFromDebt);
-    if (route === 1) {
+    if (route === 2) {
       expect(expectedDebtOnMakerVaultB).to.be.lte(debtOnMakerVaultB);
     } else {
       expect(expectedDebtOnMakerVaultB).to.be.equal(debtOnMakerVaultB);

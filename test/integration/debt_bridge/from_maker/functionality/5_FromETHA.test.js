@@ -166,7 +166,6 @@ describe("Full Debt Bridge refinancing ETHA => Aave by multi protocol", function
 
     const gelatoGasPrice = await hre.run("fetchGelatoGasPrice");
     expect(gelatoGasPrice).to.be.lte(constants.GAS_PRICE_CEIL);
-
     // TO DO: base mock price off of real price data
     await contracts.priceOracleResolver.setMockPrice(
       ethers.utils.parseUnits("400", 18)
@@ -179,15 +178,18 @@ describe("Full Debt Bridge refinancing ETHA => Aave by multi protocol", function
     ).to.be.equal("ConditionNotOk:MakerVaultNotUnsafe");
 
     // Withdraw some collateral to decrease the collateralization ratio
-
     const amountToWithdraw = await contracts.oracleAggregator.getExpectedReturnAmount(
       (
         await contracts.oracleAggregator.getExpectedReturnAmount(
-          ethers.utils.parseEther("10"),
+          constants.MAKER_INITIAL_ETH,
           constants.ETH,
           hre.network.config.DAI
         )
-      )[0].sub(ethers.utils.parseUnits("1650", 18)),
+      )[0].sub(
+        constants.MAKER_INITIAL_DEBT.mul(
+          ethers.utils.parseUnits("150", 16)
+        ).div(ethers.utils.parseUnits("1", 18))
+      ),
       hre.network.config.DAI,
       constants.ETH
     );
@@ -298,20 +300,22 @@ describe("Full Debt Bridge refinancing ETHA => Aave by multi protocol", function
       .div(ethers.utils.parseUnits("1", 18))
       .add(gasFeesPaidFromDebt);
 
-    if (route === 1) {
-      expect(expectedDebtOnAave).to.be.lte(
+    const actualDebtOnAave = (
+      await contracts.oracleAggregator.getExpectedReturnAmount(
         dsaAavePosition.totalBorrowsETH
           .div(ethers.utils.parseUnits("1", 8))
-          .mul(dsaAavePosition.ethPriceInUsd)
-      );
+          .mul(dsaAavePosition.ethPriceInUsd),
+        constants.ETH,
+        hre.network.config.DAI
+      )
+    )[0];
+
+    if (route === 2) {
+      expect(expectedDebtOnAave).to.be.lte(actualDebtOnAave);
     } else {
-      expect(
-        expectedDebtOnAave.sub(
-          dsaAavePosition.totalBorrowsETH
-            .div(ethers.utils.parseUnits("1", 8))
-            .mul(dsaAavePosition.ethPriceInUsd)
-        )
-      ).to.be.lt(ethers.utils.parseUnits("2", 0));
+      expect(expectedDebtOnAave.sub(actualDebtOnAave)).to.be.lt(
+        ethers.utils.parseUnits("2", 0)
+      );
     }
 
     // Estimated amount of collateral should be equal to the actual one read on aave contracts

@@ -120,8 +120,8 @@ describe("ConditionMakerToAaveSafe Unit Test", function () {
     // 2 - Borrow.
     // 3 - Test if the anticipated position will be safe in Aave.
 
-    let amountToBorrow = ethers.utils.parseUnits("500", 18);
-    const amountToDeposit = ethers.utils.parseUnits("2", 18);
+    let amountToBorrow = ethers.utils.parseUnits("2000", 18);
+    const amountToDeposit = ethers.utils.parseUnits("4", 18);
 
     //#region Deposit
 

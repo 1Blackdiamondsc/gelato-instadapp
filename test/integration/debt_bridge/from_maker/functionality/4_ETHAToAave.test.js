@@ -178,9 +178,7 @@ describe("Full Debt Bridge refinancing ETHA => Aave", function () {
     expect(gelatoGasPrice).to.be.lte(constants.GAS_PRICE_CEIL);
 
     // TO DO: base mock price off of real price data
-    await contracts.priceOracleResolver.setMockPrice(
-      ethers.utils.parseUnits("400", 18)
-    );
+    await contracts.priceOracleResolver.setMockPrice(constants.BASE_MOCK_PRICE);
 
     expect(
       await contracts.gelatoCore
@@ -190,7 +188,7 @@ describe("Full Debt Bridge refinancing ETHA => Aave", function () {
 
     // TO DO: base mock price off of real price data
     await contracts.priceOracleResolver.setMockPrice(
-      ethers.utils.parseUnits("250", 18)
+      constants.BASE_MOCK_PRICE_OFF
     );
 
     expect(
@@ -285,20 +283,22 @@ describe("Full Debt Bridge refinancing ETHA => Aave", function () {
       .div(ethers.utils.parseUnits("1", 18))
       .add(gasFeesPaidFromDebt);
 
-    if (route === 1) {
-      expect(expectedDebtOnAave).to.be.lte(
+    const actualDebtOnAave = (
+      await contracts.oracleAggregator.getExpectedReturnAmount(
         dsaAavePosition.totalBorrowsETH
           .div(ethers.utils.parseUnits("1", 8))
-          .mul(dsaAavePosition.ethPriceInUsd)
-      );
+          .mul(dsaAavePosition.ethPriceInUsd),
+        constants.ETH,
+        hre.network.config.DAI
+      )
+    )[0];
+
+    if (route === 2) {
+      expect(expectedDebtOnAave).to.be.lte(actualDebtOnAave);
     } else {
-      expect(
-        expectedDebtOnAave.sub(
-          dsaAavePosition.totalBorrowsETH
-            .div(ethers.utils.parseUnits("1", 8))
-            .mul(dsaAavePosition.ethPriceInUsd)
-        )
-      ).to.be.lt(ethers.utils.parseUnits("2", 0));
+      expect(expectedDebtOnAave.sub(actualDebtOnAave)).to.be.lt(
+        ethers.utils.parseUnits("2", 0)
+      );
     }
 
     // Estimated amount of collateral should be equal to the actual one read on aave contracts

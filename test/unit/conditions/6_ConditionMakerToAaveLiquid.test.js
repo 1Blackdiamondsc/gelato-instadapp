@@ -31,6 +31,7 @@ describe("ConditionMakerToAaveLiquid Unit Test", function () {
   let DAI;
 
   let conditionMakerToAaveLiquid;
+  let aaveResolver;
 
   let dsa;
   let cdpAId;
@@ -70,6 +71,7 @@ describe("ConditionMakerToAaveLiquid Unit Test", function () {
     conditionMakerToAaveLiquid = await ethers.getContract(
       "ConditionMakerToAaveLiquid"
     );
+    aaveResolver = await ethers.getContract("AaveResolver");
 
     // Create DeFi Smart Account
 
@@ -109,8 +111,8 @@ describe("ConditionMakerToAaveLiquid Unit Test", function () {
     // 2 - Borrow.
     // 3 - Test if Aave has enough liquidity for the futur borrow.
 
-    let amountToBorrow = ethers.utils.parseUnits("500", 18);
-    const amountToDeposit = ethers.utils.parseUnits("2", 18);
+    let amountToBorrow = ethers.utils.parseUnits("2000", 18);
+    const amountToDeposit = ethers.utils.parseUnits("4", 18);
 
     //#region Deposit
 
@@ -163,8 +165,10 @@ describe("ConditionMakerToAaveLiquid Unit Test", function () {
     // 2 - Borrow.
     // 3 - Test if Aave has enough liquidity for the futur borrow.
 
-    const amountToBorrow = ethers.utils.parseUnits("3000000", 18); // for Block 11423903 the amount of DAI in Aave is ~1.5 millions dollars
-    const amountToDeposit = ethers.utils.parseUnits("10000", 18);
+    const amountToBorrow = (
+      await aaveResolver.getLiquidity(hre.network.config.DAI)
+    ).add(ethers.utils.parseUnits("1000", 0)); // for Block 11423903 the amount of DAI in Aave is ~1.5 millions dollars
+    const amountToDeposit = ethers.utils.parseUnits("1000000", 18);
 
     //#region Deposit
 

@@ -1,14 +1,12 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.0;
 
-import {CompData, AccountLiquidityLocalVars} from "../../structs/SCompound.sol";
 import {INSTA_MAPPING} from "../../constants/CInstaDapp.sol";
 import {COMPTROLLER} from "../../constants/CCompound.sol";
 import {InstaMapping} from "../../interfaces/InstaDapp/IInstaDapp.sol";
 import {ICToken} from "../../interfaces/dapps/Compound/ICToken.sol";
 import {IComptroller} from "../../interfaces/dapps/Compound/IComptroller.sol";
 import {IPriceOracle} from "../../interfaces/dapps/Compound/IPriceOracle.sol";
-import {mul} from "../../vendor/DSMath.sol";
 
 function _getCToken(address _token) view returns (address) {
     return InstaMapping(INSTA_MAPPING).cTokenMapping(_token);
@@ -16,93 +14,38 @@ function _getCToken(address _token) view returns (address) {
 
 function _wouldCompoundAccountBeLiquid(
     address _dsa,
+    address _cColToken,
     uint256 _colAmt,
-    address _cTokenModify,
+    address _cDebtToken,
     uint256 _debtAmt
 ) view returns (bool) {
-    AccountLiquidityLocalVars memory vars;
-
     IComptroller comptroller = IComptroller(COMPTROLLER);
+    IPriceOracle priceOracle = IPriceOracle(comptroller.oracle());
 
-    ICToken[] memory assets = comptroller.getAssetsIn(_dsa);
-    for (uint256 i = 0; i < assets.length; i++) {
-        ICToken asset = assets[i];
-        // Read the balances and exchange rate from the cToken
-        vars = _getAssetLiquidity(vars, _dsa, asset);
+    (, uint256 collateralFactor, ) = comptroller.markets(_cColToken);
+    (uint256 error, uint256 liquidity, uint256 shortfall) =
+        comptroller.getAccountLiquidity(_dsa);
 
-        // Calculate effects of interacting with cTokenModify
-        if (address(asset) == _cTokenModify) {
-            vars.sumCollateral = mulScalarTruncateAddUInt(
-                vars.tokensToDenom,
-                _colAmt,
-                vars.sumCollateral
-            );
+    require(error == 0, "Get Account Liquidity function failed.");
 
-            // borrow effect
-            // sumBorrowPlusEffects += oraclePrice * debtAmt
-            vars.sumBorrowPlusEffects = mulScalarTruncateAddUInt(
-                vars.oraclePrice,
-                _debtAmt,
-                vars.sumBorrowPlusEffects
-            );
-        }
-    }
-
-    if (assets.length == 0) {
-        vars = _getAssetLiquidity(vars, _dsa, ICToken(_cTokenModify));
-
-        vars.sumCollateral = mulScalarTruncateAddUInt(
-            vars.tokensToDenom,
-            _colAmt,
-            vars.sumCollateral
-        );
-
-        vars.sumBorrowPlusEffects = mulScalarTruncateAddUInt(
-            vars.oraclePrice,
+    return
+        mulScalarTruncateAddUInt(
+            mul_expScale(collateralFactor, _colAmt),
+            priceOracle.getUnderlyingPrice(ICToken(_cColToken)),
+            liquidity
+        ) >
+        mulScalarTruncateAddUInt(
             _debtAmt,
-            vars.sumBorrowPlusEffects
+            priceOracle.getUnderlyingPrice(ICToken(_cDebtToken)),
+            shortfall
         );
-    }
-
-    return vars.sumCollateral > vars.sumBorrowPlusEffects;
 }
 
-function _getAssetLiquidity(
-    AccountLiquidityLocalVars memory vars,
-    address _dsa,
-    ICToken _asset
-) view returns (AccountLiquidityLocalVars memory) {
-    uint256 oErr;
-    IComptroller comptroller = IComptroller(COMPTROLLER);
-
-    // Read the balances and exchange rate from the cToken
-    (oErr, vars.cTokenBalance, vars.borrowBalance, vars.exchangeRate) = ICToken(
-        _asset
-    )
-        .getAccountSnapshot(_dsa);
-    require(oErr == 0, "_getAssetLiquidity: semi-opaque error code");
-    (, vars.collateralFactor, ) = (comptroller.markets(address(_asset)));
-    vars.oraclePrice = IPriceOracle(IComptroller(COMPTROLLER).oracle())
-        .getUnderlyingPrice(_asset);
-    require(vars.oraclePrice != 0, "");
-
-    vars.tokensToDenom = mul_expScale(
-        mul_expScale(vars.collateralFactor, vars.exchangeRate),
-        vars.oraclePrice
-    );
-
-    vars.sumCollateral = mulScalarTruncateAddUInt(
-        vars.tokensToDenom,
-        vars.cTokenBalance,
-        vars.sumCollateral
-    );
-
-    vars.sumBorrowPlusEffects = mulScalarTruncateAddUInt(
-        vars.oraclePrice,
-        vars.borrowBalance,
-        vars.sumBorrowPlusEffects
-    );
-    return vars;
+function _isCompoundUnderlyingLiquidity(address _debtToken, uint256 _debtAmt)
+    view
+    returns (bool)
+{
+    return ICToken(_getCToken(_debtToken)).getCash() > _debtAmt;
 }
 
 // Compound Math Function
@@ -116,7 +59,7 @@ function mulScalarTruncateAddUInt(
 }
 
 function mul_expScale(uint256 _a, uint256 _b) pure returns (uint256) {
-    return mul(_a, _b) / 1e18;
+    return (_a * _b) / 1e18;
 }
 
 // Compound Math Function

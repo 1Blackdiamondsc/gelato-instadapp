@@ -134,7 +134,7 @@ describe("ConditionMakerToMakerSafe Unit Test", function () {
     ethBIlk = ethers.utils.formatBytes32String("ETH-B");
     ilkB = await vat.ilks(ethBIlk);
 
-    amountToBorrow = ethers.utils.parseUnits("500", 18);
+    amountToBorrow = ethers.utils.parseUnits("4500", 18);
   });
 
   it("#1: ok should return Ok when the gas fees didn't exceed a user define amount with vault creation", async function () {
@@ -410,7 +410,7 @@ describe("ConditionMakerToMakerSafe Unit Test", function () {
       ],
       userAddress,
       {
-        value: amountToDeposit,
+        value: ethers.utils.parseUnits("3", 17),
       }
     );
 

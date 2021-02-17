@@ -110,8 +110,8 @@ describe("ConditionDebtAmtIsDust Unit Test", function () {
     // 2 - Borrow.
     // 3 - Test if vault ETH-B will not have dust borrow.
 
-    amountToBorrow = ethers.utils.parseUnits("500", 18);
-    const amountToDeposit = ethers.utils.parseUnits("2", 18);
+    amountToBorrow = ethers.utils.parseUnits("2000", 18);
+    const amountToDeposit = ethers.utils.parseUnits("4", 18);
 
     //#region Deposit
 
@@ -162,7 +162,7 @@ describe("ConditionDebtAmtIsDust Unit Test", function () {
   });
 
   it("#2: debtAmtIsDustExplicit should return false if we borrow less than the dust limit", async function () {
-    amountToBorrow = ethers.utils.parseUnits("200", 18); // dust limit is 500 DAI (first Dec 2020) for ETH-B
+    amountToBorrow = ethers.utils.parseUnits("1000", 18); // dust limit is 2000 DAI (15 feb 2021) for ETH-B
 
     expect(await makerResolver.debtAmtIsDust(0, "ETH-B", amountToBorrow)).to.be
       .true;

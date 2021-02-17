@@ -23,19 +23,20 @@ function _canDoMakerToAaveDebtBridge(DebtBridgeInputData memory _data)
     view
     returns (bool)
 {
-    _data.debtAmt = _getMaxAmtToBorrow(
-        _data.debtAmt,
-        _getGasCostMakerToAave(_data.flashRoute),
-        _data.fees,
-        _data.oracleAggregator
-    );
+    uint256 maxBorToAavePos =
+        _getMaxAmtToBorrow(
+            _data.debtAmt,
+            _getGasCostMakerToAave(_data.flashRoute),
+            _data.fees,
+            _data.oracleAggregator
+        );
     return
-        _isAaveLiquid(DAI, _data.debtAmt) &&
+        _isAaveLiquid(DAI, maxBorToAavePos) &&
         _aavePositionWillBeSafe(
             _data.dsa,
             _data.colAmt,
             _data.colToken,
-            _data.debtAmt,
+            maxBorToAavePos,
             _data.oracleAggregator
         );
 }
@@ -44,31 +45,35 @@ function _canDoMakerToMakerDebtBridge(DebtBridgeInputData memory _data)
     view
     returns (bool)
 {
-    _data.debtAmt = _getMaxAmtToBorrow(
-        _data.debtAmt,
-        _getGasCostMakerToMaker(_data.makerDestVaultId == 0, _data.flashRoute),
-        _data.fees,
-        _data.oracleAggregator
-    );
+    uint256 maxBorToMakerPos =
+        _getMaxAmtToBorrow(
+            _data.debtAmt,
+            _getGasCostMakerToMaker(
+                _data.makerDestVaultId == 0,
+                _data.flashRoute
+            ),
+            _data.fees,
+            _data.oracleAggregator
+        );
     return
         !_isDebtAmtDust(
             _data.dsa,
             _data.makerDestVaultId,
             _data.makerDestColType,
-            _data.debtAmt
+            maxBorToMakerPos
         ) &&
         !_isDebtCeilingReached(
             _data.dsa,
             _data.makerDestVaultId,
             _data.makerDestColType,
-            _data.debtAmt
+            maxBorToMakerPos
         ) &&
         _destVaultWillBeSafe(
             _data.dsa,
             _data.makerDestVaultId,
             _data.makerDestColType,
             _data.colAmt,
-            _data.debtAmt
+            maxBorToMakerPos
         );
 }
 
@@ -76,18 +81,26 @@ function _canDoMakerToCompoundDebtBridge(DebtBridgeInputData memory _data)
     view
     returns (bool)
 {
-    _data.debtAmt = _getMaxAmtToBorrow(
-        _data.debtAmt,
-        _getGasCostMakerToCompound(_data.flashRoute),
-        _data.fees,
-        _data.oracleAggregator
-    );
+    uint256 maxBorToCompPos =
+        _getMaxAmtToBorrow(
+            _data.debtAmt,
+            _getGasCostMakerToCompound(_data.flashRoute),
+            _data.fees,
+            _data.oracleAggregator
+        );
+
     return
-        _cTokenHasLiquidity(DAI, _data.debtAmt) &&
+        _cTokenHasLiquidity(
+            DAI,
+            _data.flashRoute == 1
+                ? _data.debtAmt + maxBorToCompPos
+                : maxBorToCompPos
+        ) &&
         _compoundPositionWillBeSafe(
             _data.dsa,
+            _data.colToken,
             _data.colAmt,
             DAI,
-            _data.debtAmt
+            maxBorToCompPos
         );
 }

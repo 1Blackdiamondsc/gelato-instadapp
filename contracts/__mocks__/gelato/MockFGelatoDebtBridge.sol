@@ -9,12 +9,12 @@ import {
 } from "../../functions/gelato/FGelatoDebtBridge.sol";
 
 contract FGelatoDebtBridgeMock {
-    function getFlashLoanRoute(address _tokenA, uint256 _tokenADebtToMove)
-        public
-        view
-        returns (uint256)
-    {
-        return _getFlashLoanRoute(_tokenA, _tokenADebtToMove);
+    function getFlashLoanRoute(
+        address _tokenA,
+        uint256 _vaultId,
+        uint256 _tokenADebtToMove
+    ) public view returns (uint256) {
+        return _getFlashLoanRoute(_tokenA, _vaultId, _tokenADebtToMove);
     }
 
     function getGasCostMakerToMaker(bool _newVault, uint256 _route)

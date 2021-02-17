@@ -128,14 +128,14 @@ describe("ConditionMakerVaultUnsafe Unit Test", function () {
         await hre.run("abi-encode-withselector", {
           abi: ConnectMaker.abi,
           functionname: "borrow",
-          inputs: [cdpId, ethers.utils.parseUnits("1000", 18), 0, 0],
+          inputs: [cdpId, ethers.utils.parseUnits("2000", 18), 0, 0],
         }),
       ],
       userAddress
     );
 
     expect(await DAI.balanceOf(dsa.address)).to.be.equal(
-      ethers.utils.parseEther("1000")
+      ethers.utils.parseEther("2000")
     );
     // Add ETH/USD Maker Medianizer in the PriceOracleResolver
 

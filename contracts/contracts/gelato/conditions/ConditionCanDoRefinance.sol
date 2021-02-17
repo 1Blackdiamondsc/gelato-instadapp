@@ -96,7 +96,7 @@ contract ConditionCanDoRefinance is GelatoConditionsStandard {
                     makerDestVaultId: _makerDestVaultId,
                     makerDestColType: _makerDestColType,
                     fees: IInstaFeeCollector(instaFeeCollector).fee(),
-                    flashRoute: _getFlashLoanRoute(DAI, debtAmt)
+                    flashRoute: _getFlashLoanRoute(DAI, _fromVaultId, debtAmt)
                 })
             ) != PROTOCOL.NONE
                 ? OK

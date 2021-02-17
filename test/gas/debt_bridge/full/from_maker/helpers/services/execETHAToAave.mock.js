@@ -3,8 +3,6 @@
 // If the task becomes executable (returns "OK"), the "exec" function will be called
 // which will execute the debt refinancing on behalf of the user
 
-const hre = require("hardhat");
-const { ethers } = hre;
 const { expect } = require("chai");
 
 module.exports = async function (
@@ -24,9 +22,7 @@ module.exports = async function (
   // Ether market price went from the current price to 250$
 
   // TO DO: base mock price off of real price data
-  await contracts.priceOracleResolver.setMockPrice(
-    ethers.utils.parseUnits("400", 18)
-  );
+  await contracts.priceOracleResolver.setMockPrice(constants.BASE_MOCK_PRICE);
 
   expect(
     await contracts.mockDebtBridgeExecutorAave
@@ -36,7 +32,7 @@ module.exports = async function (
 
   // TO DO: base mock price off of real price data
   await contracts.priceOracleResolver.setMockPrice(
-    ethers.utils.parseUnits("250", 18)
+    constants.BASE_MOCK_PRICE_OFF
   );
 
   expect(

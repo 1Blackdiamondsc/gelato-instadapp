@@ -27,16 +27,16 @@ contract ConditionMakerToCompoundSafe is GelatoConditionsStandard {
         oracleAggregator = _oracleAggregator;
     }
 
-    function getConditionData(address _dsa, uint256 _fromVaultId)
-        public
-        pure
-        virtual
-        returns (bytes memory)
-    {
+    function getConditionData(
+        address _dsa,
+        address _colToken,
+        uint256 _fromVaultId
+    ) public pure virtual returns (bytes memory) {
         return
             abi.encodeWithSelector(
                 this.compoundPositionWillBeSafe.selector,
                 _dsa,
+                _colToken,
                 _fromVaultId
             );
     }
@@ -46,20 +46,21 @@ contract ConditionMakerToCompoundSafe is GelatoConditionsStandard {
         bytes calldata _conditionData,
         uint256
     ) public view virtual override returns (string memory) {
-        (address _dsa, uint256 _fromVaultId) =
-            abi.decode(_conditionData[4:], (address, uint256));
+        (address _dsa, address _colToken, uint256 _fromVaultId) =
+            abi.decode(_conditionData[4:], (address, address, uint256));
 
-        return compoundPositionWillBeSafe(_dsa, _fromVaultId);
+        return compoundPositionWillBeSafe(_dsa, _colToken, _fromVaultId);
     }
 
-    function compoundPositionWillBeSafe(address _dsa, uint256 _fromVaultId)
-        public
-        view
-        returns (string memory)
-    {
+    function compoundPositionWillBeSafe(
+        address _dsa,
+        address _colToken,
+        uint256 _fromVaultId
+    ) public view returns (string memory) {
         return
             _compoundPositionWillBeSafe(
                 _dsa,
+                _colToken,
                 _getMakerVaultCollateralBalance(_fromVaultId),
                 DAI,
                 _getMaxAmtToBorrowMakerToCompound(

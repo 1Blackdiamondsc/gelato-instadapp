@@ -95,7 +95,7 @@ contract MockConnectGelatoDataMakerToCompound is BDebtBridgeFromMaker {
 
         uint256 daiToBorrow = _getRealisedDebt(_getMakerVaultDebt(_vaultId));
 
-        uint256 route = _getFlashLoanRoute(DAI, daiToBorrow);
+        uint256 route = _getFlashLoanRoute(DAI, _vaultId, daiToBorrow);
         route = _mockRoute;
 
         (uint256 gasFeesPaidFromDebt, uint256 decimals) =

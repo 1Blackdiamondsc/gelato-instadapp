@@ -9,6 +9,7 @@ import {
 
 function _compoundPositionWillBeSafe(
     address _dsa,
+    address _colToken,
     uint256 _colAmt,
     address _debtToken,
     uint256 _debtAmt
@@ -16,6 +17,7 @@ function _compoundPositionWillBeSafe(
     return
         _wouldCompoundAccountBeLiquid(
             _dsa,
+            _getCToken(_colToken),
             _colAmt,
             _getCToken(_debtToken),
             _debtAmt

@@ -101,7 +101,7 @@ contract ConnectGelatoDataMakerToMaker is BDebtBridgeFromMaker {
         uint256 wColToWithdrawFromMaker =
             _getMakerVaultCollateralBalance(_vaultAId);
 
-        uint256 route = _getFlashLoanRoute(DAI, daiToBorrow);
+        uint256 route = _getFlashLoanRoute(DAI, _vaultAId, daiToBorrow);
 
         (uint256 gasFeesPaidFromDebt, uint256 decimals) =
             IOracleAggregator(oracleAggregator).getExpectedReturnAmount(

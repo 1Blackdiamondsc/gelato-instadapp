@@ -40,12 +40,13 @@ function _getFlashLoanRoute(
         IInstaPoolResolver(INSTA_POOL_RESOLVER).getTokenLimit(_debtToken);
 
     if (rData.dydx > _debtAmt) return 0;
+
+    if (rData.maker > _debtAmt && !_debtCeilingIsReached(_vaultId, _debtAmt))
+        return 1;
     if (
         rData.compound > _debtAmt &&
         _isCompoundUnderlyingLiquidity(_debtToken, _debtAmt)
-    ) return 1;
-    if (rData.maker > _debtAmt && !_debtCeilingIsReached(_vaultId, _debtAmt))
-        return 2;
+    ) return 2;
     if (
         rData.aave > _debtAmt && _isAaveUnderlyingLiquidV1(_debtToken, _debtAmt)
     ) return 3;

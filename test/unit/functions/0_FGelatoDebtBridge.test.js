@@ -128,22 +128,22 @@ describe("FGelatoDebtBridge Unit Tests", function () {
     ).to.be.equal(0);
   });
 
-  // it("getFlashLoanRoute should return 2 when maker has enough liquidity and cheaper protocol didn't have enough liquidity", async function () {
-  //   // const rData = await instaPoolResolver.getTokenLimit(DAI);
-  //   const daiAmtToBorrow = (await compoundResolver.cTokenBalance(DAI)).add(ethers.utils.parseUnits("1000", 0));
+  it("getFlashLoanRoute should return 1 when maker has enough liquidity and cheaper protocol didn't have enough liquidity", async function () {
+    const rData = await instaPoolResolver.getTokenLimit(DAI);
+    const daiAmtToBorrow = ethers.utils.parseUnits("1000", 18).add(rData.dydx);
 
-  //   expect(
-  //     await fGelatoDebtBridgeMock.getFlashLoanRoute(DAI, cdpId, daiAmtToBorrow)
-  //   ).to.be.equal(2);
-  // });
+    expect(
+      await fGelatoDebtBridgeMock.getFlashLoanRoute(DAI, cdpId, daiAmtToBorrow)
+    ).to.be.equal(1);
+  });
 
-  it("getFlashLoanRoute should return 1 when compound has enough liquidity and cheaper protocol didn't have enough liquidity", async function () {
+  it("getFlashLoanRoute should return 2 when compound has enough liquidity and cheaper protocol didn't have enough liquidity", async function () {
     const rData = await instaPoolResolver.getTokenLimit(DAI);
     const daiAmtToBorrow = ethers.utils.parseUnits("1000", 18).add(rData.maker);
 
     expect(
       await fGelatoDebtBridgeMock.getFlashLoanRoute(DAI, cdpId, daiAmtToBorrow)
-    ).to.be.equal(1);
+    ).to.be.equal(2);
   });
 
   // Seems aave has less liquidity than compound, is it always the case? If yes, why we should use this protocol.
@@ -160,18 +160,6 @@ describe("FGelatoDebtBridge Unit Tests", function () {
   //   })
 
   it("getFlashLoanRoute should revert with FGelatoDebtBridge._getFlashLoanRoute: illiquid", async function () {
-    await dsa.cast(
-      [hre.network.config.ConnectMaker],
-      [
-        await hre.run("abi-encode-withselector", {
-          abi: ConnectMaker.abi,
-          functionname: "borrow",
-          inputs: [cdpId, ethers.utils.parseUnits("1000000", 18), 0, 0],
-        }),
-      ],
-      userAddress
-    );
-
     const rData = await instaPoolResolver.getTokenLimit(DAI);
     const daiAmtToBorrow = ethers.utils
       .parseUnits("1000000", 18)

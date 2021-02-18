@@ -310,7 +310,7 @@ describe("Full Debt Bridge refinancing ETHA => Aave by multi protocol", function
       )
     )[0];
 
-    if (route === 2) {
+    if (route === 1) {
       expect(expectedDebtOnAave).to.be.lte(actualDebtOnAave);
     } else {
       expect(expectedDebtOnAave.sub(actualDebtOnAave)).to.be.lt(

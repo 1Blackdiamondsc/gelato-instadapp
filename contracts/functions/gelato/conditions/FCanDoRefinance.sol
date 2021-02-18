@@ -92,7 +92,7 @@ function _canDoMakerToCompoundDebtBridge(DebtBridgeInputData memory _data)
     return
         _cTokenHasLiquidity(
             DAI,
-            _data.flashRoute == 1
+            _data.flashRoute == 2
                 ? _data.debtAmt + maxBorToCompPos
                 : maxBorToCompPos
         ) &&

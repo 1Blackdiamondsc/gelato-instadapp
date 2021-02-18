@@ -279,7 +279,7 @@ describe("Full Debt Bridge ETHA => Compound", function () {
       .div(ethers.utils.parseUnits("1", 18))
       .add(gasFeesPaidFromDebt);
 
-    if (route === 2) {
+    if (route === 1) {
       expect(expectedDebtOnCompound).to.be.lte(
         compoundPosition[0].borrowBalanceStoredUser
       );

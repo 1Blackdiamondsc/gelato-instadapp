@@ -276,7 +276,7 @@ describe("Full Debt Bridge refinancing loan from ETH-A => new ETH-B", function (
     expect(cdps.ids[1].isZero()).to.be.false;
 
     let debtOnMakerVaultB;
-    if (route === 2) {
+    if (route === 1) {
       debtOnMakerVaultB = await contracts.makerResolver.getMakerVaultRawDebt(
         vaultBId
       );
@@ -299,7 +299,7 @@ describe("Full Debt Bridge refinancing loan from ETH-A => new ETH-B", function (
       .mul(feeRatio)
       .div(ethers.utils.parseUnits("1", 18))
       .add(gasFeesPaidFromDebt);
-    if (route === 2) {
+    if (route === 1) {
       expect(expectedDebtOnMakerVaultB).to.be.lte(debtOnMakerVaultB);
     } else {
       expect(expectedDebtOnMakerVaultB).to.be.equal(debtOnMakerVaultB);
